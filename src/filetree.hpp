@@ -30,7 +30,7 @@
 #include <wx/iconloc.h>
 #include <wx/artprov.h>
 
-namespace pl {
+namespace navi {
 
 class FileTreeItemData : public wxTreeItemData {
 private:
@@ -136,6 +136,6 @@ public:
     DECLARE_EVENT_TABLE()
 };
 
-} //namespace pl
+} //namespace navi 
 
 #endif // FILETREE_HPP

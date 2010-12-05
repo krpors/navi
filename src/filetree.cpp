@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-namespace pl {
+namespace navi {
 
 FileTreeItemData::FileTreeItemData(const wxFileName& fileName) :
         m_fileName(fileName) {
@@ -219,5 +219,5 @@ BEGIN_EVENT_TABLE(FileTree, wxTreeCtrl)
     EVT_TREE_ITEM_COLLAPSING(FileTree::ID_TREE, FileTree::onCollapseItem)
 END_EVENT_TABLE()
 
-} //namespace pl
+} //namespace navi 
 

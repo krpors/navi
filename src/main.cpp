@@ -91,4 +91,4 @@ END_EVENT_TABLE()
 
 
 // This is main() replacement.
-IMPLEMENT_APP(pl::NaviApp)
+IMPLEMENT_APP(navi::NaviApp)
