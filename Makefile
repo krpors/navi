@@ -15,7 +15,7 @@ OBJECTS=$(BIN)/main.o\
 # Following targets build the source files.
 .PHONY: all
 all: init $(OBJECTS)
-	$(CC) $(OBJECTS) $(LDFLAGS) -o $(BIN)/prelude
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $(BIN)/navi
 
 $(BIN)/main.o: $(SRC)/main.cpp $(SRC)/main.hpp
 	$(CC) $(CFLAGS) $(SRC)/main.cpp -o $@
