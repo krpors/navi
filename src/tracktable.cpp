@@ -17,9 +17,36 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
-#include <iostream>
+#include "tracktable.hpp"
 
-#include <wx/wx.h>
+namespace navi {
 
-namespace pl {
-} // namespace pl
+//================================================================================
+
+TrackTable::TrackTable(wxWindow* parent) :
+        wxListCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL) {
+    wxListItem item;
+    item.SetText(wxT("Artist"));
+    InsertColumn(0, item);
+    SetColumnWidth(0, wxLIST_AUTOSIZE);
+
+    item.SetText(wxT("Title"));
+    InsertColumn(1, item);
+    SetColumnWidth(1, wxLIST_AUTOSIZE);
+
+    InsertItem(0, wxT("Marc Aurel"));
+    SetItem(0, 0, wxT("Marc Aurel"));
+    SetItem(0, 1, wxT("The Sound of Love"));
+
+    InsertItem(1, wxT("Kingsize"));
+    SetItem(1, 0, wxT("Kingsize1"));
+    SetItem(1, 1, wxT("Galactic Storm"));
+
+}
+
+TrackTable::~TrackTable() {
+}
+
+//================================================================================
+
+} // namespace navi

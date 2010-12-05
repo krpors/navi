@@ -20,11 +20,24 @@
 #ifndef TRACKTABLE_HPP 
 #define TRACKTABLE_HPP 
 
-#include "filetree.hpp"
+#include <wx/listctrl.h>
 
 #include <iostream>
 
-namespace pl {
-} // namespace pl
+namespace navi {
+
+class TrackTableItem : public wxListItem {
+};
+
+//================================================================================
+
+class TrackTable : public wxListCtrl {
+private:
+public:
+    TrackTable(wxWindow* parent);
+    ~TrackTable();
+};
+
+} // namespace navi 
 
 #endif // TRACKTABLE_HPP

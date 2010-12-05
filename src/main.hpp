@@ -22,6 +22,7 @@
 
 #include "audio.hpp"
 #include "filetree.hpp"
+#include "tracktable.hpp"
 
 #include <wx/wx.h>
 #include <wx/treectrl.h>
@@ -56,6 +57,8 @@ private:
     OGGFilePipeline* m_ogg;
 
     FileTree* m_tree;
+
+    TrackTable* m_tracks;
 
     void initMenu();
 

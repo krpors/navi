@@ -49,9 +49,9 @@ NaviMainFrame::NaviMainFrame() :
     m_tree = new FileTree(split);
     m_tree->setBase(wxT("/home/krpors/Desktop/share/music")); 
 
-    wxButton* button = new wxButton(split, wxID_ANY, wxT("ROFLCOPTER!"));
+    m_tracks = new TrackTable(split);
 
-    split->SplitVertically(m_tree, button);
+    split->SplitVertically(m_tree, m_tracks);
 }
 
 void NaviMainFrame::initMenu() {
