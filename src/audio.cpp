@@ -323,18 +323,43 @@ void OGGFilePipeline::onPadAdded(GstElement* element, GstPad* pad, gpointer data
     gst_object_unref (sinkpad);
 }
 
+
+//================================================================================
+
+
+const char* TrackInfo::TITLE = GST_TAG_TITLE;
+const char* TrackInfo::ARTIST = GST_TAG_ARTIST;
+const char* TrackInfo::ALBUM = GST_TAG_ALBUM;
+const char* TrackInfo::ALBUM_ARTIST = GST_TAG_ALBUM_ARTIST;
+const char* TrackInfo::GENRE = GST_TAG_GENRE;
+const char* TrackInfo::COMMENT = GST_TAG_COMMENT;
+const char* TrackInfo::COMPOSER = GST_TAG_COMPOSER;
+const char* TrackInfo::TRACK_NUMBER = GST_TAG_TRACK_NUMBER;
+const char* TrackInfo::DISC_NUMBER = GST_TAG_ALBUM_VOLUME_NUMBER;
+const char* TrackInfo::DATE = GST_TAG_DATE;
+
+TrackInfo::TrackInfo() {
+}
+
+TrackInfo::~TrackInfo() {
+}
+
+
+wxString& TrackInfo::operator[](const char* key) {
+    return m_tags[key];
+}
+
+
+void TrackInfo::setLocation(const wxString& location) {
+    m_location = location;
+}
+
+const wxString& TrackInfo::getLocation() {
+    return m_location;
+}
+
 //==============================================================================
 
-const char* TagReader::TAG_TITLE = GST_TAG_TITLE;
-const char* TagReader::TAG_ARTIST = GST_TAG_ARTIST;
-const char* TagReader::TAG_ALBUM = GST_TAG_ALBUM;
-const char* TagReader::TAG_ALBUM_ARTIST = GST_TAG_ALBUM_ARTIST;
-const char* TagReader::TAG_GENRE = GST_TAG_GENRE;
-const char* TagReader::TAG_COMMENT = GST_TAG_COMMENT;
-const char* TagReader::TAG_COMPOSER = GST_TAG_COMPOSER;
-const char* TagReader::TAG_TRACK_NUMBER = GST_TAG_TRACK_NUMBER;
-const char* TagReader::TAG_DISC_NUMBER = GST_TAG_ALBUM_VOLUME_NUMBER;
-const char* TagReader::TAG_DATE = GST_TAG_DATE;
 
 TagReader::TagReader(const wxString& location) throw(AudioException) {
     m_location = location;
@@ -346,10 +371,6 @@ TagReader::TagReader(const wxString& location) throw(AudioException) {
 }
 
 TagReader::~TagReader() {
-    // not really necessary iirc... :
-    m_tags.clear();
-
-    std::cout << " Destroying tagreader " << std::endl;
 }
 
 void TagReader::onPadAdded(GstElement* element, GstPad* pad, GstElement* fakesink) throw() {
@@ -382,72 +403,46 @@ void TagReader::onTagRead(const GstTagList* list, const gchar* tag, gpointer dat
     guint discNum;
     GDate* date;
 
+    // Create our trackinfo object, assign tags + values to it
+    TrackInfo trackInfo;
+
     // Before attempting to set a tag in the reader*, make sure if the tag
     // fetching _really_ succeeded. This is simply done by checking for TRUE
     // or FALSE by the gst_tag_list_get_xyz() funcs.
-    if (gst_tag_list_get_string(list, TAG_TITLE, &title)) {
-        (*reader)[TAG_TITLE] = wxString(title, wxConvUTF8);
+    if (gst_tag_list_get_string(list, TrackInfo::TITLE, &title)) {
+        trackInfo[TrackInfo::TITLE] = wxString(title, wxConvUTF8);
     }
-    if (gst_tag_list_get_string(list, TAG_ARTIST, &artist)) {
-        (*reader)[TAG_ARTIST] = wxString(artist, wxConvUTF8);
+    if (gst_tag_list_get_string(list, TrackInfo::ARTIST, &artist)) {
+        trackInfo[TrackInfo::ARTIST] = wxString(artist, wxConvUTF8);
     }
-    if (gst_tag_list_get_string(list, TAG_ALBUM, &album)) {
-        (*reader)[TAG_ALBUM] = wxString(album, wxConvUTF8);
+    if (gst_tag_list_get_string(list, TrackInfo::ALBUM, &album)) {
+        trackInfo[TrackInfo::ALBUM] = wxString(album, wxConvUTF8);
     }
-    if (gst_tag_list_get_string(list, TAG_ALBUM_ARTIST, &albumArtist)) {
-        (*reader)[TAG_ALBUM_ARTIST] = wxString(albumArtist, wxConvUTF8);
+    if (gst_tag_list_get_string(list, TrackInfo::ALBUM_ARTIST, &albumArtist)) {
+        trackInfo[TrackInfo::ALBUM_ARTIST] = wxString(albumArtist, wxConvUTF8);
     }
-    if (gst_tag_list_get_string(list, TAG_GENRE, &genre)) {
-        (*reader)[TAG_GENRE] = wxString(genre, wxConvUTF8);
+    if (gst_tag_list_get_string(list, TrackInfo::GENRE, &genre)) {
+        trackInfo[TrackInfo::GENRE] = wxString(genre, wxConvUTF8);
     }
-    if (gst_tag_list_get_string(list, TAG_COMMENT, &comment)) {
-        (*reader)[TAG_COMMENT] = wxString(comment, wxConvUTF8);
+    if (gst_tag_list_get_string(list, TrackInfo::COMMENT, &comment)) {
+        trackInfo[TrackInfo::COMMENT] = wxString(comment, wxConvUTF8);
     }
-    if (gst_tag_list_get_string(list, TAG_COMPOSER, &composer)) {
-        (*reader)[TAG_COMPOSER] = wxString(composer, wxConvUTF8);
+    if (gst_tag_list_get_string(list, TrackInfo::COMPOSER, &composer)) {
+        trackInfo[TrackInfo::COMPOSER] = wxString(composer, wxConvUTF8);
     }
-    if (gst_tag_list_get_uint(list, TAG_TRACK_NUMBER, &trackNum)) {
-        (*reader)[TAG_TRACK_NUMBER] = wxString::Format(wxT("%i"), trackNum);
+    if (gst_tag_list_get_uint(list, TrackInfo::TRACK_NUMBER, &trackNum)) {
+        trackInfo[TrackInfo::TRACK_NUMBER] = wxString::Format(wxT("%i"), trackNum);
     }
-    if (gst_tag_list_get_uint(list, TAG_DISC_NUMBER, &discNum)) {
-        (*reader)[TAG_DISC_NUMBER] = wxString::Format(wxT("%i"), discNum);
+    if (gst_tag_list_get_uint(list, TrackInfo::DISC_NUMBER, &discNum)) {
+        trackInfo[TrackInfo::DISC_NUMBER] = wxString::Format(wxT("%i"), discNum);
     }
-    if (gst_tag_list_get_date(list, TAG_DATE, &date)) {
+    if (gst_tag_list_get_date(list, TrackInfo::DATE, &date)) {
         // XXX: date also contains month and day.. Include  this, or just year?
         unsigned int ddate = g_date_get_year(date);
-        (*reader)[TAG_DATE] = wxString::Format(wxT("%i"), ddate);
+        trackInfo[TrackInfo::DATE] = wxString::Format(wxT("%i"), ddate);
     }
 
-#if 0
-    int i, num;
-
-    num = gst_tag_list_get_tag_size (list, tag);
-    for (i = 0; i < num; ++i) {
-        const GValue *val;
-
-        /* Note: when looking for specific tags, use the g_tag_list_get_xyz() API,
-        * we only use the GValue approach here because it is more generic */
-        val = gst_tag_list_get_value_index (list, tag, i);
-        if (G_VALUE_HOLDS_STRING (val)) {
-            g_print ("Str:\t%20s : %s\n", tag, g_value_get_string (val));
-        } else if (G_VALUE_HOLDS_UINT (val)) {
-            g_print ("Uint: \t%20s : %u\n", tag, g_value_get_uint (val));
-        } else if (G_VALUE_HOLDS_DOUBLE (val)) {
-            g_print ("Double: \t%20s : %g\n", tag, g_value_get_double (val));
-        } else if (G_VALUE_HOLDS_BOOLEAN (val)) {
-            g_print ("Bool: \t%20s : %s\n", tag,
-                (g_value_get_boolean (val)) ? "true" : "false");
-        } else if (GST_VALUE_HOLDS_BUFFER (val)) {
-            g_print ("\t%20s : buffer of size %u\n", tag,
-                GST_BUFFER_SIZE (gst_value_get_buffer (val)));
-        } else if (GST_VALUE_HOLDS_DATE (val)) {
-            g_print ("Date: \t%20s : date (year=%u,...)\n", tag,
-                g_date_get_year (gst_value_get_date (val)));
-        } else {
-            g_print ("\t%20s : tag of type '%s'\n", tag, G_VALUE_TYPE_NAME (val));
-        }
-    }
-#endif
+    reader->setTrackInfo(trackInfo);
 }
 
 void TagReader::play() throw() {
@@ -541,21 +536,14 @@ void TagReader::init() throw (AudioException) {
     initTags();
 }
 
-wxString& TagReader::operator[](const char* key) {
-    return m_tags[key];
+void TagReader::setTrackInfo(const TrackInfo& trackinfo) {
+    m_trackInfo = trackinfo;
 }
 
-const wxString TagReader::getAsString() throw() {
-    wxString str;
-    str << wxT("Artist: ") << m_tags[TAG_ARTIST];
-    str << wxT(", Title: ") << m_tags[TAG_TITLE];
-    str << wxT(", Album: ") << m_tags[TAG_ALBUM];
-    str << wxT(", Genre: ") << m_tags[TAG_GENRE];
-    str << wxT(", Track number: ") << m_tags[TAG_TRACK_NUMBER];
-    str << wxT(", Disc number: ") << m_tags[TAG_DISC_NUMBER];
-    str << wxT(", Date: ") << m_tags[TAG_DATE];
-    
-    return str;
+const TrackInfo TagReader::getTrackInfo() const {
+    return m_trackInfo;
 }
+
+
 
 } // namespace pl

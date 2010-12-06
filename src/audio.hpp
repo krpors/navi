@@ -282,16 +282,80 @@ public:
 //================================================================================
 
 /**
+ * TrackInfo is a simple class for holding data of a track. It does not provide
+ * pipeline capabilities like the TagReader. This class encapsulates a location
+ * (file) and an std::map containing the information of a track. This data used
+ * to be residing inside TagReader, but like this it's more lightweight and can
+ * be used in user interfaces as well. For instance, when lots of files have to
+ * be tag-parsed, and displayed. I will not 'risk' adding lots of GST elements 
+ * to user interface widgets.
+ */
+class TrackInfo {
+private:
+    std::map<const char*, wxString> m_tags;
+
+    wxString m_location;
+
+public:
+    /// Title of the stream (GST_TAG_TITLE)
+    static const char* TITLE;
+
+    /// Artist of the stream (GST_TAG_ARTIST)
+    static const char* ARTIST;
+
+    /// Album of the stream (GST_TAG_ALBUM)
+    static const char* ALBUM;
+    
+    /// Individual artist of the stream (GST_TAG_ALBUM_ARTIST)
+    static const char* ALBUM_ARTIST;
+
+    /// Genre of the stream (GST_TAG_GENRE)
+    static const char* GENRE;
+    
+    /// Comment of the stream (GST_TAG_COMMENT)
+    static const char* COMMENT;
+
+    /// Composer of the stream (GST_TAG_COMPOSER)
+    static const char* COMPOSER;
+
+    /// Track number of the stream (GST_TRACK_TITLE)
+    static const char* TRACK_NUMBER;
+
+    /// Disc number of the stream (GST_TAG_VOLUME_NUMBER)
+    static const char* DISC_NUMBER;
+
+    /// Date (currently, only the year) of the stream (GST_TAG_DATE)
+    static const char* DATE;
+
+public:
+    TrackInfo();
+    ~TrackInfo();
+
+    /**
+     * Allows us to get and set tags using tag[TAG_XYZ] and tag[TAG_XYZ] = "lol".
+     *
+     * @param key The key get or set.
+     */
+    wxString& operator[](const char* key);
+
+    void setLocation(const wxString& location);
+    const wxString& getLocation();
+};
+
+//================================================================================
+
+/**
  * Base class for tag reading. Since reading tags from a file or stream requires
  * a pipeline, TagReader is a derived class from Pipeline. The location used in
  * this class is expected to be a valid URI, for example file:///home/user/file.mp3
- * or file:///tmp/otherfile.ogg etc.
+ * or file:///tmp/otherfile.ogg etc. The results of the read tag will be available
+ * by invoking getTrackInfo().
  */
 class TagReader : public Pipeline {
 private:
 
-    /// Map with const char* (TagReader::TAG_XYZ) to wxString (value) mapping
-    std::map<const char*, wxString> m_tags;
+    /// TrackInfo, genereated due to parsing tags.
+    TrackInfo m_trackInfo;
 
     /// The URI Decode bin. Loads `proto://path/like.mp3' structures
     GstElement* m_uridecodebin;
@@ -335,36 +399,6 @@ protected:
     virtual void init() throw (AudioException);
 
 public:
-    /// Title of the stream (GST_TAG_TITLE)
-    static const char* TAG_TITLE;
-
-    /// Artist of the stream (GST_TAG_ARTIST)
-    static const char* TAG_ARTIST;
-
-    /// Album of the stream (GST_TAG_ALBUM)
-    static const char* TAG_ALBUM;
-    
-    /// Individual artist of the stream (GST_TAG_ALBUM_ARTIST)
-    static const char* TAG_ALBUM_ARTIST;
-
-    /// Genre of the stream (GST_TAG_GENRE)
-    static const char* TAG_GENRE;
-    
-    /// Comment of the stream (GST_TAG_COMMENT)
-    static const char* TAG_COMMENT;
-
-    /// Composer of the stream (GST_TAG_COMPOSER)
-    static const char* TAG_COMPOSER;
-
-    /// Track number of the stream (GST_TRACK_TITLE)
-    static const char* TAG_TRACK_NUMBER;
-
-    /// Disc number of the stream (GST_TAG_VOLUME_NUMBER)
-    static const char* TAG_DISC_NUMBER;
-
-    /// Date (currently, only the yeard) of the stream (GST_TAG_DATE)
-    static const char* TAG_DATE;
-
     /**
      * Constructs a TagReader instance. The location parameter should be
      * a URI, in the form of file:///home/user/file.mp3 or the like.
@@ -380,13 +414,6 @@ public:
     virtual ~TagReader();
 
     /**
-     * Allows us to get and set tags using tag[TAG_XYZ] and tag[TAG_XYZ] = "lol".
-     *
-     * @param key The key get or set.
-     */
-    wxString& operator[](const char* key);
-
-    /**
      * play() is overridden to do nothing.
      */
     void play() throw();
@@ -397,12 +424,21 @@ public:
     void stop() throw();
 
     /**
-     * Gets all parsed tags as a const wxString ref.
-     *
-     * @return The wxString with parsed metadata tags.
+     * Sets the track info of this reader. This is only to be used by this
+     * class itself.
+     * 
+     * @param trackinfo The track info to set.
      */
-    const wxString getAsString() throw();
+    void setTrackInfo(const TrackInfo& trackinfo);
+
+    /**
+     * Gets the trackinfo. This is not returned as a reference, because the 
+     * TagReader should be discarded (deleted) after parsing is finished.
+     */
+    const TrackInfo getTrackInfo() const;
+
 };
+
 
 } // namespace navi 
 

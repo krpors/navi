@@ -52,16 +52,9 @@ NaviMainFrame::NaviMainFrame() :
 
     m_tracks = new TrackTable(split);
 
-    std::cout << "Before" << std::endl;
-    try {
-        for(int i = 0; i < 100; i++) {
-            std::cout << "Creating tagreader" << std::endl;
-            TagReader t(wxT("file:///home/krpors/Desktop/oggs/bb.ogg"));
-        }
-    } catch (AudioException& ex) {
-        std::cout << "Exception caught" << std::endl;
-    }
-    std::cout << "After" << std::endl;
+    TagReader t(wxT("file:///media/dump/bb.ogg"));
+    TrackInfo info = t.getTrackInfo();
+    std::cout << info[TrackInfo::TITLE].mb_str() << std::endl;
 
     split->SplitVertically(m_tree, m_tracks);
 }
@@ -78,19 +71,6 @@ void NaviMainFrame::initMenu() {
 }
 
 void NaviMainFrame::play(wxCommandEvent& event) {
-    wxString path = m_tree->getSelectedPath().GetFullPath();
-    if (path.EndsWith(wxT(".ogg"))) {
-        if (m_ogg == NULL) {
-            m_ogg = new OGGFilePipeline(path);
-            m_ogg->play();
-        } else {
-            m_ogg->stop();
-            delete m_ogg;
-            m_ogg = new OGGFilePipeline(path);
-            m_ogg->play();
-
-        }
-    }
 }
 
 // Event table.

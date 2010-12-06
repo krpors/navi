@@ -146,6 +146,8 @@ void FileTree::onExpandItem(wxTreeEvent& event) {
 void FileTree::onCollapseItem(wxTreeEvent& event) {
     wxTreeItemId itemCollapsed = event.GetItem();
     
+    // FIXME: improve this part. Stupid behaviour when collapsing.
+
     wxTreeItemIdValue cookie;
     // This is only the FIRST child.
     wxTreeItemId child = GetFirstChild(itemCollapsed, cookie);
