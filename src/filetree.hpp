@@ -62,6 +62,10 @@ private:
     /// Whether files should be visible in the tree. Defaults to false.
     bool m_filesVisible;
 
+    /// The current active tree item (i.e. the directory which is played)
+    /// This is used to reset it's state when a new tree item is activated.
+    wxTreeItemId m_currentActiveItem;
+
     /**
      * This function will be invoked as a callback by the wxTreeCtrl.
      * When an item is collapsed, this will delete children of the children
@@ -82,6 +86,15 @@ private:
      *  and such which generate that event.
      */
     void onExpandItem(wxTreeEvent& event);
+
+    /**
+     * When an item is activated by either double clicking or hitting
+     * the return key on an item, set its visible state to bold font, and
+     * start playing songs from that dir... or something!
+     *
+     * @param event The wxTreeEvent propagated.
+     */
+    void onActivateItem(wxTreeEvent& event);
 
     /**
      * Compares child elements. Directories get prevalence, then files. 
@@ -122,6 +135,12 @@ public:
      */
     void setBase(const wxString& basePath);
 
+    /**
+     * Gets the current selected path as a wxFileName. The path value
+     * is stored internally within a FileTreeItemData instance.
+     *
+     * @return wxFileName containining the fully selected path.
+     */
     const wxFileName& getSelectedPath() const;
 
     /**
@@ -131,6 +150,8 @@ public:
      * @param visible true when files should be visible, false if not.
      */
     void setFilesVisible(bool visible);
+
+    //void getFilesFromCurrentDi
 
     // wxWidgets macro: declare the event table... duh
     DECLARE_EVENT_TABLE()

@@ -47,9 +47,21 @@ NaviMainFrame::NaviMainFrame() :
     wxSplitterWindow* split = new wxSplitterWindow(this, wxID_ANY);
 
     m_tree = new FileTree(split);
-    m_tree->setBase(wxT("/home/krpors/Desktop/share/music")); 
+    m_tree->setBase(wxT("/home/krpors/Desktop/")); 
+    m_tree->setFilesVisible(false);
 
     m_tracks = new TrackTable(split);
+
+    std::cout << "Before" << std::endl;
+    try {
+        for(int i = 0; i < 100; i++) {
+            std::cout << "Creating tagreader" << std::endl;
+            TagReader t(wxT("file:///home/krpors/Desktop/oggs/bb.ogg"));
+        }
+    } catch (AudioException& ex) {
+        std::cout << "Exception caught" << std::endl;
+    }
+    std::cout << "After" << std::endl;
 
     split->SplitVertically(m_tree, m_tracks);
 }

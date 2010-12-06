@@ -38,7 +38,8 @@ const wxFileName& FileTreeItemData::getFileName() const {
 
 FileTree::FileTree(wxWindow* parent) :
     wxTreeCtrl(parent, FileTree::ID_TREE, wxDefaultPosition, wxDefaultSize, wxTR_HAS_BUTTONS | wxTR_FULL_ROW_HIGHLIGHT),
-    m_filesVisible(true) {
+    m_filesVisible(true),
+    m_currentActiveItem(NULL) {
 
     // intialize the used icons in the wxTreeCtrl.
     initIcons();
@@ -165,6 +166,19 @@ void FileTree::onCollapseItem(wxTreeEvent& event) {
 
 }
 
+void FileTree::onActivateItem(wxTreeEvent& event) {
+    wxTreeItemId item = event.GetItem();
+
+    SetItemBold(m_currentActiveItem, false);
+    m_currentActiveItem = item;
+    SetItemBold(m_currentActiveItem, true);
+
+    // TODO: use callbacks/listeners and such things to notify interested
+    // components that we're on the verge of playing songs in a directory.
+
+    Refresh();
+}
+
 void FileTree::addChildrenToDir(wxTreeItemId& parent) {
     FileTreeItemData* data = static_cast<FileTreeItemData*>(GetItemData(parent));
 
@@ -215,6 +229,7 @@ const wxFileName& FileTree::getSelectedPath() const {
 
 // Event table.
 BEGIN_EVENT_TABLE(FileTree, wxTreeCtrl)
+    EVT_TREE_ITEM_ACTIVATED(FileTree::ID_TREE, FileTree::onActivateItem)
     EVT_TREE_ITEM_EXPANDING(FileTree::ID_TREE, FileTree::onExpandItem)
     EVT_TREE_ITEM_COLLAPSING(FileTree::ID_TREE, FileTree::onCollapseItem)
 END_EVENT_TABLE()

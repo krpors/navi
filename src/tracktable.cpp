@@ -28,11 +28,11 @@ TrackTable::TrackTable(wxWindow* parent) :
     wxListItem item;
     item.SetText(wxT("Artist"));
     InsertColumn(0, item);
-    SetColumnWidth(0, wxLIST_AUTOSIZE);
+    SetColumnWidth(0, wxLIST_AUTOSIZE_USEHEADER);
 
     item.SetText(wxT("Title"));
     InsertColumn(1, item);
-    SetColumnWidth(1, wxLIST_AUTOSIZE);
+    SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
 
     InsertItem(0, wxT("Marc Aurel"));
     SetItem(0, 0, wxT("Marc Aurel"));

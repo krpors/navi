@@ -348,6 +348,8 @@ TagReader::TagReader(const wxString& location) throw(AudioException) {
 TagReader::~TagReader() {
     // not really necessary iirc... :
     m_tags.clear();
+
+    std::cout << " Destroying tagreader " << std::endl;
 }
 
 void TagReader::onPadAdded(GstElement* element, GstPad* pad, GstElement* fakesink) throw() {

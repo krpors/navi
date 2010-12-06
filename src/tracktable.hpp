@@ -36,6 +36,8 @@ private:
 public:
     TrackTable(wxWindow* parent);
     ~TrackTable();
+
+
 };
 
 } // namespace navi 
