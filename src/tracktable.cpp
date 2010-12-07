@@ -42,7 +42,8 @@ TrackInfo TrackTableItem::getTrackInfo() {
 //================================================================================
 
 TrackTable::TrackTable(wxWindow* parent) :
-        wxListCtrl(parent, TrackTable::ID_TRACKTABLE, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL | wxLC_VIRTUAL) {
+        wxListCtrl(parent, TrackTable::ID_TRACKTABLE, wxDefaultPosition, 
+        wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL) {
 
     wxListItem item;
     item.SetText(wxT("Artist"));
@@ -59,38 +60,60 @@ TrackTable::TrackTable(wxWindow* parent) :
 
 
     TrackInfo t;
+
     t[TrackInfo::ARTIST] = wxT("Ninja please");
     t[TrackInfo::TITLE] = wxT("Say what!");
     t[TrackInfo::ALBUM] = wxT("Some Album.");
-
-    TrackInfo t2;
-    t2[TrackInfo::ARTIST] = wxT("Norah Jones");
-    t2[TrackInfo::TITLE] = wxT("Come away with me");
-    t2[TrackInfo::ALBUM] = wxT("Lullabys");
-
     addTrackInfo(t);
-    addTrackInfo(t2);
+
+    t[TrackInfo::ARTIST] = wxT("Live");
+    t[TrackInfo::TITLE] = wxT("The Dolphin's Cry");
+    t[TrackInfo::ALBUM] = wxT("The Distance to Here");
+    addTrackInfo(t);
+
+    t[TrackInfo::ARTIST] = wxT("Late Night Alumni");
+    t[TrackInfo::TITLE] = wxT("Finally Found");
+    t[TrackInfo::ALBUM] = wxT("Of Birds, Bees, and Butterflies");
+    addTrackInfo(t);
 }
 
 TrackTable::~TrackTable() {
 }
 
-wxString TrackTable::OnGetItemText(long item, long column) const {
-    wxString str;
-    str << wxString::Format(wxT("%i, %i"), item, column);
-    return str;
+void TrackTable::onActivate(wxListEvent& event) {
+    long data = event.GetData();
+    TrackInfo& info = m_trackInfos[data];
+    std::cout << "Selected track: " << info[TrackInfo::TITLE].mb_str()  << std::endl;
 }
 
-void TrackTable::onActivate(wxListEvent& event) {
+int wxCALLBACK wxListCompareFunction(long item1, long item2, long sortData) {
+    std::cout << "Comparing " << item1 << " with " << item2 << std::endl;
+    return (item1 > item2) ? -1 : 1;
+}
+
+void TrackTable::onColumnClick(wxListEvent& event) {
+    std::cout << "Column has been clicked" << std::endl;
+    SortItems(wxListCompareFunction, 2);
+
 }
 
 void TrackTable::addTrackInfo(TrackInfo& info) {
+    wxListItem item;
+    item.SetId(GetItemCount());
+    long index = InsertItem(item);
+    SetItem(index, 0, info[TrackInfo::ARTIST]); 
+    SetItem(index, 1, info[TrackInfo::TITLE]); 
+    SetItem(index, 2, info[TrackInfo::ALBUM]); 
+    SetItemData(index, index);
+
     m_trackInfos.push_back(info);
-    SetItemCount(GetItemCount() + 1);
+
+    std::cout << "Inserted item " << index << std::endl;
 }
 
 BEGIN_EVENT_TABLE(TrackTable, wxListCtrl)
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackTable::onActivate)   
+    EVT_LIST_COL_CLICK(TrackTable::ID_TRACKTABLE, TrackTable::onColumnClick)
 END_EVENT_TABLE()
 
 

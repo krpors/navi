@@ -50,9 +50,6 @@ NaviMainFrame::NaviMainFrame() :
 
     m_tracks = new TrackTable(split);
 
-    TagReader t(wxT("file:///home/krpors/Desktop/oggs/bb.ogg"));
-    TrackInfo info = t.getTrackInfo();
-    std::cout << info[TrackInfo::TITLE].mb_str() << std::endl;
 
     split->SplitVertically(m_tree, m_tracks);
 }

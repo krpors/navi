@@ -24,8 +24,8 @@
 
 #include <wx/listctrl.h>
 
-#include <iostream>
 #include <vector>
+#include <iostream>
 
 namespace navi {
 
@@ -46,10 +46,8 @@ public:
 class TrackTable : public wxListCtrl {
 private:
     std::vector<TrackInfo> m_trackInfos;
-
     void onActivate(wxListEvent& event);
-protected:
-    wxString OnGetItemText(long item, long column) const;
+    void onColumnClick(wxListEvent& event);
 public:
     static const short ID_TRACKTABLE = 2;
 
