@@ -20,26 +20,48 @@
 #ifndef TRACKTABLE_HPP 
 #define TRACKTABLE_HPP 
 
+#include "audio.hpp"
+
 #include <wx/listctrl.h>
 
 #include <iostream>
+#include <vector>
 
 namespace navi {
 
 class TrackTableItem : public wxListItem {
+private:
+    TrackInfo m_trackInfo;
+public:
+    TrackTableItem();
+    TrackTableItem(const TrackInfo& info);
+    ~TrackTableItem();
+
+    void setTrackInfo(const TrackInfo& info);
+    TrackInfo getTrackInfo();
 };
 
 //================================================================================
 
 class TrackTable : public wxListCtrl {
 private:
+    std::vector<TrackInfo> m_trackInfos;
+
+    void onActivate(wxListEvent& event);
+protected:
+    wxString OnGetItemText(long item, long column) const;
 public:
+    static const short ID_TRACKTABLE = 2;
+
     TrackTable(wxWindow* parent);
     ~TrackTable();
 
+    void addTrackInfo(TrackInfo& info);
 
+    DECLARE_EVENT_TABLE()
 };
 
 } // namespace navi 
 
-#endif // TRACKTABLE_HPP
+#endif // TRACKTABLE_HPPc
+

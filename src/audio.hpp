@@ -292,8 +292,10 @@ public:
  */
 class TrackInfo {
 private:
+    /// Map with tag and value mapping.
     std::map<const char*, wxString> m_tags;
 
+    /// Location of the track on HD
     wxString m_location;
 
 public:
@@ -328,7 +330,14 @@ public:
     static const char* DATE;
 
 public:
+    /**
+     * Creates a TrackInfo object.
+     */
     TrackInfo();
+
+    /**
+     * Dtor.
+     */
     ~TrackInfo();
 
     /**
@@ -338,7 +347,16 @@ public:
      */
     wxString& operator[](const char* key);
 
+    /**
+     * Sets location of this track.
+     */
     void setLocation(const wxString& location);
+
+    /**
+     * Gets the location of the track.
+     * 
+     * @return The track's location TODO: (URI only? File abs path only?)
+     */
     const wxString& getLocation();
 };
 

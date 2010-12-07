@@ -21,32 +21,81 @@
 
 namespace navi {
 
+TrackTableItem::TrackTableItem() {
+}
+
+TrackTableItem::TrackTableItem(const TrackInfo& info) :
+        m_trackInfo(info) {
+}
+
+TrackTableItem::~TrackTableItem() {
+}
+
+void TrackTableItem::setTrackInfo(const TrackInfo& info) {
+    m_trackInfo = info;
+}
+
+TrackInfo TrackTableItem::getTrackInfo() {
+    return m_trackInfo;
+}
+
 //================================================================================
 
 TrackTable::TrackTable(wxWindow* parent) :
-        wxListCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL) {
+        wxListCtrl(parent, TrackTable::ID_TRACKTABLE, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL | wxLC_VIRTUAL) {
+
     wxListItem item;
     item.SetText(wxT("Artist"));
     InsertColumn(0, item);
-    SetColumnWidth(0, wxLIST_AUTOSIZE_USEHEADER);
+    SetColumnWidth(0, 80);
 
     item.SetText(wxT("Title"));
     InsertColumn(1, item);
-    SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
+    SetColumnWidth(1, 100);
 
-    InsertItem(0, wxT("Marc Aurel"));
-    SetItem(0, 0, wxT("Marc Aurel"));
-    SetItem(0, 1, wxT("The Sound of Love"));
+    item.SetText(wxT("Album"));
+    InsertColumn(2, item);
+    SetColumnWidth(2, 150);
 
-    InsertItem(1, wxT("Kingsize"));
-    SetItem(1, 0, wxT("Kingsize1"));
-    SetItem(1, 1, wxT("Galactic Storm"));
 
+    TrackInfo t;
+    t[TrackInfo::ARTIST] = wxT("Ninja please");
+    t[TrackInfo::TITLE] = wxT("Say what!");
+    t[TrackInfo::ALBUM] = wxT("Some Album.");
+
+    TrackInfo t2;
+    t2[TrackInfo::ARTIST] = wxT("Norah Jones");
+    t2[TrackInfo::TITLE] = wxT("Come away with me");
+    t2[TrackInfo::ALBUM] = wxT("Lullabys");
+
+    addTrackInfo(t);
+    addTrackInfo(t2);
 }
 
 TrackTable::~TrackTable() {
 }
 
+wxString TrackTable::OnGetItemText(long item, long column) const {
+    wxString str;
+    str << wxString::Format(wxT("%i, %i"), item, column);
+    return str;
+}
+
+void TrackTable::onActivate(wxListEvent& event) {
+}
+
+void TrackTable::addTrackInfo(TrackInfo& info) {
+    m_trackInfos.push_back(info);
+    SetItemCount(GetItemCount() + 1);
+}
+
+BEGIN_EVENT_TABLE(TrackTable, wxListCtrl)
+    EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackTable::onActivate)   
+END_EVENT_TABLE()
+
+
+
 //================================================================================
 
 } // namespace navi
+

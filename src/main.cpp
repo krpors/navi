@@ -34,8 +34,6 @@ bool NaviApp::OnInit() {
     return true;
 }
 
-
-
 //==============================================================================
 
 NaviMainFrame::NaviMainFrame() :
@@ -52,7 +50,7 @@ NaviMainFrame::NaviMainFrame() :
 
     m_tracks = new TrackTable(split);
 
-    TagReader t(wxT("file:///media/dump/bb.ogg"));
+    TagReader t(wxT("file:///home/krpors/Desktop/oggs/bb.ogg"));
     TrackInfo info = t.getTrackInfo();
     std::cout << info[TrackInfo::TITLE].mb_str() << std::endl;
 
