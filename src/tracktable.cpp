@@ -1,4 +1,4 @@
-//      filetree.cpp
+//      tracktable.cpp
 //      
 //      Copyright 2010 Kevin Pors <krpors@users.sf.net>
 //      
@@ -21,94 +21,177 @@
 
 namespace navi {
 
-TrackTableItem::TrackTableItem() {
-}
-
-TrackTableItem::TrackTableItem(const TrackInfo& info) :
-        m_trackInfo(info) {
-}
-
-TrackTableItem::~TrackTableItem() {
-}
-
-void TrackTableItem::setTrackInfo(const TrackInfo& info) {
-    m_trackInfo = info;
-}
-
-TrackInfo TrackTableItem::getTrackInfo() {
-    return m_trackInfo;
-}
-
 //================================================================================
 
 TrackTable::TrackTable(wxWindow* parent) :
         wxListCtrl(parent, TrackTable::ID_TRACKTABLE, wxDefaultPosition, 
-        wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL) {
+        wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL | wxLC_VRULES) {
 
     wxListItem item;
-    item.SetText(wxT("Artist"));
+
+    item.SetText(wxT("Track"));
     InsertColumn(0, item);
-    SetColumnWidth(0, 80);
+    SetColumnWidth(0, 40);
+
+    item.SetText(wxT("Artist"));
+    InsertColumn(1, item);
+    SetColumnWidth(1, 80);
 
     item.SetText(wxT("Title"));
-    InsertColumn(1, item);
-    SetColumnWidth(1, 100);
+    InsertColumn(2, item);
+    SetColumnWidth(2, 100);
 
     item.SetText(wxT("Album"));
-    InsertColumn(2, item);
-    SetColumnWidth(2, 150);
+    InsertColumn(3, item);
+    SetColumnWidth(3, 150);
 
 
     TrackInfo t;
 
-    t[TrackInfo::ARTIST] = wxT("Ninja please");
-    t[TrackInfo::TITLE] = wxT("Say what!");
-    t[TrackInfo::ALBUM] = wxT("Some Album.");
+    t.setLocation(wxT("/home/krpors/Desktop/oggs/bb.ogg"));
+    t[TrackInfo::TRACK_NUMBER] = wxT("1");
+    t[TrackInfo::ARTIST] = wxT("Bonnie Bailey");
+    t[TrackInfo::TITLE] = wxT("Ever After");
+    t[TrackInfo::ALBUM] = wxT("Unknown");
     addTrackInfo(t);
 
-    t[TrackInfo::ARTIST] = wxT("Live");
-    t[TrackInfo::TITLE] = wxT("The Dolphin's Cry");
-    t[TrackInfo::ALBUM] = wxT("The Distance to Here");
+
+    t.setLocation(wxT("/home/krpors/Desktop/oggs/hg.ogg"));
+    t[TrackInfo::TRACK_NUMBER] = wxT("8");
+    t[TrackInfo::ARTIST] = wxT("JES");
+    t[TrackInfo::TITLE] = wxT("High Glow");
+    t[TrackInfo::ALBUM] = wxT("High Glow");
     addTrackInfo(t);
 
+    t.setLocation(wxT("/home/krpors/Desktop/oggs/lna.ogg"));
+    t[TrackInfo::TRACK_NUMBER] = wxT("4");
     t[TrackInfo::ARTIST] = wxT("Late Night Alumni");
     t[TrackInfo::TITLE] = wxT("Finally Found");
     t[TrackInfo::ALBUM] = wxT("Of Birds, Bees, and Butterflies");
+    addTrackInfo(t);
+
+    t.setLocation(wxT("/home/krpors/Desktop/oggs/lna.ogg"));
+    t[TrackInfo::TRACK_NUMBER] = wxT("3");
+    t[TrackInfo::ARTIST] = wxT("Kaskade vs. Deadmau5 ft. Haley");
+    t[TrackInfo::TITLE] = wxT("Falling in love with Brazil");
+    t[TrackInfo::ALBUM] = wxT("The Best of OM");
+
     addTrackInfo(t);
 }
 
 TrackTable::~TrackTable() {
 }
 
+bool cock = true;
+
+// compare functions:
+int wxCALLBACK TrackTable::compareTrackNumber(long item1, long item2, long sortData) {
+    // reinterpret the sortData to a TrackTable pointar. Wtf.
+    TrackTable* roflol = reinterpret_cast<TrackTable*>(sortData);
+    // make sure we have a point0r.
+    if (roflol) {
+        TrackInfo& one = roflol->getTrackInfo(item1);
+        TrackInfo& two = roflol->getTrackInfo(item2);
+        return roflol->theSort(one, two, TrackInfo::TRACK_NUMBER, true);
+    }
+
+    return 0;
+}
+
+int wxCALLBACK TrackTable::compareArtistName(long item1, long item2, long sortData) {
+    // reinterpret the sortData to a TrackTable pointar. Wtf.
+    TrackTable* roflol = reinterpret_cast<TrackTable*>(sortData);
+    // make sure we have a point0r.
+    if (roflol) {
+        TrackInfo& one = roflol->getTrackInfo(item1);
+        TrackInfo& two = roflol->getTrackInfo(item2);
+        return roflol->theSort(one, two, TrackInfo::ARTIST, true);
+    }
+
+    return 0;
+}
+
+int wxCALLBACK TrackTable::compareTitle(long item1, long item2, long sortData) {
+    // reinterpret the sortData to a TrackTable pointar. Wtf.
+    TrackTable* roflol = reinterpret_cast<TrackTable*>(sortData);
+    // make sure we have a point0r.
+    if (roflol) {
+        TrackInfo& one = roflol->getTrackInfo(item1);
+        TrackInfo& two = roflol->getTrackInfo(item2);
+        return roflol->theSort(one, two, TrackInfo::TITLE, true);
+    }
+
+    return 0;
+}
+
+int wxCALLBACK TrackTable::compareAlbum(long item1, long item2, long sortData) {
+    // reinterpret the sortData to a TrackTable pointar. Wtf.
+    TrackTable* roflol = reinterpret_cast<TrackTable*>(sortData);
+    // make sure we have a point0r.
+    if (roflol) {
+        TrackInfo& one = roflol->getTrackInfo(item1);
+        TrackInfo& two = roflol->getTrackInfo(item2);
+        return roflol->theSort(one, two, TrackInfo::ALBUM, true);
+    }
+
+    return 0;
+}
+
 void TrackTable::onActivate(wxListEvent& event) {
     long data = event.GetData();
     TrackInfo& info = m_trackInfos[data];
-    std::cout << "Selected track: " << info[TrackInfo::TITLE].mb_str()  << std::endl;
-}
-
-int wxCALLBACK wxListCompareFunction(long item1, long item2, long sortData) {
-    std::cout << "Comparing " << item1 << " with " << item2 << std::endl;
-    return (item1 > item2) ? -1 : 1;
+    std::cout << "Selected track: " << info[TrackInfo::TITLE].mb_str() << ", path is " << info.getLocation().mb_str() << std::endl;
 }
 
 void TrackTable::onColumnClick(wxListEvent& event) {
-    std::cout << "Column has been clicked" << std::endl;
-    SortItems(wxListCompareFunction, 2);
-
+    // XXX: This is fucking ridiculous. Using long as callback data?! wx, what
+    // the fuck are you doing to me? Anyway, from PlasmaHH from #freenode:
+    //
+    //      "it might be that sizeof(long) < sizeof(ObjectInstance) and 
+    //       then you are screwed" 
+    // 
+    // So in this case, I'm just gonna blurt out some error message, until
+    // I find a way to fix this.
+    if (sizeof(long) != sizeof(this)) {
+        std::cerr << "Major malfunction. sizeof(long) != sizeof(this)" << std::endl;
+    } else {
+        // commence sorting. We can somewhat 'guarantee' that casting a this 
+        // to a long succeeds. Check which column has been clicked, then sort
+        // appropriately.
+        switch (event.GetColumn()) {
+            case 0: SortItems(TrackTable::compareTrackNumber, (long) this); break;
+            case 1: SortItems(TrackTable::compareArtistName, (long) this); break;
+            case 2: SortItems(TrackTable::compareTitle, (long) this); break;
+            case 3: SortItems(TrackTable::compareAlbum, (long) this); break;
+            default: break;
+        }
+    }
 }
 
 void TrackTable::addTrackInfo(TrackInfo& info) {
     wxListItem item;
     item.SetId(GetItemCount());
     long index = InsertItem(item);
-    SetItem(index, 0, info[TrackInfo::ARTIST]); 
-    SetItem(index, 1, info[TrackInfo::TITLE]); 
-    SetItem(index, 2, info[TrackInfo::ALBUM]); 
+    SetItem(index, 0, info[TrackInfo::TRACK_NUMBER]); 
+    SetItem(index, 1, info[TrackInfo::ARTIST]); 
+    SetItem(index, 2, info[TrackInfo::TITLE]); 
+    SetItem(index, 3, info[TrackInfo::ALBUM]); 
     SetItemData(index, index);
 
+    // add the info to our backing vector.
     m_trackInfos.push_back(info);
+}
 
-    std::cout << "Inserted item " << index << std::endl;
+TrackInfo& TrackTable::getTrackInfo(int index) {
+    return m_trackInfos[index];
+}
+
+int TrackTable::theSort(TrackInfo& one, TrackInfo& two, const char* field, bool ascending) {
+    if (ascending) {
+        return one[field] > two[field];
+    } else {
+        return one[field] < two[field];
+    }
 }
 
 BEGIN_EVENT_TABLE(TrackTable, wxListCtrl)

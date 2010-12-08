@@ -1,4 +1,4 @@
-//      filetree.cpp
+//      tracktable.cpp
 //      
 //      Copyright 2010 Kevin Pors <krpors@users.sf.net>
 //      
@@ -29,18 +29,6 @@
 
 namespace navi {
 
-class TrackTableItem : public wxListItem {
-private:
-    TrackInfo m_trackInfo;
-public:
-    TrackTableItem();
-    TrackTableItem(const TrackInfo& info);
-    ~TrackTableItem();
-
-    void setTrackInfo(const TrackInfo& info);
-    TrackInfo getTrackInfo();
-};
-
 //================================================================================
 
 class TrackTable : public wxListCtrl {
@@ -48,18 +36,29 @@ private:
     std::vector<TrackInfo> m_trackInfos;
     void onActivate(wxListEvent& event);
     void onColumnClick(wxListEvent& event);
+
+
 public:
     static const short ID_TRACKTABLE = 2;
+
+    static int wxCALLBACK compareTrackNumber(long item1, long item2, long sortData);
+    static int wxCALLBACK compareArtistName(long item1, long item2, long sortData);
+    static int wxCALLBACK compareTitle(long item1, long item2, long sortData);
+    static int wxCALLBACK compareAlbum(long item1, long item2, long sortData);
 
     TrackTable(wxWindow* parent);
     ~TrackTable();
 
     void addTrackInfo(TrackInfo& info);
 
+    TrackInfo& getTrackInfo(int index);
+
+    int theSort(TrackInfo& one, TrackInfo& two, const char* field, bool ascending);
+
     DECLARE_EVENT_TABLE()
 };
 
 } // namespace navi 
 
-#endif // TRACKTABLE_HPPc
+#endif // TRACKTABLE_HPP
 

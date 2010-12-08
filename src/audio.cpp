@@ -405,6 +405,7 @@ void TagReader::onTagRead(const GstTagList* list, const gchar* tag, gpointer dat
 
     // Create our trackinfo object, assign tags + values to it
     TrackInfo trackInfo;
+    trackInfo.setLocation(reader->getLocation());
 
     // Before attempting to set a tag in the reader*, make sure if the tag
     // fetching _really_ succeeded. This is simply done by checking for TRUE

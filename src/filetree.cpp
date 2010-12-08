@@ -177,6 +177,9 @@ void FileTree::onActivateItem(wxTreeEvent& event) {
 
     // TODO: use callbacks/listeners and such things to notify interested
     // components that we're on the verge of playing songs in a directory.
+    // TODO: start here again.
+    //wxApp& app = wxGetApp;
+    //NaviMainFrame* mainframe = 
 
     Refresh();
 }

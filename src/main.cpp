@@ -31,6 +31,8 @@ bool NaviApp::OnInit() {
     frame->Center();
     frame->Show();
 
+    SetTopWindow(frame);
+
     return true;
 }
 
@@ -48,10 +50,10 @@ NaviMainFrame::NaviMainFrame() :
     m_tree->setBase(wxT("/home/krpors/Desktop/")); 
     m_tree->setFilesVisible(false);
 
-    m_tracks = new TrackTable(split);
+    m_trackTable = new TrackTable(split);
 
 
-    split->SplitVertically(m_tree, m_tracks);
+    split->SplitVertically(m_tree, m_trackTable);
 }
 
 void NaviMainFrame::initMenu() {

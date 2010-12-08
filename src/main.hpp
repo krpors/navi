@@ -48,7 +48,6 @@ public:
 // the current app with wxGetApp().
 DECLARE_APP(NaviApp)
 
-
 //==============================================================================
 
 
@@ -58,7 +57,7 @@ private:
 
     FileTree* m_tree;
 
-    TrackTable* m_tracks;
+    TrackTable* m_trackTable;
 
     void initMenu();
 
