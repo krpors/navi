@@ -258,6 +258,7 @@ OGGFilePipeline::OGGFilePipeline(const wxString& location) throw (AudioException
 }
 
 OGGFilePipeline::~OGGFilePipeline() {
+    stop();
 }
 
 void OGGFilePipeline::init() throw (AudioException) {
@@ -403,9 +404,7 @@ void TagReader::onTagRead(const GstTagList* list, const gchar* tag, gpointer dat
     guint discNum;
     GDate* date;
 
-    // Create our trackinfo object, assign tags + values to it
-    TrackInfo trackInfo;
-    trackInfo.setLocation(reader->getLocation());
+    TrackInfo trackInfo = reader->getTrackInfo();
 
     // Before attempting to set a tag in the reader*, make sure if the tag
     // fetching _really_ succeeded. This is simply done by checking for TRUE
@@ -443,6 +442,7 @@ void TagReader::onTagRead(const GstTagList* list, const gchar* tag, gpointer dat
         trackInfo[TrackInfo::DATE] = wxString::Format(wxT("%i"), ddate);
     }
 
+
     reader->setTrackInfo(trackInfo);
 }
 
@@ -455,6 +455,11 @@ void TagReader::stop() throw() {
 }
 
 void TagReader::initTags() throw(AudioException) {
+    // set location beforehand, and not in the onTagRead, because that could be 
+    // called quite a lot of times. We need to only set the location once, and
+    // not 18 times in a row. Saves a few nanoseconds :p
+    m_trackInfo.setLocation(getLocation());
+
     GstMessage* msg = NULL;
     while (true) {
         GstTagList* tags = NULL;

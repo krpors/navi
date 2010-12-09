@@ -47,13 +47,18 @@ NaviMainFrame::NaviMainFrame() :
     wxSplitterWindow* split = new wxSplitterWindow(this, wxID_ANY);
 
     m_tree = new FileTree(split);
-    m_tree->setBase(wxT("/home/krpors/Desktop/")); 
+    m_tree->setBase(wxT("/"));
     m_tree->setFilesVisible(false);
 
     m_trackTable = new TrackTable(split);
 
+    TagReader tr(wxT("file:///home/krpors/Desktop/mp3s/un.mp3"));
+    TrackInfo ti = tr.getTrackInfo();
+    std::cout << ti[TrackInfo::TITLE].mb_str() << std::endl;
 
     split->SplitVertically(m_tree, m_trackTable);
+
+//    m_ogg = new OGGFilePipeline(wxT(""));
 }
 
 void NaviMainFrame::initMenu() {
@@ -67,12 +72,29 @@ void NaviMainFrame::initMenu() {
     SetMenuBar(bar);
 }
 
-void NaviMainFrame::play(wxCommandEvent& event) {
+void NaviMainFrame::play(wxListEvent& event) {
+    long data = event.GetData();
+    TrackInfo& info = m_trackTable->getTrackInfo(data);
+    wxString loc = info.getLocation();
+    loc.Replace(wxT("file://"), wxEmptyString); 
+    std::cout << "Selected track: " << info[TrackInfo::TITLE].mb_str() << ", path is " << loc.mb_str() << std::endl;
+
+    delete m_ogg;
+    m_ogg = new OGGFilePipeline(loc);
+    m_ogg->play();
+
+}
+
+void NaviMainFrame::dostuff(wxTreeEvent& event) {
+    const wxFileName& selectedPath = m_tree->getSelectedPath();
+    std::cout << selectedPath.GetFullPath().mb_str() << std::endl;
+    m_trackTable->addFromDir(selectedPath);
 }
 
 // Event table.
 BEGIN_EVENT_TABLE(NaviMainFrame, wxFrame)
-    EVT_BUTTON(wxID_ANY, NaviMainFrame::play)
+    EVT_TREE_ITEM_ACTIVATED(FileTree::ID_TREE, NaviMainFrame::dostuff)
+    EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, NaviMainFrame::play)
 END_EVENT_TABLE()
 
 

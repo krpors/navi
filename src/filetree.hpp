@@ -21,6 +21,7 @@
 #define FILETREE_HPP
 
 #include <wx/wx.h>
+#include <wx/app.h>
 #include <wx/dir.h>
 #include <wx/filename.h>
 #include <wx/imaglist.h>

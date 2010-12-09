@@ -61,7 +61,9 @@ private:
 
     void initMenu();
 
-    void play(wxCommandEvent& event);
+    void play(wxListEvent& event);
+
+    void dostuff(wxTreeEvent& event);
 
 public:
     NaviMainFrame();

@@ -171,17 +171,14 @@ void FileTree::onCollapseItem(wxTreeEvent& event) {
 void FileTree::onActivateItem(wxTreeEvent& event) {
     wxTreeItemId item = event.GetItem();
 
+    // Highlight the current item.
     SetItemBold(m_currentActiveItem, false);
     m_currentActiveItem = item;
     SetItemBold(m_currentActiveItem, true);
-
-    // TODO: use callbacks/listeners and such things to notify interested
-    // components that we're on the verge of playing songs in a directory.
-    // TODO: start here again.
-    //wxApp& app = wxGetApp;
-    //NaviMainFrame* mainframe = 
-
+    // Refresh the wxWindow (will display teh boldness lulz)
     Refresh();
+    // Parent event handlers must be able to process this event as well.
+    event.Skip();
 }
 
 void FileTree::addChildrenToDir(wxTreeItemId& parent) {

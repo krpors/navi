@@ -46,6 +46,7 @@ TrackTable::TrackTable(wxWindow* parent) :
     SetColumnWidth(3, 150);
 
 
+#if 0
     TrackInfo t;
 
     t.setLocation(wxT("/home/krpors/Desktop/oggs/bb.ogg"));
@@ -54,7 +55,6 @@ TrackTable::TrackTable(wxWindow* parent) :
     t[TrackInfo::TITLE] = wxT("Ever After");
     t[TrackInfo::ALBUM] = wxT("Unknown");
     addTrackInfo(t);
-
 
     t.setLocation(wxT("/home/krpors/Desktop/oggs/hg.ogg"));
     t[TrackInfo::TRACK_NUMBER] = wxT("8");
@@ -77,6 +77,7 @@ TrackTable::TrackTable(wxWindow* parent) :
     t[TrackInfo::ALBUM] = wxT("The Best of OM");
 
     addTrackInfo(t);
+#endif
 }
 
 TrackTable::~TrackTable() {
@@ -138,9 +139,7 @@ int wxCALLBACK TrackTable::compareAlbum(long item1, long item2, long sortData) {
 }
 
 void TrackTable::onActivate(wxListEvent& event) {
-    long data = event.GetData();
-    TrackInfo& info = m_trackInfos[data];
-    std::cout << "Selected track: " << info[TrackInfo::TITLE].mb_str() << ", path is " << info.getLocation().mb_str() << std::endl;
+    event.Skip();
 }
 
 void TrackTable::onColumnClick(wxListEvent& event) {
@@ -184,6 +183,40 @@ void TrackTable::addTrackInfo(TrackInfo& info) {
 
 TrackInfo& TrackTable::getTrackInfo(int index) {
     return m_trackInfos[index];
+}
+
+void TrackTable::addFromDir(const wxFileName& dir) {
+    // first, remove existing items from the list and the vector.
+    DeleteAllItems();
+    m_trackInfos.clear();
+
+    wxDir thedir(dir.GetFullPath());
+    wxString filename;
+    // only display files, and TODO: use a selector, as in: only mp3, ogg, flac, etc
+    bool gotfiles = thedir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
+    while (gotfiles) {
+        wxFileName fullFile;
+        fullFile.Assign(dir.GetFullPath(), filename);
+
+        wxString uri = wxT("file://");
+        uri << fullFile.GetFullPath();
+
+        std::cout << "\t" << uri.mb_str() << std::endl;
+
+        //file:///home/krpors/Desktop/mp3s/un.mp3
+        // Read tags:
+        try {
+            TagReader t(uri);
+            TrackInfo info = t.getTrackInfo();
+            addTrackInfo(info);
+        } catch (const AudioException& ex) {
+            std::cerr << ex.what() << std::endl;
+        }
+
+        // Get the next dir, if available. This is something like an iterator.
+        gotfiles = thedir.GetNext(&filename);
+    }
+
 }
 
 int TrackTable::theSort(TrackInfo& one, TrackInfo& two, const char* field, bool ascending) {

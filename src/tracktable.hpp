@@ -23,6 +23,8 @@
 #include "audio.hpp"
 
 #include <wx/listctrl.h>
+#include <wx/filename.h>
+#include <wx/dir.h>
 
 #include <vector>
 #include <iostream>
@@ -52,6 +54,8 @@ public:
     void addTrackInfo(TrackInfo& info);
 
     TrackInfo& getTrackInfo(int index);
+
+    void addFromDir(const wxFileName& dir);
 
     int theSort(TrackInfo& one, TrackInfo& two, const char* field, bool ascending);
 
