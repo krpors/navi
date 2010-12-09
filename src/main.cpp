@@ -47,18 +47,19 @@ NaviMainFrame::NaviMainFrame() :
     wxSplitterWindow* split = new wxSplitterWindow(this, wxID_ANY);
 
     m_tree = new FileTree(split);
-    m_tree->setBase(wxT("/"));
+    m_tree->setBase(wxT("/media/share/music"));
     m_tree->setFilesVisible(false);
 
     m_trackTable = new TrackTable(split);
 
+#if 0
     TagReader tr(wxT("file:///home/krpors/Desktop/mp3s/un.mp3"));
     TrackInfo ti = tr.getTrackInfo();
     std::cout << ti[TrackInfo::TITLE].mb_str() << std::endl;
+#endif 
 
     split->SplitVertically(m_tree, m_trackTable);
 
-//    m_ogg = new OGGFilePipeline(wxT(""));
 }
 
 void NaviMainFrame::initMenu() {

@@ -83,8 +83,8 @@ void FileTree::setBase(const wxString& basePath) {
     DeleteAllItems();
     // make sure the base path is now the root
     wxTreeItemId root = AddRoot(wxT("Music Library"), 3, -1, new FileTreeItemData(wxFileName(basePath)));
-    // add the subdirs and files from the root here:
-    addChildrenToDir(root);
+    // denote that our root "has children" (it will force a + on the item)
+    SetItemHasChildren(root);
 
 }
 
@@ -118,54 +118,13 @@ int FileTree::OnCompareItems(const wxTreeItemId& one, const wxTreeItemId& two) {
 
 void FileTree::onExpandItem(wxTreeEvent& event) {
     wxTreeItemId itemExpanded = event.GetItem();
-
-    // check all it's chrilden. I am truley sorry for your lots. 
-    wxTreeItemIdValue cookie;
-    // This is only the FIRST child.
-    wxTreeItemId child = GetFirstChild(itemExpanded, cookie);
-    // IsOk checks if there was actually a child
-    if (child.IsOk()) {
-        addChildrenToDir(child);
-
-        // This dildo part checks if there are more children than just the first one.
-        wxTreeItemId nextChild = GetNextChild(itemExpanded, cookie);
-        // while has more children:
-        while(nextChild.IsOk()) {
-            addChildrenToDir(nextChild);
-
-            nextChild = GetNextChild(itemExpanded, cookie);
-        }
-    }
-
+    addChildrenToDir(itemExpanded);
     SortChildren(itemExpanded);
 }
 
-/*
- * When an item is collapsing....
- */
 void FileTree::onCollapseItem(wxTreeEvent& event) {
     wxTreeItemId itemCollapsed = event.GetItem();
-    
-    // FIXME: improve this part. Stupid behaviour when collapsing.
-
-    wxTreeItemIdValue cookie;
-    // This is only the FIRST child.
-    wxTreeItemId child = GetFirstChild(itemCollapsed, cookie);
-    // IsOk checks if there was actually a child
-    if (child.IsOk()) {
-        // remove childs of `child'
-        DeleteChildren(child);
-
-        // This dildo part checks if there are more children than just the first one.
-        wxTreeItemId nextChild = GetNextChild(itemCollapsed, cookie);
-        // while has more children:
-        while(nextChild.IsOk()) {
-            // remove childs
-            DeleteChildren(nextChild);
-            nextChild = GetNextChild(itemCollapsed, cookie);
-        }
-    }
-
+    DeleteChildren(itemCollapsed);
 }
 
 void FileTree::onActivateItem(wxTreeEvent& event) {
@@ -200,8 +159,14 @@ void FileTree::addChildrenToDir(wxTreeItemId& parent) {
             wxFileName fileobj(path);
             FileTreeItemData* data = new FileTreeItemData(fileobj);
 
+            wxDir subdir(path);
             if (wxFileName::DirExists(path)) {
-                AppendItem(parent, fileobj.GetFullName(), 0, -1, data);
+                wxTreeItemId subItem = AppendItem(parent, fileobj.GetFullName(), 0, -1, data);
+                if (subdir.HasSubDirs()) {
+                    // if this item has subdirs, pretend we have children so we
+                    // can make it clickable.
+                    SetItemHasChildren(subItem);
+                }
             } else if(wxFileName::FileExists(path)) {
                 // only add files when we want to..
                 if (m_filesVisible) {
