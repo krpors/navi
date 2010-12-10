@@ -47,25 +47,20 @@ NaviMainFrame::NaviMainFrame() :
     wxSplitterWindow* split = new wxSplitterWindow(this, wxID_ANY);
 
     m_tree = new FileTree(split);
-    m_tree->setBase(wxT("/media/share/music"));
+    m_tree->setBase(wxT("/"));
     m_tree->setFilesVisible(false);
 
     m_trackTable = new TrackTable(split);
-
-#if 0
-    TagReader tr(wxT("file:///home/krpors/Desktop/mp3s/un.mp3"));
-    TrackInfo ti = tr.getTrackInfo();
-    std::cout << ti[TrackInfo::TITLE].mb_str() << std::endl;
-#endif 
-
     split->SplitVertically(m_tree, m_trackTable);
+
+    CreateStatusBar();
 
 }
 
 void NaviMainFrame::initMenu() {
     wxMenu* menuFile = new wxMenu;
     
-    menuFile->Append(wxID_PREFERENCES, wxT("Preferences"));
+    menuFile->Append(wxID_PREFERENCES, wxT("&Preferences"));
 
     wxMenuBar* bar = new wxMenuBar;
     bar->Append(menuFile, wxT("&File"));
@@ -78,12 +73,24 @@ void NaviMainFrame::play(wxListEvent& event) {
     TrackInfo& info = m_trackTable->getTrackInfo(data);
     wxString loc = info.getLocation();
     loc.Replace(wxT("file://"), wxEmptyString); 
-    std::cout << "Selected track: " << info[TrackInfo::TITLE].mb_str() << ", path is " << loc.mb_str() << std::endl;
+    SetStatusText(info[TrackInfo::TITLE]);
 
     delete m_ogg;
     m_ogg = new OGGFilePipeline(loc);
     m_ogg->play();
 
+}
+
+wxStatusBar* NaviMainFrame::OnCreateStatusBar(int number, long style, wxWindowID id, const wxString& name) {
+    wxStatusBar* bar = new wxStatusBar(this, id, style, name);
+    bar->SetStatusText(wxT("Navi started. Hey, listen!"));
+
+    return bar;
+}
+
+void NaviMainFrame::onResize(wxSizeEvent& event) {
+    Refresh();
+    event.Skip();
 }
 
 void NaviMainFrame::dostuff(wxTreeEvent& event) {
@@ -94,6 +101,7 @@ void NaviMainFrame::dostuff(wxTreeEvent& event) {
 
 // Event table.
 BEGIN_EVENT_TABLE(NaviMainFrame, wxFrame)
+    EVT_SIZE(NaviMainFrame::onResize)
     EVT_TREE_ITEM_ACTIVATED(FileTree::ID_TREE, NaviMainFrame::dostuff)
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, NaviMainFrame::play)
 END_EVENT_TABLE()

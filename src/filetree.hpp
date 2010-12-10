@@ -123,7 +123,7 @@ private:
     void initIcons();
 
 public:
-    static const short ID_TREE = 1;
+    static const wxWindowID ID_TREE = 1;
 
     FileTree(wxWindow* parent);
     ~FileTree();

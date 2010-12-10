@@ -45,39 +45,6 @@ TrackTable::TrackTable(wxWindow* parent) :
     InsertColumn(3, item);
     SetColumnWidth(3, 150);
 
-
-#if 0
-    TrackInfo t;
-
-    t.setLocation(wxT("/home/krpors/Desktop/oggs/bb.ogg"));
-    t[TrackInfo::TRACK_NUMBER] = wxT("1");
-    t[TrackInfo::ARTIST] = wxT("Bonnie Bailey");
-    t[TrackInfo::TITLE] = wxT("Ever After");
-    t[TrackInfo::ALBUM] = wxT("Unknown");
-    addTrackInfo(t);
-
-    t.setLocation(wxT("/home/krpors/Desktop/oggs/hg.ogg"));
-    t[TrackInfo::TRACK_NUMBER] = wxT("8");
-    t[TrackInfo::ARTIST] = wxT("JES");
-    t[TrackInfo::TITLE] = wxT("High Glow");
-    t[TrackInfo::ALBUM] = wxT("High Glow");
-    addTrackInfo(t);
-
-    t.setLocation(wxT("/home/krpors/Desktop/oggs/lna.ogg"));
-    t[TrackInfo::TRACK_NUMBER] = wxT("4");
-    t[TrackInfo::ARTIST] = wxT("Late Night Alumni");
-    t[TrackInfo::TITLE] = wxT("Finally Found");
-    t[TrackInfo::ALBUM] = wxT("Of Birds, Bees, and Butterflies");
-    addTrackInfo(t);
-
-    t.setLocation(wxT("/home/krpors/Desktop/oggs/lna.ogg"));
-    t[TrackInfo::TRACK_NUMBER] = wxT("3");
-    t[TrackInfo::ARTIST] = wxT("Kaskade vs. Deadmau5 ft. Haley");
-    t[TrackInfo::TITLE] = wxT("Falling in love with Brazil");
-    t[TrackInfo::ALBUM] = wxT("The Best of OM");
-
-    addTrackInfo(t);
-#endif
 }
 
 TrackTable::~TrackTable() {

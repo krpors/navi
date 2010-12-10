@@ -65,6 +65,10 @@ private:
 
     void dostuff(wxTreeEvent& event);
 
+    void onResize(wxSizeEvent& event);
+
+    wxStatusBar* OnCreateStatusBar(int number, long style, wxWindowID id, const wxString& name);
+
 public:
     NaviMainFrame();
 

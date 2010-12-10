@@ -41,7 +41,7 @@ private:
 
 
 public:
-    static const short ID_TRACKTABLE = 2;
+    static const wxWindowID ID_TRACKTABLE = 2;
 
     static int wxCALLBACK compareTrackNumber(long item1, long item2, long sortData);
     static int wxCALLBACK compareArtistName(long item1, long item2, long sortData);
