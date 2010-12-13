@@ -25,7 +25,7 @@ namespace navi {
 
 TrackTable::TrackTable(wxWindow* parent) :
         wxListCtrl(parent, TrackTable::ID_TRACKTABLE, wxDefaultPosition, 
-        wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL | wxLC_VRULES) {
+        wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL | wxLC_VRULES | wxVSCROLL) {
 
     wxListItem item;
 
@@ -152,6 +152,11 @@ TrackInfo& TrackTable::getTrackInfo(int index) {
     return m_trackInfos[index];
 }
 
+void TrackTable::DeleteAllItems() {
+    wxListCtrl::DeleteAllItems();
+    m_trackInfos.clear();
+}
+
 void TrackTable::addFromDir(const wxFileName& dir) {
     // first, remove existing items from the list and the vector.
     DeleteAllItems();
@@ -186,6 +191,19 @@ void TrackTable::addFromDir(const wxFileName& dir) {
 
 }
 
+void TrackTable::onNumberUpdate(wxCommandEvent& event) {
+    UpdateClientData* d = dynamic_cast<UpdateClientData*>(event.GetClientObject());
+    if (d) {
+        TrackInfo ti = d->getTrackInfo();
+        addTrackInfo(ti);
+    }
+
+    // since the UCD instance was created on the heap in a thread and
+    // added to the wxCommandEvent, we must also delete it manually, because
+    // the event itself won't delete it in its destructor.
+    delete d;
+}
+
 int TrackTable::theSort(TrackInfo& one, TrackInfo& two, const char* field, bool ascending) {
     if (ascending) {
         return one[field] > two[field];
@@ -197,9 +215,63 @@ int TrackTable::theSort(TrackInfo& one, TrackInfo& two, const char* field, bool 
 BEGIN_EVENT_TABLE(TrackTable, wxListCtrl)
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackTable::onActivate)   
     EVT_LIST_COL_CLICK(TrackTable::ID_TRACKTABLE, TrackTable::onColumnClick)
+    EVT_COMMAND(10000, wxEVT_COMMAND_TEXT_UPDATED, TrackTable::onNumberUpdate)
 END_EVENT_TABLE()
 
+//================================================================================
 
+UpdateClientData::UpdateClientData(const TrackInfo& info) :
+        m_info(info) {
+}
+
+const TrackInfo UpdateClientData::getTrackInfo() const {
+    return m_info;
+}
+
+//================================================================================
+
+UpdateThread::UpdateThread(TrackTable* parent, const wxFileName& selectedPath) :
+        wxThread(wxTHREAD_JOINABLE),
+        m_parent(parent),
+        m_selectedPath(selectedPath) {
+}
+
+wxThread::ExitCode UpdateThread::Entry() {
+    wxDir thedir(m_selectedPath.GetFullPath());
+    wxString filename;
+    // only display files, and TODO: use a selector, as in: only mp3, ogg, flac, etc
+    bool gotfiles = thedir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
+    while (gotfiles) {
+        wxFileName fullFile;
+        fullFile.Assign(m_selectedPath.GetFullPath(), filename);
+
+        wxString uri = wxT("file://");
+        uri << fullFile.GetFullPath();
+
+        //std::cout << "\t" << uri.mb_str() << std::endl;
+
+        try {
+            TagReader t(uri);
+            TrackInfo info = t.getTrackInfo();
+            std::cout << "\t Found track: " << info[TrackInfo::TITLE].mb_str() << std::endl;
+
+            // add client data to the event, so we can use that to update 
+            // the UI with the correct track information
+            UpdateClientData* d = new UpdateClientData(info);
+
+            wxCommandEvent event(wxEVT_COMMAND_TEXT_UPDATED, 10000);
+            event.SetClientObject(d);
+            m_parent->GetEventHandler()->AddPendingEvent(event);
+        } catch (const AudioException& ex) {
+            std::cerr << ex.what() << std::endl;
+        }
+
+        // Get the next dir, if available. This is something like an iterator.
+        gotfiles = thedir.GetNext(&filename);
+    }
+
+    return 0;
+}
 
 //================================================================================
 

@@ -25,11 +25,14 @@
 #include <wx/listctrl.h>
 #include <wx/filename.h>
 #include <wx/dir.h>
+#include <wx/thread.h>
 
 #include <vector>
 #include <iostream>
 
 namespace navi {
+
+
 
 //================================================================================
 
@@ -38,7 +41,7 @@ private:
     std::vector<TrackInfo> m_trackInfos;
     void onActivate(wxListEvent& event);
     void onColumnClick(wxListEvent& event);
-
+    void onNumberUpdate(wxCommandEvent& event);
 
 public:
     static const wxWindowID ID_TRACKTABLE = 2;
@@ -53,6 +56,8 @@ public:
 
     void addTrackInfo(TrackInfo& info);
 
+    void DeleteAllItems();
+
     TrackInfo& getTrackInfo(int index);
 
     void addFromDir(const wxFileName& dir);
@@ -61,6 +66,41 @@ public:
 
     DECLARE_EVENT_TABLE()
 };
+
+//================================================================================
+
+class UpdateClientData : public wxClientData {
+private:
+    TrackInfo m_info;
+public:
+    UpdateClientData(const TrackInfo& info);
+
+    const TrackInfo getTrackInfo() const;
+};
+
+//================================================================================
+
+/**
+ * The UpdateThread is a joinable (not detached) thread to update the user interface
+ * with new track info's. If we don't update the UI in another thread, the UI would
+ * block until all files in a directory or the like are finished adding.
+ * 
+ * The thread is created joinable so we can safely interrupt it be calling this
+ * thread's public functions. If it was detached, it would be destroyed after it
+ * has finished doing its work, and calling functions on the created instance will
+ * then most certainly invoke terrorist attacks on the application.
+ */
+class UpdateThread : public wxThread {
+private:
+    TrackTable* m_parent;
+    wxFileName m_selectedPath;
+public:
+    UpdateThread(TrackTable* parent, const wxFileName& selectedPath);
+
+    virtual wxThread::ExitCode Entry(); 
+};
+
+//================================================================================
 
 } // namespace navi 
 

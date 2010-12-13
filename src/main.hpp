@@ -59,6 +59,8 @@ private:
 
     TrackTable* m_trackTable;
 
+    UpdateThread* m_updateThread;
+
     void initMenu();
 
     void play(wxListEvent& event);
