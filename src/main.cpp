@@ -30,6 +30,7 @@ bool NaviApp::OnInit() {
     NaviMainFrame* frame = new NaviMainFrame;
     frame->Center();
     frame->Show();
+    
 
     SetTopWindow(frame);
 
@@ -48,7 +49,7 @@ NaviMainFrame::NaviMainFrame() :
     wxSplitterWindow* split = new wxSplitterWindow(this, wxID_ANY);
 
     m_tree = new FileTree(split);
-    m_tree->setBase(wxT("/media/share/music/"));
+    m_tree->setBase(wxT("/"));
     m_tree->setFilesVisible(false);
 
     m_trackTable = new TrackTable(split);
@@ -98,23 +99,24 @@ void NaviMainFrame::dostuff(wxTreeEvent& event) {
     const wxFileName& selectedPath = m_tree->getSelectedPath();
     std::cout << selectedPath.GetFullPath().mb_str() << std::endl;
     
+    if (m_updateThread != NULL) {
+        m_updateThread->setActive(false);
+        // wait for thread to finish doing its work.
+        /*wxThread::ExitCode code = */m_updateThread->Wait();
+    }
+
     m_trackTable->DeleteAllItems();
 
-    if (!m_updateThread) {
-        m_updateThread = new UpdateThread(m_trackTable, selectedPath);
-        wxThreadError err = m_updateThread->Create();
-        if (err != wxTHREAD_NO_ERROR) {
-            wxMessageBox(wxT("Couldn't create thread!"));
-        }
+    m_updateThread = new UpdateThread(m_trackTable, selectedPath);
+    wxThreadError err = m_updateThread->Create();
+    if (err != wxTHREAD_NO_ERROR) {
+        wxMessageBox(wxT("Couldn't create thread!"));
+    }
 
-        err = m_updateThread->Run();
+    err = m_updateThread->Run();
 
-        if (err != wxTHREAD_NO_ERROR) {
-            wxMessageBox(wxT("Couldn't run thread!"));
-        }
-    } else {
-        // thread exists, check if it's running
-        std::cout << m_updateThread->IsAlive() << std::endl;
+    if (err != wxTHREAD_NO_ERROR) {
+        wxMessageBox(wxT("Couldn't run thread!"));
     }
 }
 

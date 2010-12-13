@@ -47,11 +47,6 @@ TrackTable::TrackTable(wxWindow* parent) :
 
 }
 
-TrackTable::~TrackTable() {
-}
-
-bool cock = true;
-
 // compare functions:
 int wxCALLBACK TrackTable::compareTrackNumber(long item1, long item2, long sortData) {
     // reinterpret the sortData to a TrackTable pointar. Wtf.
@@ -60,7 +55,8 @@ int wxCALLBACK TrackTable::compareTrackNumber(long item1, long item2, long sortD
     if (roflol) {
         TrackInfo& one = roflol->getTrackInfo(item1);
         TrackInfo& two = roflol->getTrackInfo(item2);
-        return roflol->theSort(one, two, TrackInfo::TRACK_NUMBER, true);
+
+        return one[TrackInfo::TRACK_NUMBER] > two[TrackInfo::TRACK_NUMBER];
     }
 
     return 0;
@@ -73,7 +69,8 @@ int wxCALLBACK TrackTable::compareArtistName(long item1, long item2, long sortDa
     if (roflol) {
         TrackInfo& one = roflol->getTrackInfo(item1);
         TrackInfo& two = roflol->getTrackInfo(item2);
-        return roflol->theSort(one, two, TrackInfo::ARTIST, true);
+
+        return one[TrackInfo::ARTIST] > two[TrackInfo::ARTIST];
     }
 
     return 0;
@@ -86,7 +83,8 @@ int wxCALLBACK TrackTable::compareTitle(long item1, long item2, long sortData) {
     if (roflol) {
         TrackInfo& one = roflol->getTrackInfo(item1);
         TrackInfo& two = roflol->getTrackInfo(item2);
-        return roflol->theSort(one, two, TrackInfo::TITLE, true);
+
+        return one[TrackInfo::TITLE] > two[TrackInfo::TITLE];
     }
 
     return 0;
@@ -99,7 +97,8 @@ int wxCALLBACK TrackTable::compareAlbum(long item1, long item2, long sortData) {
     if (roflol) {
         TrackInfo& one = roflol->getTrackInfo(item1);
         TrackInfo& two = roflol->getTrackInfo(item2);
-        return roflol->theSort(one, two, TrackInfo::ALBUM, true);
+
+        return one[TrackInfo::ALBUM] > two[TrackInfo::ALBUM];
     }
 
     return 0;
@@ -157,41 +156,7 @@ void TrackTable::DeleteAllItems() {
     m_trackInfos.clear();
 }
 
-void TrackTable::addFromDir(const wxFileName& dir) {
-    // first, remove existing items from the list and the vector.
-    DeleteAllItems();
-    m_trackInfos.clear();
-
-    wxDir thedir(dir.GetFullPath());
-    wxString filename;
-    // only display files, and TODO: use a selector, as in: only mp3, ogg, flac, etc
-    bool gotfiles = thedir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
-    while (gotfiles) {
-        wxFileName fullFile;
-        fullFile.Assign(dir.GetFullPath(), filename);
-
-        wxString uri = wxT("file://");
-        uri << fullFile.GetFullPath();
-
-        std::cout << "\t" << uri.mb_str() << std::endl;
-
-        //file:///home/krpors/Desktop/mp3s/un.mp3
-        // Read tags:
-        try {
-            TagReader t(uri);
-            TrackInfo info = t.getTrackInfo();
-            addTrackInfo(info);
-        } catch (const AudioException& ex) {
-            std::cerr << ex.what() << std::endl;
-        }
-
-        // Get the next dir, if available. This is something like an iterator.
-        gotfiles = thedir.GetNext(&filename);
-    }
-
-}
-
-void TrackTable::onNumberUpdate(wxCommandEvent& event) {
+void TrackTable::onAddTrackInfo(wxCommandEvent& event) {
     UpdateClientData* d = dynamic_cast<UpdateClientData*>(event.GetClientObject());
     if (d) {
         TrackInfo ti = d->getTrackInfo();
@@ -200,22 +165,15 @@ void TrackTable::onNumberUpdate(wxCommandEvent& event) {
 
     // since the UCD instance was created on the heap in a thread and
     // added to the wxCommandEvent, we must also delete it manually, because
-    // the event itself won't delete it in its destructor.
+    // the event itself won't delete it in its destructor. This is conforming
+    // the documentation from wxCommandEvent.
     delete d;
-}
-
-int TrackTable::theSort(TrackInfo& one, TrackInfo& two, const char* field, bool ascending) {
-    if (ascending) {
-        return one[field] > two[field];
-    } else {
-        return one[field] < two[field];
-    }
 }
 
 BEGIN_EVENT_TABLE(TrackTable, wxListCtrl)
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackTable::onActivate)   
     EVT_LIST_COL_CLICK(TrackTable::ID_TRACKTABLE, TrackTable::onColumnClick)
-    EVT_COMMAND(10000, wxEVT_COMMAND_TEXT_UPDATED, TrackTable::onNumberUpdate)
+    EVT_COMMAND(TrackTable::ID_EVT_ADD_INFO, wxEVT_COMMAND_TEXT_UPDATED, TrackTable::onAddTrackInfo)
 END_EVENT_TABLE()
 
 //================================================================================
@@ -225,6 +183,7 @@ UpdateClientData::UpdateClientData(const TrackInfo& info) :
 }
 
 const TrackInfo UpdateClientData::getTrackInfo() const {
+    
     return m_info;
 }
 
@@ -233,7 +192,12 @@ const TrackInfo UpdateClientData::getTrackInfo() const {
 UpdateThread::UpdateThread(TrackTable* parent, const wxFileName& selectedPath) :
         wxThread(wxTHREAD_JOINABLE),
         m_parent(parent),
-        m_selectedPath(selectedPath) {
+        m_selectedPath(selectedPath),
+        m_active(true) {
+}
+
+void UpdateThread::setActive(bool active) {
+    m_active = active;
 }
 
 wxThread::ExitCode UpdateThread::Entry() {
@@ -241,25 +205,23 @@ wxThread::ExitCode UpdateThread::Entry() {
     wxString filename;
     // only display files, and TODO: use a selector, as in: only mp3, ogg, flac, etc
     bool gotfiles = thedir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
-    while (gotfiles) {
+    // as long as more files are found, and the thread should remain active:
+    while (gotfiles && m_active) {
         wxFileName fullFile;
         fullFile.Assign(m_selectedPath.GetFullPath(), filename);
 
         wxString uri = wxT("file://");
         uri << fullFile.GetFullPath();
 
-        //std::cout << "\t" << uri.mb_str() << std::endl;
-
         try {
             TagReader t(uri);
             TrackInfo info = t.getTrackInfo();
-            std::cout << "\t Found track: " << info[TrackInfo::TITLE].mb_str() << std::endl;
 
             // add client data to the event, so we can use that to update 
             // the UI with the correct track information
             UpdateClientData* d = new UpdateClientData(info);
 
-            wxCommandEvent event(wxEVT_COMMAND_TEXT_UPDATED, 10000);
+            wxCommandEvent event(wxEVT_COMMAND_TEXT_UPDATED, TrackTable::ID_EVT_ADD_INFO);
             event.SetClientObject(d);
             m_parent->GetEventHandler()->AddPendingEvent(event);
         } catch (const AudioException& ex) {
