@@ -26,6 +26,7 @@ namespace navi {
 
 bool NaviApp::OnInit() {
     gst_init(NULL, NULL);
+    wxInitAllImageHandlers();
 
     NaviMainFrame* frame = new NaviMainFrame;
     frame->Center();
@@ -131,12 +132,18 @@ void NaviMainFrame::dostuff(wxTreeEvent& event) {
 
 void NaviMainFrame::onAbout(wxCommandEvent& event) {
     wxAboutDialogInfo info;
-    info.SetName(wxT("Navi Audio Player"));
+    info.SetName(wxT("Navi"));
     info.SetVersion(wxT("0.1a"));
-    info.SetDescription(wxT("Navi is a directory based music player for Linux."));
+    info.SetDescription(wxT("Hey, listen! Hey, listen!\nNavi is a directory based music player for Linux."));
     info.AddArtist(wxT("James 'adamorjames' Corley"));
     info.AddDeveloper(wxT("Kevin 'Azzkikr' Pors"));
     info.SetWebSite(wxT("http://github.com/krpors/navi"));
+
+    wxBitmap bm(wxT("./img/navi.png"), wxBITMAP_TYPE_PNG);
+    wxIcon icon;
+    icon.CopyFromBitmap(bm);
+    info.SetIcon(icon);
+
     wxAboutBox(info);
 }
 

@@ -30,6 +30,8 @@
 #include <wx/button.h>
 #include <wx/notebook.h>
 #include <wx/aboutdlg.h>
+#include <wx/bitmap.h>
+
 
 namespace navi {
     
