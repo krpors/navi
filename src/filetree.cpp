@@ -81,7 +81,7 @@ void FileTree::setBase(const wxString& basePath) {
 
     // delete them all before attempting to add a new root and shit.
     DeleteAllItems();
-    // make sure the base path is now the root
+    // make sure the base path is now the root (second arg is the icon)
     wxTreeItemId root = AddRoot(wxT("Music Library"), 3, -1, new FileTreeItemData(wxFileName(basePath)));
     // denote that our root "has children" (it will force a + on the item)
     SetItemHasChildren(root);

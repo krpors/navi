@@ -42,18 +42,24 @@ bool NaviApp::OnInit() {
 NaviMainFrame::NaviMainFrame() :
         wxFrame((wxFrame*) NULL, wxID_ANY, wxT("Navi")),
         m_ogg(NULL),
+        m_noteBook(NULL),
         m_updateThread(NULL) {
 
     // create our menu here
     initMenu();
     wxSplitterWindow* split = new wxSplitterWindow(this, wxID_ANY);
 
-    m_tree = new FileTree(split);
+    m_noteBook = new wxNotebook(split, wxID_ANY);
+
+    m_tree = new FileTree(m_noteBook);
     m_tree->setBase(wxT("/"));
     m_tree->setFilesVisible(false);
 
+    m_noteBook->AddPage(m_tree, wxT("Library browser"));
+    m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("Cocks?")), wxT("Favorites"));
+
     m_trackTable = new TrackTable(split);
-    split->SplitVertically(m_tree, m_trackTable);
+    split->SplitVertically(m_noteBook, m_trackTable);
 
     CreateStatusBar();
 
@@ -61,11 +67,15 @@ NaviMainFrame::NaviMainFrame() :
 
 void NaviMainFrame::initMenu() {
     wxMenu* menuFile = new wxMenu;
-    
     menuFile->Append(wxID_PREFERENCES, wxT("&Preferences"));
+
+    wxMenu* menuHelp = new wxMenu;
+    menuHelp->Append(wxID_ABOUT, wxT("&About"));
 
     wxMenuBar* bar = new wxMenuBar;
     bar->Append(menuFile, wxT("&File"));
+    bar->Append(menuHelp, wxT("&Help"));
+    bar->SetHelpString(wxID_ABOUT, wxT("About Navi"));
     
     SetMenuBar(bar);
 }
@@ -80,7 +90,6 @@ void NaviMainFrame::play(wxListEvent& event) {
     delete m_ogg;
     m_ogg = new OGGFilePipeline(loc);
     m_ogg->play();
-
 }
 
 wxStatusBar* NaviMainFrame::OnCreateStatusBar(int number, long style, wxWindowID id, const wxString& name) {
@@ -120,11 +129,24 @@ void NaviMainFrame::dostuff(wxTreeEvent& event) {
     }
 }
 
+void NaviMainFrame::onAbout(wxCommandEvent& event) {
+    wxAboutDialogInfo info;
+    info.SetName(wxT("Navi Audio Player"));
+    info.SetVersion(wxT("0.1a"));
+    info.SetDescription(wxT("Navi is a directory based music player for Linux."));
+    info.AddArtist(wxT("James 'adamorjames' Corley"));
+    info.AddDeveloper(wxT("Kevin 'Azzkikr' Pors"));
+    info.SetWebSite(wxT("http://github.com/krpors/navi"));
+    wxAboutBox(info);
+}
+
 // Event table.
 BEGIN_EVENT_TABLE(NaviMainFrame, wxFrame)
     EVT_SIZE(NaviMainFrame::onResize)
     EVT_TREE_ITEM_ACTIVATED(FileTree::ID_TREE, NaviMainFrame::dostuff)
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, NaviMainFrame::play)
+    EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, NaviMainFrame::play)
+    EVT_MENU(wxID_ABOUT, NaviMainFrame::onAbout)
 END_EVENT_TABLE()
 
 

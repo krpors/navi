@@ -28,6 +28,8 @@
 #include <wx/treectrl.h>
 #include <wx/tglbtn.h>
 #include <wx/button.h>
+#include <wx/notebook.h>
+#include <wx/aboutdlg.h>
 
 namespace navi {
     
@@ -55,6 +57,8 @@ class NaviMainFrame : public wxFrame {
 private:
     OGGFilePipeline* m_ogg;
 
+    wxNotebook* m_noteBook;
+
     FileTree* m_tree;
 
     TrackTable* m_trackTable;
@@ -68,6 +72,8 @@ private:
     void dostuff(wxTreeEvent& event);
 
     void onResize(wxSizeEvent& event);
+
+    void onAbout(wxCommandEvent& event);
 
     wxStatusBar* OnCreateStatusBar(int number, long style, wxWindowID id, const wxString& name);
 
