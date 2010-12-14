@@ -67,6 +67,8 @@ private:
 
     UpdateThread* m_updateThread;
 
+    wxImageList* m_imageList;
+
     void initMenu();
 
     void play(wxListEvent& event);

@@ -37,9 +37,10 @@ const wxFileName& FileTreeItemData::getFileName() const {
 //==============================================================================
 
 FileTree::FileTree(wxWindow* parent) :
-    wxTreeCtrl(parent, FileTree::ID_TREE, wxDefaultPosition, wxDefaultSize, wxTR_HAS_BUTTONS | wxTR_FULL_ROW_HIGHLIGHT),
-    m_filesVisible(true),
-    m_currentActiveItem(NULL) {
+        wxTreeCtrl(parent, FileTree::ID_TREE, wxDefaultPosition, 
+            wxDefaultSize, wxTR_HAS_BUTTONS | wxTR_FULL_ROW_HIGHLIGHT),
+        m_filesVisible(true),
+        m_currentActiveItem(NULL) {
 
     // intialize the used icons in the wxTreeCtrl.
     initIcons();
@@ -85,7 +86,8 @@ void FileTree::setBase(const wxString& basePath) {
     wxTreeItemId root = AddRoot(wxT("Music Library"), 3, -1, new FileTreeItemData(wxFileName(basePath)));
     // denote that our root "has children" (it will force a + on the item)
     SetItemHasChildren(root);
-
+    // by default, expand the root.
+    Expand(root);
 }
 
 int FileTree::OnCompareItems(const wxTreeItemId& one, const wxTreeItemId& two) {

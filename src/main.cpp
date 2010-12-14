@@ -29,10 +29,10 @@ bool NaviApp::OnInit() {
     wxInitAllImageHandlers();
 
     NaviMainFrame* frame = new NaviMainFrame;
+    frame->SetSize(800, 600);
     frame->Center();
     frame->Show();
     
-
     SetTopWindow(frame);
 
     return true;
@@ -46,18 +46,25 @@ NaviMainFrame::NaviMainFrame() :
         m_noteBook(NULL),
         m_updateThread(NULL) {
 
+    // XXX: images are now just for demonstration purposes.
+    // attempt to initialize image lists:
+    m_imageList = new wxImageList(16, 16);
+    m_imageList->Add(wxArtProvider::GetIcon(wxART_GO_HOME));
+    m_imageList->Add(wxArtProvider::GetIcon(wxART_ADD_BOOKMARK));
+
     // create our menu here
     initMenu();
     wxSplitterWindow* split = new wxSplitterWindow(this, wxID_ANY);
 
     m_noteBook = new wxNotebook(split, wxID_ANY);
+    m_noteBook->AssignImageList(m_imageList);
 
     m_tree = new FileTree(m_noteBook);
     m_tree->setBase(wxT("/"));
     m_tree->setFilesVisible(false);
 
-    m_noteBook->AddPage(m_tree, wxT("Library browser"));
-    m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("Cocks?")), wxT("Favorites"));
+    m_noteBook->AddPage(m_tree, wxEmptyString, true, 0);
+    m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("Cocks?")), wxEmptyString, false, 1);
 
     m_trackTable = new TrackTable(split);
     split->SplitVertically(m_noteBook, m_trackTable);
@@ -139,7 +146,7 @@ void NaviMainFrame::onAbout(wxCommandEvent& event) {
     info.AddDeveloper(wxT("Kevin 'Azzkikr' Pors"));
     info.SetWebSite(wxT("http://github.com/krpors/navi"));
 
-    wxBitmap bm(wxT("./img/navi.png"), wxBITMAP_TYPE_PNG);
+    wxBitmap bm(wxT("./data/icons/navi.png"), wxBITMAP_TYPE_PNG);
     wxIcon icon;
     icon.CopyFromBitmap(bm);
     info.SetIcon(icon);
