@@ -49,8 +49,9 @@ NaviMainFrame::NaviMainFrame() :
     // XXX: images are now just for demonstration purposes.
     // attempt to initialize image lists:
     m_imageList = new wxImageList(16, 16);
-    m_imageList->Add(wxArtProvider::GetIcon(wxART_GO_HOME));
+    m_imageList->Add(wxArtProvider::GetIcon(wxT("gtk-open")));
     m_imageList->Add(wxArtProvider::GetIcon(wxART_ADD_BOOKMARK));
+    m_imageList->Add(wxArtProvider::GetIcon(wxT("gtk-network")));
 
     // create our menu here
     initMenu();
@@ -63,8 +64,9 @@ NaviMainFrame::NaviMainFrame() :
     m_tree->setBase(wxT("/"));
     m_tree->setFilesVisible(false);
 
-    m_noteBook->AddPage(m_tree, wxEmptyString, true, 0);
-    m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("Cocks?")), wxEmptyString, false, 1);
+    m_noteBook->AddPage(m_tree, wxT("Browser"), true, 0);
+    m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("Cocks?")), wxT("Favorites"), false, 1);
+    m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("Cocks?")), wxT("Streams"), false, 2);
 
     m_trackTable = new TrackTable(split);
     split->SplitVertically(m_noteBook, m_trackTable);
