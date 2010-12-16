@@ -21,7 +21,7 @@
 #define MAIN_HPP
 
 #include "audio.hpp"
-#include "filetree.hpp"
+#include "dirbrowser.hpp"
 #include "tracktable.hpp"
 
 #include <wx/wx.h>
@@ -61,7 +61,7 @@ private:
 
     wxNotebook* m_noteBook;
 
-    FileTree* m_tree;
+    DirBrowserContainer* m_dirBrowser;
 
     TrackTable* m_trackTable;
 

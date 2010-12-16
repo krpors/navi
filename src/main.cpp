@@ -60,11 +60,11 @@ NaviMainFrame::NaviMainFrame() :
     m_noteBook = new wxNotebook(split, wxID_ANY);
     m_noteBook->AssignImageList(m_imageList);
 
-    m_tree = new FileTree(m_noteBook);
-    m_tree->setBase(wxT("/"));
-    m_tree->setFilesVisible(false);
+    m_dirBrowser = new DirBrowserContainer(m_noteBook);
+    m_dirBrowser->getDirBrowser()->setBase(wxT("/"));
+    m_dirBrowser->getDirBrowser()->setFilesVisible(false);
 
-    m_noteBook->AddPage(m_tree, wxT("Browser"), true, 0);
+    m_noteBook->AddPage(m_dirBrowser, wxT("Browser"), true, 0);
     m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("Cocks?")), wxT("Favorites"), false, 1);
     m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("Cocks?")), wxT("Streams"), false, 2);
 
@@ -115,7 +115,7 @@ void NaviMainFrame::onResize(wxSizeEvent& event) {
 }
 
 void NaviMainFrame::dostuff(wxTreeEvent& event) {
-    const wxFileName& selectedPath = m_tree->getSelectedPath();
+    const wxFileName& selectedPath = m_dirBrowser->getDirBrowser()->getSelectedPath();
     std::cout << selectedPath.GetFullPath().mb_str() << std::endl;
     
     if (m_updateThread != NULL) {
@@ -159,7 +159,7 @@ void NaviMainFrame::onAbout(wxCommandEvent& event) {
 // Event table.
 BEGIN_EVENT_TABLE(NaviMainFrame, wxFrame)
     EVT_SIZE(NaviMainFrame::onResize)
-    EVT_TREE_ITEM_ACTIVATED(FileTree::ID_TREE, NaviMainFrame::dostuff)
+    EVT_TREE_ITEM_ACTIVATED(DirBrowser::ID_NAVI_DIR_BROWSER, NaviMainFrame::dostuff)
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, NaviMainFrame::play)
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, NaviMainFrame::play)
     EVT_MENU(wxID_ABOUT, NaviMainFrame::onAbout)
