@@ -9,7 +9,7 @@ DOC=./doc
 # Object files
 OBJECTS=$(BIN)/main.o\
         $(BIN)/audio.o\
-        $(BIN)/filetree.o\
+        $(BIN)/dirbrowser.o\
         $(BIN)/tracktable.o
 
 # Following targets build the source files.
@@ -23,8 +23,8 @@ $(BIN)/main.o: $(SRC)/main.cpp $(SRC)/main.hpp
 $(BIN)/audio.o: $(SRC)/audio.cpp $(SRC)/audio.hpp
 	$(CC) $(CFLAGS) $(SRC)/audio.cpp -o $@
 
-$(BIN)/filetree.o: $(SRC)/filetree.cpp $(SRC)/filetree.hpp
-	$(CC) $(CFLAGS) $(SRC)/filetree.cpp -o $@
+$(BIN)/dirbrowser.o: $(SRC)/dirbrowser.cpp $(SRC)/dirbrowser.hpp
+	$(CC) $(CFLAGS) $(SRC)/dirbrowser.cpp -o $@
 
 $(BIN)/tracktable.o: $(SRC)/tracktable.cpp $(SRC)/tracktable.hpp
 	$(CC) $(CFLAGS) $(SRC)/tracktable.cpp -o $@
