@@ -68,8 +68,8 @@ NaviMainFrame::NaviMainFrame() :
     m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("Cocks?")), wxT("Favorites"), false, 1);
     m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("Cocks?")), wxT("Streams"), false, 2);
 
-    m_trackTable = new TrackTable(split);
-    split->SplitVertically(m_noteBook, m_trackTable);
+    wxPanel* lol = createNavPanel(split);
+    split->SplitVertically(m_noteBook, lol);
 
     CreateStatusBar();
 
@@ -88,6 +88,21 @@ void NaviMainFrame::initMenu() {
     bar->SetHelpString(wxID_ABOUT, wxT("About Navi"));
     
     SetMenuBar(bar);
+}
+
+
+wxPanel* NaviMainFrame::createNavPanel(wxWindow* parent) {
+    wxPanel* panel = new wxPanel(parent);
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+    panel->SetSizer(sizer);
+
+    m_trackTable = new TrackTable(panel);
+    m_navigation = new NavigationContainer(panel);
+
+    sizer->Add(m_navigation, wxSizerFlags().Expand());
+    sizer->Add(m_trackTable, wxSizerFlags(1).Expand());
+
+    return panel;
 }
 
 void NaviMainFrame::play(wxListEvent& event) {

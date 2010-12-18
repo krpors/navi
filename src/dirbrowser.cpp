@@ -219,7 +219,7 @@ DirBrowserContainer::DirBrowserContainer(wxWindow* parent) :
 
     wxBitmap map = wxArtProvider::GetBitmap(wxT("gtk-open"));
  
-    wxBitmapButton* btn1 = new wxBitmapButton(panelBtns, ID_BROWSE_DIR, map);
+    wxBitmapButton* btn1 = new wxBitmapButton(panelBtns, ID_BROWSE_DIR, map, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     //wxButton* btn1 = new wxButton(panelBtns, ID_BROWSE_DIR, wxT("Dix"));
     btn1->SetToolTip(wxT("Browse for new base directory"));
     wxButton* btn2 = new wxButton(panelBtns, wxID_ANY, wxT("Cox"));

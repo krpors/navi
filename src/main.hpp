@@ -23,6 +23,7 @@
 #include "audio.hpp"
 #include "dirbrowser.hpp"
 #include "tracktable.hpp"
+#include "navigation.hpp"
 
 #include <wx/wx.h>
 #include <wx/treectrl.h>
@@ -67,9 +68,13 @@ private:
 
     UpdateThread* m_updateThread;
 
+    NavigationContainer* m_navigation;
+
     wxImageList* m_imageList;
 
     void initMenu();
+
+    wxPanel* createNavPanel(wxWindow* parent);
 
     void play(wxListEvent& event);
 
