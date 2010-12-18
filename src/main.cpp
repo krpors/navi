@@ -121,9 +121,11 @@ void NaviMainFrame::dostuff(wxTreeEvent& event) {
     if (m_updateThread != NULL) {
         m_updateThread->setActive(false);
         // wait for thread to finish doing its work.
-        /*wxThread::ExitCode code = */m_updateThread->Wait();
+        /*wxThread::ExitCode code = */
+        m_updateThread->Wait();
     }
-
+    // XXX: deleting all items does not seem to work reliably, i.e. always some
+    // 'residue' seem to be left behind from the previous directory crap.
     m_trackTable->DeleteAllItems();
 
     m_updateThread = new UpdateThread(m_trackTable, selectedPath);

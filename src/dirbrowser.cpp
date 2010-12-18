@@ -77,6 +77,11 @@ void DirBrowser::initIcons() {
     SetImageList(m_imageList);
 }
 
+
+wxString DirBrowser::getBase() const {
+    return m_basePath;
+}
+
 void DirBrowser::setBase(const wxString& basePath) {
     m_basePath = basePath;
 
@@ -212,7 +217,11 @@ DirBrowserContainer::DirBrowserContainer(wxWindow* parent) :
     wxPanel* panelBtns = new wxPanel(this);
     wxBoxSizer* sizerBtns = new wxBoxSizer(wxHORIZONTAL);
 
-    wxButton* btn1 = new wxButton(panelBtns, wxID_ANY, wxT("Dix"));
+    wxBitmap map = wxArtProvider::GetBitmap(wxT("gtk-open"));
+ 
+    wxBitmapButton* btn1 = new wxBitmapButton(panelBtns, ID_BROWSE_DIR, map);
+    //wxButton* btn1 = new wxButton(panelBtns, ID_BROWSE_DIR, wxT("Dix"));
+    btn1->SetToolTip(wxT("Browse for new base directory"));
     wxButton* btn2 = new wxButton(panelBtns, wxID_ANY, wxT("Cox"));
 
     panelBtns->SetSizer(sizerBtns);
@@ -224,13 +233,27 @@ DirBrowserContainer::DirBrowserContainer(wxWindow* parent) :
     // Sizer of the main thing
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(sizer);
-    sizer->Add(panelBtns);
+    sizer->Add(panelBtns, wxSizerFlags().Left().Border(wxALL, 3));
     sizer->Add(m_browser, wxSizerFlags(1).Expand());
 }
 
 DirBrowser* DirBrowserContainer::getDirBrowser() const {
     return m_browser;
 }
+
+void DirBrowserContainer::onBrowseNewDir(wxCommandEvent& event) {
+    wxDirDialog* dlg = new wxDirDialog(this);
+    dlg->SetPath(m_browser->getBase());
+    dlg->ShowModal();
+    m_browser->setBase(dlg->GetPath());
+}
+
+// Event table.
+BEGIN_EVENT_TABLE(DirBrowserContainer, wxPanel)
+    EVT_BUTTON(DirBrowserContainer::ID_BROWSE_DIR, DirBrowserContainer::onBrowseNewDir)
+END_EVENT_TABLE()
+
+
 
 } //namespace navi 
 

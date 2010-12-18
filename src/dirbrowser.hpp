@@ -30,6 +30,7 @@
 #include <wx/icon.h>
 #include <wx/iconloc.h>
 #include <wx/artprov.h>
+#include <wx/dirdlg.h>
 
 namespace navi {
 
@@ -128,6 +129,7 @@ public:
     DirBrowser(wxWindow* parent);
     ~DirBrowser();
 
+    wxString getBase() const;
     /**
      * Sets the base path for the DirBrowser.
      * TODO: throw exception when the basepath is not a valid dir.
@@ -167,10 +169,17 @@ public:
 class DirBrowserContainer : public wxPanel {
 private:
     DirBrowser* m_browser;
+
+    void onBrowseNewDir(wxCommandEvent& event);
 public:
+    static const short ID_BROWSE_DIR = 1030; 
+
     DirBrowserContainer(wxWindow* parent);
 
     DirBrowser* getDirBrowser() const;
+
+    // Events plx for the buttons hurr durr
+    DECLARE_EVENT_TABLE()
 };
 
 } //namespace navi 

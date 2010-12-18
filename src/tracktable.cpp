@@ -86,7 +86,7 @@ int wxCALLBACK TrackTable::compareTitle(long item1, long item2, long sortData) {
 
         return one[TrackInfo::TITLE] > two[TrackInfo::TITLE];
     }
-
+    
     return 0;
 }
 
