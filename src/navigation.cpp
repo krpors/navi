@@ -24,8 +24,9 @@
 
 namespace navi {
 
-NavigationContainer::NavigationContainer(wxWindow* parent) :
-        wxPanel(parent, wxID_ANY) {
+NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFrame) :
+        wxPanel(parent, wxID_ANY),
+        m_naviFrame(naviFrame) {
     
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -38,7 +39,7 @@ NavigationContainer::NavigationContainer(wxWindow* parent) :
     
     wxBitmapButton* btn1 = new wxBitmapButton(this, wxID_ANY, prev, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     wxBitmapButton* btn2 = new wxBitmapButton(this, wxID_ANY, play, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    wxBitmapButton* btn3 = new wxBitmapButton(this, wxID_ANY, stop, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    btnStop = new wxBitmapButton(this, ID_MEDIA_STOP, stop, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     wxBitmapButton* btn4 = new wxBitmapButton(this, wxID_ANY, next, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     wxBitmapButton* btn5 = new wxBitmapButton(this, wxID_ANY, random, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 
@@ -46,7 +47,7 @@ NavigationContainer::NavigationContainer(wxWindow* parent) :
 
     sizer->Add(btn1);
     sizer->Add(btn2);
-    sizer->Add(btn3);
+    sizer->Add(btnStop);
     sizer->Add(btn4);
     sizer->Add(btn5);
     sizer->Add(slider, wxSizerFlags(1).Expand());
@@ -54,7 +55,26 @@ NavigationContainer::NavigationContainer(wxWindow* parent) :
     SetSizer(sizer);
 }
 
+void NavigationContainer::onPlay(wxCommandEvent& event) {
+    // TODO: get selected song, play it plx, or pause if playing.
+    Pipeline* p = m_naviFrame->getPipeline();
+    if (p != NULL) {
+        if (p
+    }
+}
 
+void NavigationContainer::onStop(wxCommandEvent& event) {
+    Pipeline* p = m_naviFrame->getPipeline();
+    if (p != NULL) {
+        p->stop();
+        btnStop->Enable(false);
+    }
+}
+
+BEGIN_EVENT_TABLE(NavigationContainer, wxPanel)
+    EVT_BUTTON(NavigationContainer::ID_MEDIA_PLAY, NavigationContainer::onPlay)
+    EVT_BUTTON(NavigationContainer::ID_MEDIA_STOP, NavigationContainer::onStop)
+END_EVENT_TABLE()
 
 } //namespace navi 
 

@@ -35,6 +35,11 @@
 
 
 namespace navi {
+
+// Forward declarations due to circular dependencies:
+class NavigationContainer;
+
+//==============================================================================
     
 /**
  * The application class.
@@ -88,6 +93,8 @@ private:
 
 public:
     NaviMainFrame();
+
+    Pipeline* getPipeline() const;
 
     DECLARE_EVENT_TABLE()
 };

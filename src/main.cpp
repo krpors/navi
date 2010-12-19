@@ -97,7 +97,7 @@ wxPanel* NaviMainFrame::createNavPanel(wxWindow* parent) {
     panel->SetSizer(sizer);
 
     m_trackTable = new TrackTable(panel);
-    m_navigation = new NavigationContainer(panel);
+    m_navigation = new NavigationContainer(panel, this);
 
     sizer->Add(m_navigation, wxSizerFlags().Expand());
     sizer->Add(m_trackTable, wxSizerFlags(1).Expand());
@@ -171,6 +171,10 @@ void NaviMainFrame::onAbout(wxCommandEvent& event) {
     info.SetIcon(icon);
 
     wxAboutBox(info);
+}
+
+Pipeline* NaviMainFrame::getPipeline() const {
+    return m_ogg;
 }
 
 // Event table.

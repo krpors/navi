@@ -20,15 +20,38 @@
 #ifndef NAVIGATION_HPP 
 #define NAVIGATION_HPP 
 
+#include "main.hpp"
+#include "audio.hpp"
+
 #include <wx/wx.h>
 #include <wx/artprov.h>
 #include <wx/slider.h>
 
 namespace navi {
 
+// Forward declaration due to circular dependency. Also see main.hpp.
+class NaviMainFrame;
+
 class NavigationContainer : public wxPanel {
+private:
+    NaviMainFrame* m_naviFrame;
+
+    wxBitmapButton* btnStop;
+
+    void onPlay(wxCommandEvent& event);
+    void onStop(wxCommandEvent& event);
+
 public:
-    NavigationContainer(wxWindow* parent);
+    static const short ID_MEDIA_PREV = 4000; 
+    static const short ID_MEDIA_NEXT = 4001; 
+    static const short ID_MEDIA_STOP = 4002; 
+    static const short ID_MEDIA_PLAY = 4003; 
+    static const short ID_MEDIA_RANDOM = 4004; 
+    static const short ID_MEDIA_SEEKER = 4005; 
+
+    NavigationContainer(wxWindow* parent, NaviMainFrame* naviFrame);
+
+    DECLARE_EVENT_TABLE()
 };
 
 } //namespace navi 
