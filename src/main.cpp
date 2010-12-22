@@ -42,7 +42,7 @@ bool NaviApp::OnInit() {
 
 NaviMainFrame::NaviMainFrame() :
         wxFrame((wxFrame*) NULL, wxID_ANY, wxT("Navi")),
-        m_ogg(NULL),
+        m_pipeline(NULL),
         m_noteBook(NULL),
         m_updateThread(NULL) {
 
@@ -109,12 +109,11 @@ void NaviMainFrame::play(wxListEvent& event) {
     long data = event.GetData();
     TrackInfo& info = m_trackTable->getTrackInfo(data);
     wxString loc = info.getLocation();
-    loc.Replace(wxT("file://"), wxEmptyString); 
     SetStatusText(info[TrackInfo::TITLE]);
 
-    delete m_ogg;
-    m_ogg = new OGGFilePipeline(loc);
-    m_ogg->play();
+    delete m_pipeline;
+    m_pipeline = new GenericFilePipeline(loc);
+    m_pipeline->play();
 }
 
 wxStatusBar* NaviMainFrame::OnCreateStatusBar(int number, long style, wxWindowID id, const wxString& name) {
@@ -174,7 +173,7 @@ void NaviMainFrame::onAbout(wxCommandEvent& event) {
 }
 
 Pipeline* NaviMainFrame::getPipeline() const {
-    return m_ogg;
+    return m_pipeline;
 }
 
 // Event table.

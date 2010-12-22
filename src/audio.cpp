@@ -77,9 +77,8 @@ Pipeline::~Pipeline() {
 
 gboolean Pipeline::busWatcher(GstBus* bus, GstMessage* message, gpointer userdata) {
     // get the name of the message. 
-    const gchar* name = GST_MESSAGE_TYPE_NAME(message);
-
-    std::cout << "Got GST message: " << name << std::endl;
+    //const gchar* name = GST_MESSAGE_TYPE_NAME(message);
+    //std::cout << "Got GST message: " << name << std::endl;
 
     switch (GST_MESSAGE_TYPE (message)) {
         case GST_MESSAGE_EOS:
@@ -127,6 +126,10 @@ void Pipeline::stop() throw() {
     }
 }
 
+bool Pipeline::isPlaying() const throw() {
+    return true;
+}
+
 const wxString& Pipeline::getLocation() const throw() {
     return m_location;
 }
@@ -166,6 +169,51 @@ int Pipeline::getDurationSeconds() throw(AudioException) {
     return len / GST_SECOND;
 }
 
+//==============================================================================
+
+GenericFilePipeline::GenericFilePipeline(const wxString& location) throw (AudioException) {
+    m_location = location;    
+
+    try {
+        init();
+    } catch (const AudioException& ex) {
+        // rethrow
+        throw;
+    }
+}
+
+GenericFilePipeline::~GenericFilePipeline() {
+}
+
+void GenericFilePipeline::init() throw (AudioException) {
+    // Element filesrc (gst-inspect filesrc)
+    m_playbin = gst_element_factory_make("playbin", NULL);
+    if (!m_playbin) {
+        throw AudioException(wxT("Failed to create `playbin' GST element"));
+    }
+
+    // m_pipeline and m_bus are protected in parent class Pipeline.
+    m_pipeline = gst_pipeline_new(NULL);
+
+    m_bus = gst_pipeline_get_bus(GST_PIPELINE(m_pipeline));
+    // Add a watch to this bus (get notified of events using callbacks).
+    // See http://www.parashift.com/c++-faq-lite/pointers-to-members.html, section
+    // 33.2 for more details why it's done like this.
+    gst_bus_add_watch (m_bus, Pipeline::busWatcher, this);
+
+    gst_bin_add(GST_BIN(m_pipeline), m_playbin);
+
+    // set the "location" property on the filesrc element.
+    std::string s = std::string(m_location.mb_str());
+    g_object_set(m_playbin, "uri", s.c_str(), NULL);
+
+    // We set the state of the element as paused, so we can succesfully query
+    // duration and other stuff. If the state is still not PAUSED or PLAYING, 
+    // fetching the duration has no (real and useful) effect. It may return random
+    // data.
+    pause(); 
+
+}
 
 //==============================================================================
 
@@ -331,7 +379,7 @@ void OGGFilePipeline::onPadAdded(GstElement* element, GstPad* pad, gpointer data
 const char* TrackInfo::TITLE = GST_TAG_TITLE;
 const char* TrackInfo::ARTIST = GST_TAG_ARTIST;
 const char* TrackInfo::ALBUM = GST_TAG_ALBUM;
-const char* TrackInfo::ALBUM_ARTIST = GST_TAG_ALBUM_ARTIST;
+//const char* TrackInfo::ALBUM_ARTIST = "";//GST_TAG_ALBUM_ARTIST;
 const char* TrackInfo::GENRE = GST_TAG_GENRE;
 const char* TrackInfo::COMMENT = GST_TAG_COMMENT;
 const char* TrackInfo::COMPOSER = GST_TAG_COMPOSER;
@@ -396,7 +444,7 @@ void TagReader::onTagRead(const GstTagList* list, const gchar* tag, gpointer dat
     gchar* title;
     gchar* artist;
     gchar* album;
-    gchar* albumArtist;
+    //gchar* albumArtist;
     gchar* genre;
     gchar* comment;
     gchar* composer;
@@ -417,9 +465,6 @@ void TagReader::onTagRead(const GstTagList* list, const gchar* tag, gpointer dat
     }
     if (gst_tag_list_get_string(list, TrackInfo::ALBUM, &album)) {
         trackInfo[TrackInfo::ALBUM] = wxString(album, wxConvUTF8);
-    }
-    if (gst_tag_list_get_string(list, TrackInfo::ALBUM_ARTIST, &albumArtist)) {
-        trackInfo[TrackInfo::ALBUM_ARTIST] = wxString(albumArtist, wxConvUTF8);
     }
     if (gst_tag_list_get_string(list, TrackInfo::GENRE, &genre)) {
         trackInfo[TrackInfo::GENRE] = wxString(genre, wxConvUTF8);

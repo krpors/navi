@@ -136,6 +136,15 @@ public:
     virtual void stop() throw();
 
     /**
+     * Checks whether the pipeline is in PLAYING or another state. When 
+     * true is returned, the pipeline is currently playing, and when false
+     * is returned, the pipeline may either be in paused, or in preroll, watevah.
+     *
+     * XXX: better to make this return an int to reflect the state, instead of bools?
+     */
+    virtual bool isPlaying() const throw();
+
+    /**
      * Seeks in the current pipeline using an amount of seconds in the
      * pipeline. In Pipelines which are unseekable (such as live streams), this
      * function should do nothing to the pipeline (perhaps giving a warning message,
@@ -167,6 +176,18 @@ public:
      */
     const wxString& getLocation() const throw();
 
+};
+
+//================================================================================
+
+class GenericFilePipeline : public Pipeline {
+private:
+    GstElement* m_playbin;
+protected:
+    void init() throw (AudioException);
+public:
+    GenericFilePipeline(const wxString& location) throw (AudioException);
+    ~GenericFilePipeline(); 
 };
 
 //================================================================================
@@ -309,7 +330,7 @@ public:
     static const char* ALBUM;
     
     /// Individual artist of the stream (GST_TAG_ALBUM_ARTIST)
-    static const char* ALBUM_ARTIST;
+    //static const char* ALBUM_ARTIST;
 
     /// Genre of the stream (GST_TAG_GENRE)
     static const char* GENRE;

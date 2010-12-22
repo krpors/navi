@@ -59,7 +59,7 @@ void NavigationContainer::onPlay(wxCommandEvent& event) {
     // TODO: get selected song, play it plx, or pause if playing.
     Pipeline* p = m_naviFrame->getPipeline();
     if (p != NULL) {
-        if (p
+    //    if (p
     }
 }
 

@@ -63,7 +63,7 @@ DECLARE_APP(NaviApp)
 
 class NaviMainFrame : public wxFrame {
 private:
-    OGGFilePipeline* m_ogg;
+    GenericFilePipeline* m_pipeline;
 
     wxNotebook* m_noteBook;
 
