@@ -10,7 +10,8 @@ DOC=./doc
 OBJECTS=$(BIN)/main.o\
         $(BIN)/audio.o\
         $(BIN)/dirbrowser.o\
-        $(BIN)/tracktable.o
+        $(BIN)/tracktable.o\
+        $(BIN)/navigation.o
 
 # Following targets build the source files.
 .PHONY: all
@@ -28,6 +29,10 @@ $(BIN)/dirbrowser.o: $(SRC)/dirbrowser.cpp $(SRC)/dirbrowser.hpp
 
 $(BIN)/tracktable.o: $(SRC)/tracktable.cpp $(SRC)/tracktable.hpp
 	$(CC) $(CFLAGS) $(SRC)/tracktable.cpp -o $@
+
+$(BIN)/navigation.o: $(SRC)/navigation.cpp $(SRC)/navigation.hpp
+	$(CC) $(CFLAGS) $(SRC)/navigation.cpp -o $@
+
 
 
 .PHONY: init
