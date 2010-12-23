@@ -126,8 +126,15 @@ void Pipeline::stop() throw() {
     }
 }
 
-bool Pipeline::isPlaying() const throw() {
-    return true;
+short Pipeline::getState() const throw(AudioException) {
+    // query the state with a 5 second timeout.
+    GstState state;
+    GstStateChangeReturn st = gst_element_get_state(m_pipeline, &state, NULL, 5 * GST_SECOND);
+    if (st == GST_STATE_CHANGE_FAILURE) {
+        throw AudioException(wxT("State change failure occured"));
+    }
+
+    return state;
 }
 
 const wxString& Pipeline::getLocation() const throw() {
@@ -171,7 +178,7 @@ int Pipeline::getDurationSeconds() throw(AudioException) {
 
 //==============================================================================
 
-GenericFilePipeline::GenericFilePipeline(const wxString& location) throw (AudioException) {
+GenericPipeline::GenericPipeline(const wxString& location) throw (AudioException) {
     m_location = location;    
 
     try {
@@ -182,10 +189,7 @@ GenericFilePipeline::GenericFilePipeline(const wxString& location) throw (AudioE
     }
 }
 
-GenericFilePipeline::~GenericFilePipeline() {
-}
-
-void GenericFilePipeline::init() throw (AudioException) {
+void GenericPipeline::init() throw (AudioException) {
     // Element filesrc (gst-inspect filesrc)
     m_playbin = gst_element_factory_make("playbin", NULL);
     if (!m_playbin) {
@@ -348,6 +352,7 @@ void OGGFilePipeline::init() throw (AudioException) {
     m_pipeline = gst_pipeline_new(NULL);
 
     m_bus = gst_pipeline_get_bus(GST_PIPELINE(m_pipeline));
+    gst_bus_add_watch (m_bus, Pipeline::busWatcher, this);
 
     gst_bin_add_many(GST_BIN(m_pipeline), m_filesrc, m_demux, m_decoder, m_aconvert, m_sink, NULL);
 

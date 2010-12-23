@@ -32,9 +32,9 @@ bool NaviApp::OnInit() {
     frame->SetSize(800, 600);
     frame->Center();
     frame->Show();
-    
     SetTopWindow(frame);
 
+    //http://scfire-dtc-aa01.stream.aol.com:80/stream/1025
     return true;
 }
 
@@ -112,7 +112,7 @@ void NaviMainFrame::play(wxListEvent& event) {
     SetStatusText(info[TrackInfo::TITLE]);
 
     delete m_pipeline;
-    m_pipeline = new GenericFilePipeline(loc);
+    m_pipeline = new GenericPipeline(loc);
     m_pipeline->play();
 }
 

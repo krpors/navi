@@ -36,6 +36,7 @@ class NavigationContainer : public wxPanel {
 private:
     NaviMainFrame* m_naviFrame;
 
+    wxBitmapButton* btnPlay;
     wxBitmapButton* btnStop;
 
     void onPlay(wxCommandEvent& event);

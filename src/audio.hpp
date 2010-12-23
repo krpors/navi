@@ -104,6 +104,12 @@ protected:
     virtual void init() throw (AudioException) = 0;
 
 public:
+    static const short STATE_PENDING = GST_STATE_VOID_PENDING;
+    static const short STATE_NULL    = GST_STATE_NULL;
+    static const short STATE_READY   = GST_STATE_READY;
+    static const short STATE_PAUSED  = GST_STATE_PAUSED;
+    static const short STATE_PLAYING = GST_STATE_PLAYING;
+
     /**
      * Constructs a pipeline.
      */
@@ -136,13 +142,14 @@ public:
     virtual void stop() throw();
 
     /**
-     * Checks whether the pipeline is in PLAYING or another state. When 
-     * true is returned, the pipeline is currently playing, and when false
-     * is returned, the pipeline may either be in paused, or in preroll, watevah.
+     * Checks whether the pipeline is in PLAYING or another state. When this function
+     * is invoked, one of the STATE_.* values can be returend from this class, which
+     * reflect the same states as given by Gstreamer itself.
      *
-     * XXX: better to make this return an int to reflect the state, instead of bools?
+     * @return A short int.
+     * @throw AudioException when the state change return failed.
      */
-    virtual bool isPlaying() const throw();
+    virtual short getState() const throw(AudioException);
 
     /**
      * Seeks in the current pipeline using an amount of seconds in the
@@ -180,14 +187,26 @@ public:
 
 //================================================================================
 
-class GenericFilePipeline : public Pipeline {
+/**
+ * The GenericPipeline is capable of playing just about anything, given there's
+ * a plugin available in Gstreamer. This currently means it also displays video
+ * if there's any. XXX this needs to be fixed of course, cus we're not a video
+ * playah.
+ */
+class GenericPipeline : public Pipeline {
 private:
+    /// Only one element needed: the playbin/playbin2 (0.10.30...) element.
     GstElement* m_playbin;
 protected:
+    /**
+     * Initializes the pipeline using the playbin Gst element.
+     */
     void init() throw (AudioException);
 public:
-    GenericFilePipeline(const wxString& location) throw (AudioException);
-    ~GenericFilePipeline(); 
+    /**
+     * Constructs a new pipeline using a URI.
+     */
+    GenericPipeline(const wxString& location) throw (AudioException);
 };
 
 //================================================================================
