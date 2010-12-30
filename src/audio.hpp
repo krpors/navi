@@ -197,11 +197,13 @@ class GenericPipeline : public Pipeline {
 private:
     /// Only one element needed: the playbin/playbin2 (0.10.30...) element.
     GstElement* m_playbin;
+
 protected:
     /**
      * Initializes the pipeline using the playbin Gst element.
      */
     void init() throw (AudioException);
+
 public:
     /**
      * Constructs a new pipeline using a URI.
