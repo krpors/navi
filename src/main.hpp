@@ -81,7 +81,8 @@ private:
 
     wxPanel* createNavPanel(wxWindow* parent);
 
-    void play(wxListEvent& event);
+    void onPlayOrPause(wxCommandEvent& event);
+    void onListItemActivate(wxListEvent& event);
 
     void dostuff(wxTreeEvent& event);
 
@@ -95,6 +96,8 @@ public:
     NaviMainFrame();
 
     Pipeline* getPipeline() const;
+
+    void playOrPause();
 
     DECLARE_EVENT_TABLE()
 };

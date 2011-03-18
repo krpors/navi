@@ -105,15 +105,27 @@ wxPanel* NaviMainFrame::createNavPanel(wxWindow* parent) {
     return panel;
 }
 
-void NaviMainFrame::play(wxListEvent& event) {
-    long data = event.GetData();
-    TrackInfo& info = m_trackTable->getTrackInfo(data);
-    wxString loc = info.getLocation();
-    SetStatusText(info[TrackInfo::TITLE]);
+void NaviMainFrame::onPlayOrPause(wxCommandEvent& event) {
+    playOrPause();
+}
 
-    delete m_pipeline;
-    m_pipeline = new GenericPipeline(loc);
-    m_pipeline->play();
+void NaviMainFrame::onListItemActivate(wxListEvent& event) {
+    playOrPause();
+}
+
+void NaviMainFrame::playOrPause() {
+    TrackInfo* selected = m_trackTable->getSelectedItem();
+    if(selected != NULL) {
+        wxString loc = selected->getLocation();
+        SetStatusText((*selected)[TrackInfo::TITLE]);
+
+        delete m_pipeline;
+        m_pipeline = new GenericPipeline(loc);
+        m_pipeline->play();
+        m_navigation->setStatePlaying(true);
+    } else {
+        std::cout << "Nothing selected."  << std::endl;
+    }
 }
 
 wxStatusBar* NaviMainFrame::OnCreateStatusBar(int number, long style, wxWindowID id, const wxString& name) {
@@ -180,8 +192,9 @@ Pipeline* NaviMainFrame::getPipeline() const {
 BEGIN_EVENT_TABLE(NaviMainFrame, wxFrame)
     EVT_SIZE(NaviMainFrame::onResize)
     EVT_TREE_ITEM_ACTIVATED(DirBrowser::ID_NAVI_DIR_BROWSER, NaviMainFrame::dostuff)
-    EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, NaviMainFrame::play)
-    EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, NaviMainFrame::play)
+    EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, NaviMainFrame::onListItemActivate)
+    EVT_BUTTON(NavigationContainer::ID_MEDIA_PLAY, NaviMainFrame::onPlayOrPause)
+    //EVT_BUTTON(NavigationContainer::ID_MEDIA_STOP, NavigationContainer::onStop)
     EVT_MENU(wxID_ABOUT, NaviMainFrame::onAbout)
 END_EVENT_TABLE()
 

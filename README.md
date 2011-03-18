@@ -35,14 +35,16 @@ see, my music collection is mostly organized by the use of directories:
         Mirror's Edge
         Dragon Age
 
-There was no real directory-based music player available for Linux, and
-therefore I decided to just write my own.
+I usually just play everything which is in one directory only. There was no 
+real directory-based music player available for Linux, and therefore I 
+decided to just write my own. It also provided me a good reason to learn
+[GStreamer](http://gstreamer.net) and [wxWidgets](http://wxwidgets.org).
 
 (Planned) features
 ------------------
 
 The following list describes the (non-exhaustive) functionalities I plan to 
-implement in Navi:
+at least implement in Navi:
 
 * GTK User Interface, with 'system tray', and OSD notifications (not sure yet
 how I'm going to do that yet, but I like that);
@@ -53,7 +55,8 @@ how I'm going to do that yet, but I like that);
 * Internet radio stations (streaming audio);
 * Audioscrobbler/Last.fm submitting;
 * Tag reading (and possibly writing);
-* 'System tray' icon;
+* 'System tray' icon, for less display hassle in the window list in your
+Desktop environment.
 
 Technological information 
 -------------------------
@@ -62,7 +65,11 @@ For those interested, I am building the software with the following tools and
 libraries:
 
 * C++ programming language;
-* [wxWidgets](http://wxwidgets.org) for UI elements and the like;
-* The excellent [GStreamer](http://gstreamer.net) as audio backend;
+* [wxWidgets](http://wxwidgets.org) 2.8.10+ for UI elements and the like;
+* The excellent [GStreamer](http://gstreamer.net) 0.10.30+ as audio backend;
 
-This readme will be updated as soon as I have more information to share!
+Feedback
+--------
+
+Feedback to this application is certainly welcome, like ideas, wishes, or just
+some plain old critique. Also, code inspection is good too.

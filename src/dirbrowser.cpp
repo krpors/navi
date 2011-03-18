@@ -244,8 +244,9 @@ DirBrowser* DirBrowserContainer::getDirBrowser() const {
 void DirBrowserContainer::onBrowseNewDir(wxCommandEvent& event) {
     wxDirDialog* dlg = new wxDirDialog(this);
     dlg->SetPath(m_browser->getBase());
-    dlg->ShowModal();
-    m_browser->setBase(dlg->GetPath());
+    if (dlg->ShowModal() == wxID_OK) {
+        m_browser->setBase(dlg->GetPath());
+    }
 }
 
 // Event table.

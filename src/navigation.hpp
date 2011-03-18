@@ -36,11 +36,8 @@ class NavigationContainer : public wxPanel {
 private:
     NaviMainFrame* m_naviFrame;
 
-    wxBitmapButton* btnPlay;
-    wxBitmapButton* btnStop;
-
-    void onPlay(wxCommandEvent& event);
-    void onStop(wxCommandEvent& event);
+    wxBitmapButton* m_btnPlay;
+    wxBitmapButton* m_btnStop;
 
 public:
     static const short ID_MEDIA_PREV = 4000; 
@@ -52,7 +49,11 @@ public:
 
     NavigationContainer(wxWindow* parent, NaviMainFrame* naviFrame);
 
-    DECLARE_EVENT_TABLE()
+    void setStatePlaying(bool playing) throw();
+    void setButtonStoppedEnabled(bool enabled) throw();
+    
+
+    //DECLARE_EVENT_TABLE()
 };
 
 } //namespace navi 

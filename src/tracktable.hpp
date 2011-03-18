@@ -49,6 +49,9 @@ private:
     /// Executed when a column is clicked (sorting).
     void onColumnClick(wxListEvent& event);
 
+    /// Executed when an item is selected (*not* doubleclixed)
+    void onSelected(wxListEvent& event);
+
     /// Executed when track info is about to be added (from another thread).
     void onAddTrackInfo(wxCommandEvent& event);
 
@@ -58,6 +61,9 @@ private:
     static int wxCALLBACK compareArtistName(long item1, long item2, long sortData);
     static int wxCALLBACK compareTitle(long item1, long item2, long sortData);
     static int wxCALLBACK compareAlbum(long item1, long item2, long sortData);
+
+    /// The current selected item. May be NULL. Don't destroy this thing.
+    TrackInfo* m_selectedItem;
 
 public:
     /// The window ID for this track table.
@@ -77,6 +83,12 @@ public:
      * @param info The trackinfo to add.
      */
     void addTrackInfo(TrackInfo& info);
+
+    /**
+     * Gets the current (possibly) selected track. It may return a null
+     * pointer, if nothing has been selected.
+     */
+    TrackInfo* getSelectedItem() throw();
 
     /**
      * Override from wxListCtrl. In addition to deleting the items from the list

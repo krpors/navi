@@ -105,12 +105,13 @@ int wxCALLBACK TrackTable::compareAlbum(long item1, long item2, long sortData) {
 }
 
 void TrackTable::onActivate(wxListEvent& event) {
+    // skip this when a listitem is activated (propagate it up the chain!)
     event.Skip();
 }
 
 void TrackTable::onColumnClick(wxListEvent& event) {
     // XXX: This is fucking ridiculous. Using long as callback data?! wx, what
-    // the fuck are you doing to me? Anyway, from PlasmaHH from #freenode:
+    // the fuck are you doing to me? Anyway, from PlasmaHH from #wxwidgets on freenode:
     //
     //      "it might be that sizeof(long) < sizeof(ObjectInstance) and 
     //       then you are screwed" 
@@ -141,10 +142,17 @@ void TrackTable::addTrackInfo(TrackInfo& info) {
     SetItem(index, 1, info[TrackInfo::ARTIST]); 
     SetItem(index, 2, info[TrackInfo::TITLE]); 
     SetItem(index, 3, info[TrackInfo::ALBUM]); 
+    // SetItemData using the index variable is vital for getting the correct
+    // selected item of this wxListCtrl (due to sorting and whatnot).
     SetItemData(index, index);
 
     // add the info to our backing vector.
     m_trackInfos.push_back(info);
+}
+
+TrackInfo* TrackTable::getSelectedItem() throw() {
+    // m_selectedItem may be NULL.
+    return m_selectedItem;
 }
 
 TrackInfo& TrackTable::getTrackInfo(int index) {
@@ -154,6 +162,17 @@ TrackInfo& TrackTable::getTrackInfo(int index) {
 void TrackTable::DeleteAllItems() {
     wxListCtrl::DeleteAllItems();
     m_trackInfos.clear();
+}
+
+void TrackTable::onSelected(wxListEvent& event) {
+    // after a select event, we can safely determine the CORRECT selected
+    // item, even after it has been sorted by artist, title, or whatever.
+    // even.getData() returns the correct index, because of the SetItemData()
+    // call we've done in addTrackInfo(TrackInfo&).
+    long data = event.GetData();
+    TrackInfo& info = getTrackInfo(data);
+    // assign the address of this thing as the selected item.
+    m_selectedItem = &info;
 }
 
 void TrackTable::onAddTrackInfo(wxCommandEvent& event) {
@@ -172,6 +191,7 @@ void TrackTable::onAddTrackInfo(wxCommandEvent& event) {
 
 BEGIN_EVENT_TABLE(TrackTable, wxListCtrl)
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackTable::onActivate)   
+    EVT_LIST_ITEM_SELECTED(TrackTable::ID_TRACKTABLE, TrackTable::onSelected)
     EVT_LIST_COL_CLICK(TrackTable::ID_TRACKTABLE, TrackTable::onColumnClick)
     EVT_COMMAND(TrackTable::ID_EVT_ADD_INFO, wxEVT_COMMAND_TEXT_UPDATED, TrackTable::onAddTrackInfo)
 END_EVENT_TABLE()

@@ -38,16 +38,21 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
     wxBitmap random = wxArtProvider::GetBitmap(wxT("gtk-refresh"));
     
     wxBitmapButton* btn1 = new wxBitmapButton(this, wxID_ANY, prev, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    btnPlay = new wxBitmapButton(this, ID_MEDIA_PLAY, play, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    btnStop = new wxBitmapButton(this, ID_MEDIA_STOP, stop, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    m_btnPlay = new wxBitmapButton(this, ID_MEDIA_PLAY, play, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    m_btnStop = new wxBitmapButton(this, ID_MEDIA_STOP, stop, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     wxBitmapButton* btn4 = new wxBitmapButton(this, wxID_ANY, next, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     wxBitmapButton* btn5 = new wxBitmapButton(this, wxID_ANY, random, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+
+    // the play button is initially disabled, because there's nothing to play
+    // Same thing with the stop button (nothing to stop)
+    m_btnPlay->Enable(false);
+    m_btnStop->Enable(false);
 
     wxSlider* slider = new wxSlider(this, wxID_ANY, 0, 0, 100);
 
     sizer->Add(btn1);
-    sizer->Add(btnPlay);
-    sizer->Add(btnStop);
+    sizer->Add(m_btnPlay);
+    sizer->Add(m_btnStop);
     sizer->Add(btn4);
     sizer->Add(btn5);
     sizer->Add(slider, wxSizerFlags(1).Expand());
@@ -55,37 +60,21 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
     SetSizer(sizer);
 }
 
-void NavigationContainer::onPlay(wxCommandEvent& event) {
-    // TODO: get selected song, play it plx, or pause if playing.
-    std::cout << " cox " << std::endl;
-    Pipeline* p = m_naviFrame->getPipeline();
-    if (p != NULL) {
-        if (p->getState() == Pipeline::STATE_PAUSED) {
-            p->play();
-        } else if (p->getState() == Pipeline::STATE_PLAYING) {
-            p->pause();
-        }
+void NavigationContainer::setStatePlaying(bool playing) throw() {
+    m_btnPlay->Enable(true);
+    m_btnStop->Enable(true);
+    // visually change the buttons.
+    if(playing) {
+        m_btnPlay->SetBitmapLabel(wxArtProvider::GetBitmap(wxT("gtk-media-pause")));
+    } else {
+        m_btnPlay->SetBitmapLabel(wxArtProvider::GetBitmap(wxT("gtk-media-play")));
     }
-
-    // propagate to upper event listeners
-    event.Skip();
 }
 
-void NavigationContainer::onStop(wxCommandEvent& event) {
-    Pipeline* p = m_naviFrame->getPipeline();
-    if (p != NULL) {
-        p->stop();
-        btnStop->Enable(false);
-    }
-
-    // propagate to upper event listeners
-    event.Skip();
+void NavigationContainer::setButtonStoppedEnabled(bool enabled) throw() {
+    m_btnStop->Enable(enabled);
 }
 
-BEGIN_EVENT_TABLE(NavigationContainer, wxPanel)
-    EVT_BUTTON(NavigationContainer::ID_MEDIA_PLAY, NavigationContainer::onPlay)
-    EVT_BUTTON(NavigationContainer::ID_MEDIA_STOP, NavigationContainer::onStop)
-END_EVENT_TABLE()
 
 } //namespace navi 
 

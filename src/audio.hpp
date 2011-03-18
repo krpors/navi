@@ -21,6 +21,7 @@
 #define AUDIO_HPP 
 
 #include <map>
+#include <sstream>
 
 #include <wx/wx.h>
 #include <gst/gst.h>

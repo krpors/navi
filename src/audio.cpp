@@ -190,10 +190,10 @@ GenericPipeline::GenericPipeline(const wxString& location) throw (AudioException
 }
 
 void GenericPipeline::init() throw (AudioException) {
-    // Element filesrc (gst-inspect filesrc)
-    m_playbin = gst_element_factory_make("playbin", NULL);
+    // Element playbin2 (gst-inspect playbin2)
+    m_playbin = gst_element_factory_make("playbin2", NULL);
     if (!m_playbin) {
-        throw AudioException(wxT("Failed to create `playbin' GST element"));
+        throw AudioException(wxT("Failed to create `playbin2' GST element"));
     }
 
     // m_pipeline and m_bus are protected in parent class Pipeline.
@@ -210,6 +210,28 @@ void GenericPipeline::init() throw (AudioException) {
     // set the "location" property on the filesrc element.
     std::string s = std::string(m_location.mb_str());
     g_object_set(m_playbin, "uri", s.c_str(), NULL);
+    
+    /*
+    We're gonna set some flags here. I don't need Navi to play video files as 
+    well (that's automatically done by the the playbin2 element), so we're gonna
+    set some flags. Default is 0x00000017.
+
+    (0x00000001): video            - Render the video stream
+    (0x00000002): audio            - Render the audio stream
+    (0x00000004): text             - Render subtitles
+    (0x00000008): vis              - Render visualisation when no video is present
+    (0x00000010): soft-volume      - Use software volume
+    (0x00000020): native-audio     - Only use native audio formats
+    (0x00000040): native-video     - Only use native video formats
+    (0x00000080): download         - Attempt progressive download buffering
+    (0x00000100): buffering        - Buffer demuxed/parsed data
+    (0x00000200): deinterlace      - Deinterlace video if necessary
+    */
+
+    unsigned short audio   = 0x00000002;
+    unsigned short softvol = 0x00000010;
+    unsigned short render = audio | softvol;
+    g_object_set(m_playbin, "flags", render, NULL);
 
     // We set the state of the element as paused, so we can succesfully query
     // duration and other stuff. If the state is still not PAUSED or PLAYING, 
