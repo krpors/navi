@@ -49,11 +49,7 @@ public:
 
     NavigationContainer(wxWindow* parent, NaviMainFrame* naviFrame);
 
-    void setStatePlaying(bool playing) throw();
-    void setButtonStoppedEnabled(bool enabled) throw();
-    
-
-    //DECLARE_EVENT_TABLE()
+    void setPlayPauseStatus(bool playing);
 };
 
 } //namespace navi 

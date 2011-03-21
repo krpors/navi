@@ -104,36 +104,6 @@ int wxCALLBACK TrackTable::compareAlbum(long item1, long item2, long sortData) {
     return 0;
 }
 
-void TrackTable::onActivate(wxListEvent& event) {
-    // skip this when a listitem is activated (propagate it up the chain!)
-    event.Skip();
-}
-
-void TrackTable::onColumnClick(wxListEvent& event) {
-    // XXX: This is fucking ridiculous. Using long as callback data?! wx, what
-    // the fuck are you doing to me? Anyway, from PlasmaHH from #wxwidgets on freenode:
-    //
-    //      "it might be that sizeof(long) < sizeof(ObjectInstance) and 
-    //       then you are screwed" 
-    // 
-    // So in this case, I'm just gonna blurt out some error message, until
-    // I find a way to fix this.
-    if (sizeof(long) != sizeof(this)) {
-        std::cerr << "Major malfunction. sizeof(long) != sizeof(this)" << std::endl;
-    } else {
-        // commence sorting. We can somewhat 'guarantee' that casting a this 
-        // to a long succeeds. Check which column has been clicked, then sort
-        // appropriately.
-        switch (event.GetColumn()) {
-            case 0: SortItems(TrackTable::compareTrackNumber, (long) this); break;
-            case 1: SortItems(TrackTable::compareArtistName, (long) this); break;
-            case 2: SortItems(TrackTable::compareTitle, (long) this); break;
-            case 3: SortItems(TrackTable::compareAlbum, (long) this); break;
-            default: break;
-        }
-    }
-}
-
 void TrackTable::addTrackInfo(TrackInfo& info) {
     wxListItem item;
     item.SetId(GetItemCount());
@@ -162,6 +132,37 @@ TrackInfo& TrackTable::getTrackInfo(int index) {
 void TrackTable::DeleteAllItems() {
     wxListCtrl::DeleteAllItems();
     m_trackInfos.clear();
+}
+
+void TrackTable::onActivate(wxListEvent& event) {
+    // skip this when a listitem is activated (propagate it up the chain!)
+    // In this case, main.cpp (NaviMainFrame) handles this event.
+    event.Skip();
+}
+
+void TrackTable::onColumnClick(wxListEvent& event) {
+    // XXX: This is fucking ridiculous. Using long as callback data?! wx, what
+    // the fuck are you doing to me? Anyway, from PlasmaHH from #wxwidgets on freenode:
+    //
+    //      "it might be that sizeof(long) < sizeof(ObjectInstance) and 
+    //       then you are screwed" 
+    // 
+    // So in this case, I'm just gonna blurt out some error message, until
+    // I find a way to fix this.
+    if (sizeof(long) != sizeof(this)) {
+        std::cerr << "Major malfunction. sizeof(long) != sizeof(this)" << std::endl;
+    } else {
+        // commence sorting. We can somewhat 'guarantee' that casting a this 
+        // to a long succeeds. Check which column has been clicked, then sort
+        // appropriately.
+        switch (event.GetColumn()) {
+            case 0: SortItems(TrackTable::compareTrackNumber, (long) this); break;
+            case 1: SortItems(TrackTable::compareArtistName, (long) this); break;
+            case 2: SortItems(TrackTable::compareTitle, (long) this); break;
+            case 3: SortItems(TrackTable::compareAlbum, (long) this); break;
+            default: break;
+        }
+    }
 }
 
 void TrackTable::onSelected(wxListEvent& event) {

@@ -42,7 +42,6 @@ bool NaviApp::OnInit() {
 
 NaviMainFrame::NaviMainFrame() :
         wxFrame((wxFrame*) NULL, wxID_ANY, wxT("Navi")),
-        m_pipeline(NULL),
         m_noteBook(NULL),
         m_updateThread(NULL) {
 
@@ -61,7 +60,7 @@ NaviMainFrame::NaviMainFrame() :
     m_noteBook->AssignImageList(m_imageList);
 
     m_dirBrowser = new DirBrowserContainer(m_noteBook);
-    m_dirBrowser->getDirBrowser()->setBase(wxT("/"));
+    m_dirBrowser->getDirBrowser()->setBase(wxT("/home/krpors/Desktop"));
     m_dirBrowser->getDirBrowser()->setFilesVisible(false);
 
     m_noteBook->AddPage(m_dirBrowser, wxT("Browser"), true, 0);
@@ -73,6 +72,15 @@ NaviMainFrame::NaviMainFrame() :
 
     CreateStatusBar();
 
+    // create the track status handler event handling stuff. This thing
+    // is created on the heap, without a parent wxWindow. this pointer is
+    // given still though, but by destroying this frame, the trackstatushandler
+    // instance will not be destroyed automatically. Not that it matters,
+    // since after we destroyed this frame, the program should end anyway.
+    m_trackStatusHandler = new TrackStatusHandler(this);
+    // Push that event handler, otherwise events will not be propagated to
+    // this new track status handler.
+    PushEventHandler(m_trackStatusHandler);
 }
 
 void NaviMainFrame::initMenu() {
@@ -96,36 +104,13 @@ wxPanel* NaviMainFrame::createNavPanel(wxWindow* parent) {
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     panel->SetSizer(sizer);
 
-    m_trackTable = new TrackTable(panel);
     m_navigation = new NavigationContainer(panel, this);
+    m_trackTable = new TrackTable(panel);
 
     sizer->Add(m_navigation, wxSizerFlags().Expand());
     sizer->Add(m_trackTable, wxSizerFlags(1).Expand());
 
     return panel;
-}
-
-void NaviMainFrame::onPlayOrPause(wxCommandEvent& event) {
-    playOrPause();
-}
-
-void NaviMainFrame::onListItemActivate(wxListEvent& event) {
-    playOrPause();
-}
-
-void NaviMainFrame::playOrPause() {
-    TrackInfo* selected = m_trackTable->getSelectedItem();
-    if(selected != NULL) {
-        wxString loc = selected->getLocation();
-        SetStatusText((*selected)[TrackInfo::TITLE]);
-
-        delete m_pipeline;
-        m_pipeline = new GenericPipeline(loc);
-        m_pipeline->play();
-        m_navigation->setStatePlaying(true);
-    } else {
-        std::cout << "Nothing selected."  << std::endl;
-    }
 }
 
 wxStatusBar* NaviMainFrame::OnCreateStatusBar(int number, long style, wxWindowID id, const wxString& name) {
@@ -184,20 +169,96 @@ void NaviMainFrame::onAbout(wxCommandEvent& event) {
     wxAboutBox(info);
 }
 
-Pipeline* NaviMainFrame::getPipeline() const {
-    return m_pipeline;
+TrackTable* NaviMainFrame::getTrackTable() const {
+    return m_trackTable;
+}
+
+NavigationContainer* NaviMainFrame::getNavigationContainer() const {
+    return m_navigation;
 }
 
 // Event table.
 BEGIN_EVENT_TABLE(NaviMainFrame, wxFrame)
     EVT_SIZE(NaviMainFrame::onResize)
     EVT_TREE_ITEM_ACTIVATED(DirBrowser::ID_NAVI_DIR_BROWSER, NaviMainFrame::dostuff)
-    EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, NaviMainFrame::onListItemActivate)
-    EVT_BUTTON(NavigationContainer::ID_MEDIA_PLAY, NaviMainFrame::onPlayOrPause)
-    //EVT_BUTTON(NavigationContainer::ID_MEDIA_STOP, NavigationContainer::onStop)
     EVT_MENU(wxID_ABOUT, NaviMainFrame::onAbout)
 END_EVENT_TABLE()
 
+
+//================================================================================
+
+TrackStatusHandler::TrackStatusHandler(NaviMainFrame* frame) throw() :
+        m_mainFrame(frame),
+        m_pipeline(NULL) {
+}
+
+Pipeline* TrackStatusHandler::getPipeline() const throw() {
+    return m_pipeline;
+}
+
+void TrackStatusHandler::onPlay(wxCommandEvent& event) {
+    std::cout << "on play... " << std::endl;
+    if (m_pipeline != NULL) {
+        if (m_pipeline->getState() == Pipeline::STATE_PLAYING) {
+            pause();
+        } else if (m_pipeline->getState() == Pipeline::STATE_PAUSED) {
+            play();
+        }
+    }
+}
+
+void TrackStatusHandler::onStop(wxCommandEvent& event) {
+    NavigationContainer* nav = m_mainFrame->getNavigationContainer();
+
+    if (m_pipeline != NULL) {
+        m_pipeline->stop();
+        nav->setPlayPauseStatus(true);
+    }
+}
+
+void TrackStatusHandler::onListItemActivate(wxListEvent& event) {
+    long data = event.GetData();    
+    TrackTable* tt = m_mainFrame->getTrackTable();
+    TrackInfo& trax = tt->getTrackInfo(data);
+    m_playedTrack = &trax;
+
+    play();
+}
+
+void TrackStatusHandler::play() throw() {
+    NavigationContainer* nav = m_mainFrame->getNavigationContainer();
+
+    const wxString& loc = m_playedTrack->getLocation();
+    if (m_pipeline == NULL) {
+        // create a new pipeline if it does not yet exists.
+        try {
+            m_pipeline = new GenericPipeline(loc);
+        } catch (const AudioException& ex) {
+            // TODO: test if this exception thing works. Oh, and
+            // prettify it with a better icon and such.
+            wxMessageDialog dlg(m_mainFrame, ex.getAsWxString(), wxT("Error"), wxOK);
+            dlg.ShowModal();
+        }
+    }
+
+    m_pipeline->play();
+    nav->setPlayPauseStatus(true);
+}
+
+void TrackStatusHandler::pause() throw() {
+    NavigationContainer* nav = m_mainFrame->getNavigationContainer();
+
+    if (m_pipeline != NULL) {
+        m_pipeline->pause();
+        nav->setPlayPauseStatus(false);
+    } 
+}
+
+BEGIN_EVENT_TABLE(TrackStatusHandler, wxEvtHandler)
+    EVT_BUTTON(NavigationContainer::ID_MEDIA_PLAY, TrackStatusHandler::onPlay)
+    EVT_BUTTON(NavigationContainer::ID_MEDIA_STOP, TrackStatusHandler::onStop)
+    EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackStatusHandler::onListItemActivate)
+END_EVENT_TABLE()
 
 } // namespace navi 
 

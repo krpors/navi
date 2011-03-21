@@ -32,12 +32,14 @@
 #include <wx/notebook.h>
 #include <wx/aboutdlg.h>
 #include <wx/bitmap.h>
+#include <wx/msgdlg.h>
 
 
 namespace navi {
 
 // Forward declarations due to circular dependencies:
-class NavigationContainer;
+class NavigationContainer; // from navigation.hpp
+class TrackStatusHandler; // from main.hpp below
 
 //==============================================================================
     
@@ -63,7 +65,6 @@ DECLARE_APP(NaviApp)
 
 class NaviMainFrame : public wxFrame {
 private:
-    GenericPipeline* m_pipeline;
 
     wxNotebook* m_noteBook;
 
@@ -77,12 +78,11 @@ private:
 
     wxImageList* m_imageList;
 
+    TrackStatusHandler* m_trackStatusHandler;
+
     void initMenu();
 
     wxPanel* createNavPanel(wxWindow* parent);
-
-    void onPlayOrPause(wxCommandEvent& event);
-    void onListItemActivate(wxListEvent& event);
 
     void dostuff(wxTreeEvent& event);
 
@@ -95,13 +95,40 @@ private:
 public:
     NaviMainFrame();
 
-    Pipeline* getPipeline() const;
+    TrackTable* getTrackTable() const;
 
-    void playOrPause();
+    NavigationContainer* getNavigationContainer() const;
 
     DECLARE_EVENT_TABLE()
 };
 
+//================================================================================
+
+class TrackStatusHandler : public wxEvtHandler {
+private:
+    /// The main frame of the application.
+    NaviMainFrame* m_mainFrame;
+
+    /// The currently played track. May be null.
+    TrackInfo* m_playedTrack;
+
+    /// Pipeline with the current song.
+    GenericPipeline* m_pipeline;
+
+    void onPlay(wxCommandEvent& event);
+    void onStop(wxCommandEvent& event);
+    void onListItemActivate(wxListEvent& event);
+
+public:
+    TrackStatusHandler(NaviMainFrame* frame) throw();
+    
+    Pipeline* getPipeline() const throw();
+
+    void play() throw();
+    void pause() throw();
+
+    DECLARE_EVENT_TABLE()
+};
     
 } // namespace pl
 

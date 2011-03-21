@@ -60,21 +60,14 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
     SetSizer(sizer);
 }
 
-void NavigationContainer::setStatePlaying(bool playing) throw() {
+void NavigationContainer::setPlayPauseStatus(bool playing) {
     m_btnPlay->Enable(true);
-    m_btnStop->Enable(true);
-    // visually change the buttons.
-    if(playing) {
+    if (playing) {
         m_btnPlay->SetBitmapLabel(wxArtProvider::GetBitmap(wxT("gtk-media-pause")));
     } else {
         m_btnPlay->SetBitmapLabel(wxArtProvider::GetBitmap(wxT("gtk-media-play")));
     }
 }
-
-void NavigationContainer::setButtonStoppedEnabled(bool enabled) throw() {
-    m_btnStop->Enable(enabled);
-}
-
 
 } //namespace navi 
 
