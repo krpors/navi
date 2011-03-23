@@ -48,7 +48,7 @@ NaviMainFrame::NaviMainFrame() :
     // XXX: images are now just for demonstration purposes.
     // attempt to initialize image lists:
     m_imageList = new wxImageList(16, 16);
-    m_imageList->Add(wxArtProvider::GetIcon(wxT("gtk-open")));
+    m_imageList->Add(wxArtProvider::GetIcon(wxART_HARDDISK));
     m_imageList->Add(wxArtProvider::GetIcon(wxART_ADD_BOOKMARK));
     m_imageList->Add(wxArtProvider::GetIcon(wxT("gtk-network")));
 
@@ -64,8 +64,8 @@ NaviMainFrame::NaviMainFrame() :
     m_dirBrowser->getDirBrowser()->setFilesVisible(false);
 
     m_noteBook->AddPage(m_dirBrowser, wxT("Browser"), true, 0);
-    m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("Cocks?")), wxT("Favorites"), false, 1);
-    m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("Cocks?")), wxT("Streams"), false, 2);
+    m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("template")), wxT("Favorites"), false, 1);
+    m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("template")), wxT("Streams"), false, 2);
 
     wxPanel* lol = createNavPanel(split);
     split->SplitVertically(m_noteBook, lol);
@@ -107,8 +107,8 @@ wxPanel* NaviMainFrame::createNavPanel(wxWindow* parent) {
     m_navigation = new NavigationContainer(panel, this);
     m_trackTable = new TrackTable(panel);
 
-    sizer->Add(m_navigation, wxSizerFlags().Expand());
-    sizer->Add(m_trackTable, wxSizerFlags(1).Expand());
+    sizer->Add(m_navigation, wxSizerFlags().Expand().Border(5));
+    sizer->Add(m_trackTable, wxSizerFlags(1).Expand().Border(5));
 
     return panel;
 }
@@ -197,12 +197,11 @@ Pipeline* TrackStatusHandler::getPipeline() const throw() {
 }
 
 void TrackStatusHandler::onPlay(wxCommandEvent& event) {
-    std::cout << "on play... " << std::endl;
     if (m_pipeline != NULL) {
         if (m_pipeline->getState() == Pipeline::STATE_PLAYING) {
             pause();
         } else if (m_pipeline->getState() == Pipeline::STATE_PAUSED) {
-            play();
+            unpause();
         }
     }
 }
@@ -212,7 +211,12 @@ void TrackStatusHandler::onStop(wxCommandEvent& event) {
 
     if (m_pipeline != NULL) {
         m_pipeline->stop();
-        nav->setPlayPauseStatus(true);
+        nav->setStopButtonEnabled(false);
+        nav->setPlayPauseButtonEnabled(false);
+        nav->setPlayVisible();
+
+        delete m_pipeline;
+        m_pipeline = NULL;
     }
 }
 
@@ -226,23 +230,42 @@ void TrackStatusHandler::onListItemActivate(wxListEvent& event) {
 }
 
 void TrackStatusHandler::play() throw() {
-    NavigationContainer* nav = m_mainFrame->getNavigationContainer();
+    wxASSERT(m_playedTrack != NULL);
 
+    NavigationContainer* nav = m_mainFrame->getNavigationContainer();
+    
     const wxString& loc = m_playedTrack->getLocation();
-    if (m_pipeline == NULL) {
-        // create a new pipeline if it does not yet exists.
-        try {
-            m_pipeline = new GenericPipeline(loc);
-        } catch (const AudioException& ex) {
-            // TODO: test if this exception thing works. Oh, and
-            // prettify it with a better icon and such.
-            wxMessageDialog dlg(m_mainFrame, ex.getAsWxString(), wxT("Error"), wxOK);
-            dlg.ShowModal();
-        }
+    if (m_pipeline != NULL) {
+        // if a pipeline already exists, stop it, delete it, nullify it, and
+        // start a new pipeline.
+        m_pipeline->stop();
+        delete m_pipeline;
+        m_pipeline = NULL;
+    }
+
+    try {
+        m_pipeline = new GenericPipeline(loc);
+    } catch (const AudioException& ex) {
+        // TODO: test if this exception thing works. Oh, and
+        // prettify it with a better icon and such.
+        wxMessageDialog dlg(m_mainFrame, ex.getAsWxString(), wxT("Error"), wxOK);
+        dlg.ShowModal();
     }
 
     m_pipeline->play();
-    nav->setPlayPauseStatus(true);
+    nav->setStopButtonEnabled(true);
+    nav->setPlayPauseButtonEnabled(true);
+    nav->setPauseVisible();
+    nav->setTrack(*m_playedTrack);
+}
+
+void TrackStatusHandler::unpause() throw() {
+    NavigationContainer* nav = m_mainFrame->getNavigationContainer();
+
+    if (m_pipeline != NULL) {
+        m_pipeline->play();
+        nav->setPauseVisible();
+    } 
 }
 
 void TrackStatusHandler::pause() throw() {
@@ -250,7 +273,7 @@ void TrackStatusHandler::pause() throw() {
 
     if (m_pipeline != NULL) {
         m_pipeline->pause();
-        nav->setPlayPauseStatus(false);
+        nav->setPlayVisible();
     } 
 }
 

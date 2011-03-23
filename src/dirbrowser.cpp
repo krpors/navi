@@ -217,12 +217,14 @@ DirBrowserContainer::DirBrowserContainer(wxWindow* parent) :
     wxPanel* panelBtns = new wxPanel(this);
     wxBoxSizer* sizerBtns = new wxBoxSizer(wxHORIZONTAL);
 
-    wxBitmap map = wxArtProvider::GetBitmap(wxT("gtk-open"));
+    wxBitmap imgOpen = wxArtProvider::GetBitmap(wxT("gtk-open"));
+    wxBitmap imgAdd = wxArtProvider::GetBitmap(wxART_ADD_BOOKMARK);
  
-    wxBitmapButton* btn1 = new wxBitmapButton(panelBtns, ID_BROWSE_DIR, map, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    //wxButton* btn1 = new wxButton(panelBtns, ID_BROWSE_DIR, wxT("Dix"));
+    wxBitmapButton* btn1 = new wxBitmapButton(panelBtns, ID_BROWSE_DIR, imgOpen, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     btn1->SetToolTip(wxT("Browse for new base directory"));
-    wxButton* btn2 = new wxButton(panelBtns, wxID_ANY, wxT("Cox"));
+
+    wxBitmapButton* btn2 = new wxBitmapButton(panelBtns, wxID_ANY, imgAdd, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    btn2->SetToolTip(wxT("Add selected directory to favorites"));
 
     panelBtns->SetSizer(sizerBtns);
     sizerBtns->Add(btn1);

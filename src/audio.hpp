@@ -77,6 +77,11 @@ public:
  * wrapper around the Gst library.
  */
 class Pipeline {
+private:
+    gint m_timeoutTag;
+
+    static bool onInterval(Pipeline* pipeline);
+
 protected:
     /// The location of the file or stream to play.
     wxString m_location;
@@ -100,6 +105,12 @@ protected:
      * be removed.
      */
     static gboolean busWatcher(GstBus* bus, GstMessage* message, gpointer userdata);
+
+    /**
+     * Makes a pipeline register an interval.
+     */
+    void registerInterval();
+
 
     /// Initialization for a pipeline. Pure virtual.
     virtual void init() throw (AudioException) = 0;

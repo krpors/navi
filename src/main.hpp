@@ -20,12 +20,14 @@
 #ifndef MAIN_HPP
 #define MAIN_HPP
 
+
 #include "audio.hpp"
 #include "dirbrowser.hpp"
 #include "tracktable.hpp"
 #include "navigation.hpp"
 
 #include <wx/wx.h>
+#include <wx/debug.h>
 #include <wx/treectrl.h>
 #include <wx/tglbtn.h>
 #include <wx/button.h>
@@ -125,6 +127,7 @@ public:
     Pipeline* getPipeline() const throw();
 
     void play() throw();
+    void unpause() throw();
     void pause() throw();
 
     DECLARE_EVENT_TABLE()

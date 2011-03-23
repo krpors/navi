@@ -39,6 +39,9 @@ private:
     wxBitmapButton* m_btnPlay;
     wxBitmapButton* m_btnStop;
 
+    wxStaticText* m_txtTrackTitle;
+    wxStaticText* m_txtArtistAlbum;
+
 public:
     static const short ID_MEDIA_PREV = 4000; 
     static const short ID_MEDIA_NEXT = 4001; 
@@ -49,7 +52,12 @@ public:
 
     NavigationContainer(wxWindow* parent, NaviMainFrame* naviFrame);
 
-    void setPlayPauseStatus(bool playing);
+    void setTrack(TrackInfo& info);
+    void setPlayPauseButtonEnabled(bool enabled);
+    void setPlayVisible();
+    void setPauseVisible();
+    void setStopButtonEnabled(bool enabled);
+
 };
 
 } //namespace navi 

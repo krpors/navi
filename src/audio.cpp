@@ -73,7 +73,43 @@ Pipeline::~Pipeline() {
             gst_object_unref(m_pipeline); 
         }
     }
+
+    // by removing the timeout, we remove the callback
+    g_source_remove(m_timeoutTag);
+
 } 
+
+bool Pipeline::onInterval(Pipeline* pipeline) {
+    GstFormat fmt = GST_FORMAT_TIME;
+    // nanoseconds:
+    gint64 pos, len;
+
+    // remember, m_pipeline (member of Pipeline) is protected.
+    // therefore we can access it easily.
+
+    if (gst_element_query_position (pipeline->m_pipeline, &fmt, &pos)
+            && gst_element_query_duration (pipeline->m_pipeline, &fmt, &len)) {
+        std::cout << (pos / GST_SECOND) << "/" << (len / GST_SECOND) << std::endl;
+    }    
+
+    // by returning true, we ensure this interval function gets called
+    // periodically. If we return false, the timeout will be discarded.
+    // Instead of returning false to stop this timeout, we 'unregister'
+    // the timeout by calling g_source_remove (gint tag) in the destructor.
+    return true;
+}
+
+void Pipeline::registerInterval() {
+    // ensure that a pipeline is set by the subclass:
+    wxASSERT(m_pipeline != NULL);
+
+    // This comes from GObject. We add a timeout to query the current position
+    // every .5 seconds. Use m_pipeline from the class Pipeline as the callback
+    // data. The timeout tag can be used later on to disable/destroy the
+    // callback.
+    m_timeoutTag = g_timeout_add(500, (GSourceFunc) onInterval, this);
+
+}
 
 gboolean Pipeline::busWatcher(GstBus* bus, GstMessage* message, gpointer userdata) {
     // get the name of the message. 
@@ -101,7 +137,7 @@ gboolean Pipeline::busWatcher(GstBus* bus, GstMessage* message, gpointer userdat
             break;
     }
   
-    return TRUE;
+    return true;
 }
 
 void Pipeline::play() throw() {
@@ -179,7 +215,7 @@ int Pipeline::getDurationSeconds() throw(AudioException) {
 //==============================================================================
 
 GenericPipeline::GenericPipeline(const wxString& location) throw (AudioException) {
-    m_location = location;    
+    m_location = location;
 
     try {
         init();
@@ -232,6 +268,8 @@ void GenericPipeline::init() throw (AudioException) {
     unsigned short softvol = 0x00000010;
     unsigned short render = audio | softvol;
     g_object_set(m_playbin, "flags", render, NULL);
+
+    registerInterval();
 
     // We set the state of the element as paused, so we can succesfully query
     // duration and other stuff. If the state is still not PAUSED or PLAYING, 
@@ -592,7 +630,7 @@ void TagReader::init() throw (AudioException) {
         throw AudioException(wxT("Failed to create `filesrc' GST element"));
     }
 
-    // Element filesrc (gst-inspect fakesink)
+    // Element fakesink (gst-inspect fakesink)
     m_fakesink = gst_element_factory_make("fakesink", NULL);
     if (!m_fakesink) {
         throw AudioException(wxT("Failed to create `fakesink' GST element"));
