@@ -21,12 +21,16 @@
 #define AUDIO_HPP 
 
 #include <map>
+#include <vector>
 #include <sstream>
 
 #include <wx/wx.h>
 #include <gst/gst.h>
 
 namespace navi {
+
+// Forward declarations:
+class Pipeline; // for PipelineListener.
 
 //================================================================================
 
@@ -68,7 +72,44 @@ public:
     const wxString& getAsWxString() const throw();
 };
 
+//================================================================================
 
+class PipelineListener {
+public:
+    PipelineListener();
+/*
+    void onPlay(Pipeline* pipeline);
+    void onPause(Pipeline* pipeline);
+    void onStop(Pipeline* pipeline);
+*/
+
+    /**
+     * Invoked as a callback function when the pipeline encountered an 
+     * error, during playback, initialization or whatever.
+     *
+     * @param pipeline The pipeline which got errored. 
+     * @param message The error message as a wxString.
+     */
+    virtual void pipelineError(Pipeline* const pipeline, const wxString& message) throw() = 0;
+
+    /**
+     * Callback function invoked when the pipeline has reached its EOS, end of
+     * stream.
+     *
+     * @param pipeline The pipeline point0r.
+     */
+    virtual void pipelineStreamEnd(Pipeline* const pipeline) throw() = 0;
+
+    /**
+     * Callback to inform a position change. The position and length are
+     * measured in SECONDS!
+     *
+     * @param pipeline The pipeline in which the position changed.
+     * @param position The current position of the pipeline.
+     * @param length The length of the stream/pipeline.
+     */
+    virtual void pipelinePosChanged(Pipeline* const pipeline, unsigned int position, unsigned int length) throw() = 0;
+};
 
 //================================================================================
 
@@ -78,9 +119,11 @@ public:
  */
 class Pipeline {
 private:
-    gint m_timeoutTag;
+    gint m_intervalTag;
 
     static bool onInterval(Pipeline* pipeline);
+
+    std::vector<PipelineListener*> m_listeners;
 
 protected:
     /// The location of the file or stream to play.
@@ -107,19 +150,47 @@ protected:
     static gboolean busWatcher(GstBus* bus, GstMessage* message, gpointer userdata);
 
     /**
-     * Makes a pipeline register an interval.
+     * Makes a pipeline register an interval to do periodic checks. This is
+     * used to initate callbacks.
      */
     void registerInterval();
 
 
-    /// Initialization for a pipeline. Pure virtual.
+    void fireError(const wxString& error) throw();
+
+
+    /**
+     * Fires a positionChanged callback to every listener available.
+     */
+    void firePositionChanged(gint64 pos, gint64 len) throw();
+
+    /**
+     * Fires a streamEnd callback to every listener available.
+     */
+    void fireStreamEnd() throw();
+
+    /**
+     * Initialization for a pipeline. Pure virtual. Subclasses must override this
+     * function.
+     *
+     * @throws AudioException when any GStreamer call 'fails'.
+     */
     virtual void init() throw (AudioException) = 0;
 
 public:
+    /// Pipeline state pending (gst: no pending state)
     static const short STATE_PENDING = GST_STATE_VOID_PENDING;
+
+    /// Pipeline state null, initial (gst: the NULL state or initial state of an element)
     static const short STATE_NULL    = GST_STATE_NULL;
+
+    /// Pipeline state ready (gst: the element is ready to go to PAUSED)
     static const short STATE_READY   = GST_STATE_READY;
+
+    /// Pipeline state paused (gst: the element is PAUSED, it is ready to accept and process data)
     static const short STATE_PAUSED  = GST_STATE_PAUSED;
+
+    /// Pipeline state playing (gst: the element is PLAYING, the GstClock is running and the data is flowing)
     static const short STATE_PLAYING = GST_STATE_PLAYING;
 
     /**
@@ -135,6 +206,13 @@ public:
      * manually unref their own pipeline elements.
      */
     virtual ~Pipeline();
+
+    /**
+     * Adds a pipeline listener to this pipeline.
+     *
+     * @param listener The listener to add.
+     */
+    void addListener(PipelineListener* const listener) throw();
 
     /**
      * Plays the pipeline (GST_STATE_PLAYING). Declared virtual, so derived
@@ -171,7 +249,7 @@ public:
      *
      * @param seconds The amount of seconds to 'seek' (i.e. jump) to.
      */
-    virtual void seekSeconds(const unsigned short seconds) throw (AudioException);
+    virtual void seekSeconds(const unsigned int seconds) throw (AudioException);
 
     /**
      * Gets the duration in seconds from the stream, if applicable. For instance,

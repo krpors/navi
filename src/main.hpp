@@ -106,7 +106,7 @@ public:
 
 //================================================================================
 
-class TrackStatusHandler : public wxEvtHandler {
+class TrackStatusHandler : public wxEvtHandler, public PipelineListener {
 private:
     /// The main frame of the application.
     NaviMainFrame* m_mainFrame;
@@ -119,7 +119,12 @@ private:
 
     void onPlay(wxCommandEvent& event);
     void onStop(wxCommandEvent& event);
+    void onPosChange(wxScrollEvent& event);
     void onListItemActivate(wxListEvent& event);
+
+    void pipelineStreamEnd(Pipeline* const pipeline) throw();
+    void pipelineError(Pipeline* const pipeline, const wxString& error) throw();
+    void pipelinePosChanged(Pipeline* const pipeline, unsigned int pos, unsigned int len) throw();
 
 public:
     TrackStatusHandler(NaviMainFrame* frame) throw();

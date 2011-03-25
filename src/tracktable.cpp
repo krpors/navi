@@ -194,6 +194,7 @@ BEGIN_EVENT_TABLE(TrackTable, wxListCtrl)
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackTable::onActivate)   
     EVT_LIST_ITEM_SELECTED(TrackTable::ID_TRACKTABLE, TrackTable::onSelected)
     EVT_LIST_COL_CLICK(TrackTable::ID_TRACKTABLE, TrackTable::onColumnClick)
+    // TODO: make this EVT_CUSTOM with a custom wxEvent derived class
     EVT_COMMAND(TrackTable::ID_EVT_ADD_INFO, wxEVT_COMMAND_TEXT_UPDATED, TrackTable::onAddTrackInfo)
 END_EVENT_TABLE()
 
@@ -244,7 +245,7 @@ wxThread::ExitCode UpdateThread::Entry() {
 
             wxCommandEvent event(wxEVT_COMMAND_TEXT_UPDATED, TrackTable::ID_EVT_ADD_INFO);
             event.SetClientObject(d);
-            m_parent->GetEventHandler()->AddPendingEvent(event);
+            m_parent->AddPendingEvent(event);
         } catch (const AudioException& ex) {
             std::cerr << ex.what() << std::endl;
         }

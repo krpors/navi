@@ -50,7 +50,7 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
     m_btnPlay->Enable(false);
     m_btnStop->Enable(false);
 
-    wxSlider* slider = new wxSlider(panelTop, wxID_ANY, 0, 0, 100);
+    wxSlider* slider = new wxSlider(panelTop, ID_MEDIA_SEEKER, 0, 0, 100);
 
     topSizer->Add(btn1);
     topSizer->Add(m_btnPlay);

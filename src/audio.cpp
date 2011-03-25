@@ -43,7 +43,13 @@ const wxString& AudioException::getAsWxString() const throw() {
 
 //==============================================================================
 
+PipelineListener::PipelineListener() {
+}
+
+//==============================================================================
+
 Pipeline::Pipeline() throw() :
+        m_intervalTag(0),
         m_location(wxT("")),
         m_bus(NULL), 
         m_pipeline(NULL) {
@@ -74,10 +80,46 @@ Pipeline::~Pipeline() {
         }
     }
 
-    // by removing the timeout, we remove the callback
-    g_source_remove(m_timeoutTag);
+    // by removing the timeout, we remove the callback we initially registered
+    // using the function registerInterval(). Tag must be > 0, or else we'll get
+    // some assertion errors from glib. 
+    if(m_intervalTag > 0) {
+        g_source_remove(m_intervalTag);
+    }
 
-} 
+    // clear the vector with listeners.
+    m_listeners.clear();
+}
+
+void Pipeline::addListener(PipelineListener* const listener) throw() { 
+    m_listeners.push_back(listener);
+}
+
+void Pipeline::fireError(const wxString& error) throw() {
+    std::vector<PipelineListener*>::iterator it = m_listeners.begin();
+    while(it < m_listeners.end()) {
+        // convert nanoseconds to seconds here plx.
+        (*it)->pipelineError(this, error);
+        it++;
+    }
+}
+
+void Pipeline::firePositionChanged(gint64 pos, gint64 len) throw() {
+    std::vector<PipelineListener*>::iterator it = m_listeners.begin();
+    while(it < m_listeners.end()) {
+        // convert nanoseconds to seconds here plx.
+        (*it)->pipelinePosChanged(this, pos / GST_SECOND, len / GST_SECOND);
+        it++;
+    }
+}
+
+void Pipeline::fireStreamEnd() throw() {
+    std::vector<PipelineListener*>::iterator it = m_listeners.begin();
+    while(it < m_listeners.end()) {
+        (*it)->pipelineStreamEnd(this);
+        it++;
+    }   
+}
 
 bool Pipeline::onInterval(Pipeline* pipeline) {
     GstFormat fmt = GST_FORMAT_TIME;
@@ -89,7 +131,7 @@ bool Pipeline::onInterval(Pipeline* pipeline) {
 
     if (gst_element_query_position (pipeline->m_pipeline, &fmt, &pos)
             && gst_element_query_duration (pipeline->m_pipeline, &fmt, &len)) {
-        std::cout << (pos / GST_SECOND) << "/" << (len / GST_SECOND) << std::endl;
+        pipeline->firePositionChanged(pos, len);
     }    
 
     // by returning true, we ensure this interval function gets called
@@ -107,34 +149,33 @@ void Pipeline::registerInterval() {
     // every .5 seconds. Use m_pipeline from the class Pipeline as the callback
     // data. The timeout tag can be used later on to disable/destroy the
     // callback.
-    m_timeoutTag = g_timeout_add(500, (GSourceFunc) onInterval, this);
+    m_intervalTag = g_timeout_add(500, (GSourceFunc) onInterval, this);
 
 }
 
 gboolean Pipeline::busWatcher(GstBus* bus, GstMessage* message, gpointer userdata) {
     // get the name of the message. 
+    Pipeline* pipeline = static_cast<Pipeline*>(userdata);
     //const gchar* name = GST_MESSAGE_TYPE_NAME(message);
     //std::cout << "Got GST message: " << name << std::endl;
 
-    switch (GST_MESSAGE_TYPE (message)) {
-        case GST_MESSAGE_EOS:
-            std::cout << "End of stream" << std::endl;
-            break;
+    GstMessageType type = GST_MESSAGE_TYPE(message);
+    if(type == GST_MESSAGE_EOS) {
+        pipeline->fireStreamEnd(); 
+    } else if (type == GST_MESSAGE_ERROR) {
+        gchar* debug;
+        GError* error;
 
-        case GST_MESSAGE_ERROR:
-            gchar* debug;
-            GError* error;
+        gst_message_parse_error (message, &error, &debug);
+        g_free (debug);
 
-            gst_message_parse_error (message, &error, &debug);
-            g_free (debug);
+        const char* lol = "crud";
+        wxString err = wxString::FromAscii(lol);
 
-            g_printerr ("Error: %s\n", error->message);
-            g_error_free (error);
+        pipeline->fireError(err);
 
-            break;
-
-        default:
-            break;
+        g_printerr ("Error: %s\n", error->message);
+        g_error_free (error);
     }
   
     return true;
@@ -142,14 +183,24 @@ gboolean Pipeline::busWatcher(GstBus* bus, GstMessage* message, gpointer userdat
 
 void Pipeline::play() throw() {
     gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
+
+    registerInterval();
 }
 
 void Pipeline::pause() throw() {
     gst_element_set_state(m_pipeline, GST_STATE_PAUSED);
+
+    // we dont need to get notified of the pipeline's progress every .5 seconds
+    // if we are paused.
+    if(m_intervalTag > 0) {
+        g_source_remove(m_intervalTag);
+    }
+
 }
 
 void Pipeline::stop() throw() {
-    // pause first (i.e. stop playback)
+    // pause first (i.e. stop playback), which will implicitly also stop the
+    // interval callback.
     pause();
     // then 'seek' to the start of the file.
     gboolean seekSuccess = gst_element_seek (m_pipeline, 1.0, 
@@ -177,7 +228,7 @@ const wxString& Pipeline::getLocation() const throw() {
     return m_location;
 }
 
-void Pipeline::seekSeconds(const unsigned short seconds) throw(AudioException) {
+void Pipeline::seekSeconds(const unsigned int seconds) throw(AudioException) {
     // default pipeline implementation allows seeking in a file
     //gboolean success = gst_element_seek_simple(
     //    m_pipeline, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, 60 * GST_SECOND);
@@ -268,8 +319,6 @@ void GenericPipeline::init() throw (AudioException) {
     unsigned short softvol = 0x00000010;
     unsigned short render = audio | softvol;
     g_object_set(m_playbin, "flags", render, NULL);
-
-    registerInterval();
 
     // We set the state of the element as paused, so we can succesfully query
     // duration and other stuff. If the state is still not PAUSED or PLAYING, 

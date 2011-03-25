@@ -113,7 +113,9 @@ public:
 
 /**
  * Encapsulation class to set within a wxCommandEvent. This is used in the 
- * UpdateThread (event.setClientObject(...)). It hold one TrackInfo instance. 
+ * UpdateThread (event.setClientObject(...)). It holds one TrackInfo instance. 
+ *
+ * TODO: why not subclass TrackInfo from wxClientData, instead of a wrappah?
  */
 class UpdateClientData : public wxClientData {
 private:

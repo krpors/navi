@@ -24,6 +24,7 @@
 
 namespace navi {
 
+
 bool NaviApp::OnInit() {
     gst_init(NULL, NULL);
     wxInitAllImageHandlers();
@@ -167,6 +168,7 @@ void NaviMainFrame::onAbout(wxCommandEvent& event) {
     info.SetIcon(icon);
 
     wxAboutBox(info);
+
 }
 
 TrackTable* NaviMainFrame::getTrackTable() const {
@@ -220,6 +222,14 @@ void TrackStatusHandler::onStop(wxCommandEvent& event) {
     }
 }
 
+void TrackStatusHandler::onPosChange(wxScrollEvent& event) {
+    if (event.GetEventType() == wxEVT_SCROLL_CHANGED) {
+        if (m_pipeline != NULL) {
+            m_pipeline->seekSeconds(event.GetPosition());
+        }
+    }
+}
+
 void TrackStatusHandler::onListItemActivate(wxListEvent& event) {
     long data = event.GetData();    
     TrackTable* tt = m_mainFrame->getTrackTable();
@@ -245,6 +255,7 @@ void TrackStatusHandler::play() throw() {
 
     try {
         m_pipeline = new GenericPipeline(loc);
+        m_pipeline->addListener(this);
     } catch (const AudioException& ex) {
         // TODO: test if this exception thing works. Oh, and
         // prettify it with a better icon and such.
@@ -253,6 +264,7 @@ void TrackStatusHandler::play() throw() {
     }
 
     m_pipeline->play();
+    m_pipeline->seekSeconds(240);
     nav->setStopButtonEnabled(true);
     nav->setPlayPauseButtonEnabled(true);
     nav->setPauseVisible();
@@ -277,9 +289,23 @@ void TrackStatusHandler::pause() throw() {
     } 
 }
 
+void TrackStatusHandler::pipelineStreamEnd(Pipeline* const pipeline) throw() {
+    std::cout << "Stream ended" << std::endl;
+    // stop the pipeline or something.
+}
+
+void TrackStatusHandler::pipelineError(Pipeline* const pipeline, const wxString& error) throw() {
+    std::cout << "Error: " << error.mb_str() << std::endl;
+}
+
+void TrackStatusHandler::pipelinePosChanged(Pipeline* const pipeline, unsigned int pos, unsigned int len) throw() {
+    std::cout << pos << "/" << len << std::endl;
+}
+
 BEGIN_EVENT_TABLE(TrackStatusHandler, wxEvtHandler)
     EVT_BUTTON(NavigationContainer::ID_MEDIA_PLAY, TrackStatusHandler::onPlay)
     EVT_BUTTON(NavigationContainer::ID_MEDIA_STOP, TrackStatusHandler::onStop)
+    EVT_COMMAND_SCROLL(NavigationContainer::ID_MEDIA_SEEKER, TrackStatusHandler::onPosChange)
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackStatusHandler::onListItemActivate)
 END_EVENT_TABLE()
 
