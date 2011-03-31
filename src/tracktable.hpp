@@ -38,6 +38,10 @@ namespace navi {
 
 //================================================================================
 
+/// New event type for directory traversal (all UI things must be done on the
+/// main thread). 
+const wxEventType NAVI_EVENT_DIR_TRAVERSED = wxNewEventType();
+
 class TrackTable : public wxListCtrl {
 private:
     /// Vector holding the trackinfo objects.
@@ -70,6 +74,7 @@ public:
     static const wxWindowID ID_TRACKTABLE = 2;
 
     static const wxWindowID ID_EVT_ADD_INFO = 10000;
+
     /**
      * Creates this tracktable.
      *
@@ -109,38 +114,11 @@ public:
     DECLARE_EVENT_TABLE()
 };
 
-//================================================================================
-
-/**
- * Encapsulation class to set within a wxCommandEvent. This is used in the 
- * UpdateThread (event.setClientObject(...)). It holds one TrackInfo instance. 
- *
- * TODO: why not subclass TrackInfo from wxClientData, instead of a wrappah?
- */
-class UpdateClientData : public wxClientData {
-private:
-    /// The trackinfo.
-    TrackInfo m_info;
-public:
-    /**
-     * Constructor.
-     *
-     * @param info The trackinfo to set.
-     */
-    UpdateClientData(const TrackInfo& info);
-
-    /**
-     * Returns the trackinfo instance associated with this ClientData.
-     *
-     * @return the TrackInfo.
-     */
-    const TrackInfo getTrackInfo() const;
-};
 
 //================================================================================
 
 /**
- * The UpdateThread is a joinable (not detached) thread to update the user interface
+ * The DirTraversalThread is a joinable (not detached) thread to update the user interface
  * with new track infos. If we don't update the UI in another thread, the UI would
  * block until all files in a directory or the like are finished adding. This would
  * be severely problematic if you have a LOT of files in one directory.
@@ -152,7 +130,7 @@ public:
  *
  * TODO: fer chrissake rename this thing. It's so generic.
  */
-class UpdateThread : public wxThread {
+class DirTraversalThread : public wxThread {
 private:
     /// The tracktable parent. We will be add pending events to this wxWindow.
     TrackTable* m_parent;
@@ -164,13 +142,13 @@ private:
     bool m_active;
 public:
     /**
-     * Creates the UpdateThread, with the 'parent' TrackTable (to add pending
+     * Creates the DirTraversalThread, with the 'parent' TrackTable (to add pending
      * events to) and the selected path to get a dir listing from.
      *
      * @param parent The TrackTable parent.
      * @param selectedPath The path to get a listing from.
      */
-    UpdateThread(TrackTable* parent, const wxFileName& selectedPath);
+    DirTraversalThread(TrackTable* parent, const wxFileName& selectedPath);
 
     /**
      * Sets the 'activity' state of this thread. This is only useful right now

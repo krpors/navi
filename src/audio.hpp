@@ -422,7 +422,7 @@ public:
  * be tag-parsed, and displayed. I will not 'risk' adding lots of GST elements 
  * to user interface widgets.
  */
-class TrackInfo {
+class TrackInfo : public wxClientData {
 private:
     /// Map with tag and value mapping.
     std::map<const char*, wxString> m_tags;
@@ -466,11 +466,6 @@ public:
      * Creates a TrackInfo object.
      */
     TrackInfo();
-
-    /**
-     * Dtor.
-     */
-    ~TrackInfo();
 
     /**
      * Allows us to get and set tags using tag[TAG_XYZ] and tag[TAG_XYZ] = "lol".
@@ -585,7 +580,7 @@ public:
      * Gets the trackinfo. This is not returned as a reference, because the 
      * TagReader should be discarded (deleted) after parsing is finished.
      */
-    const TrackInfo getTrackInfo() const;
+    TrackInfo& getTrackInfo();
 
 };
 

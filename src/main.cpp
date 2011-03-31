@@ -44,7 +44,7 @@ bool NaviApp::OnInit() {
 NaviMainFrame::NaviMainFrame() :
         wxFrame((wxFrame*) NULL, wxID_ANY, wxT("Navi")),
         m_noteBook(NULL),
-        m_updateThread(NULL) {
+        m_dirTraversalThread(NULL) {
 
     // XXX: images are now just for demonstration purposes.
     // attempt to initialize image lists:
@@ -130,23 +130,23 @@ void NaviMainFrame::dostuff(wxTreeEvent& event) {
     const wxFileName& selectedPath = m_dirBrowser->getDirBrowser()->getSelectedPath();
     std::cout << selectedPath.GetFullPath().mb_str() << std::endl;
     
-    if (m_updateThread != NULL) {
-        m_updateThread->setActive(false);
+    if (m_dirTraversalThread != NULL) {
+        m_dirTraversalThread->setActive(false);
         // wait for thread to finish doing its work.
         /*wxThread::ExitCode code = */
-        m_updateThread->Wait();
+        m_dirTraversalThread->Wait();
     }
     // XXX: deleting all items does not seem to work reliably, i.e. always some
     // 'residue' seem to be left behind from the previous directory crap.
     m_trackTable->DeleteAllItems();
 
-    m_updateThread = new UpdateThread(m_trackTable, selectedPath);
-    wxThreadError err = m_updateThread->Create();
+    m_dirTraversalThread = new DirTraversalThread(m_trackTable, selectedPath);
+    wxThreadError err = m_dirTraversalThread->Create();
     if (err != wxTHREAD_NO_ERROR) {
         wxMessageBox(wxT("Couldn't create thread!"));
     }
 
-    err = m_updateThread->Run();
+    err = m_dirTraversalThread->Run();
 
     if (err != wxTHREAD_NO_ERROR) {
         wxMessageBox(wxT("Couldn't run thread!"));
@@ -209,23 +209,15 @@ void TrackStatusHandler::onPlay(wxCommandEvent& event) {
 }
 
 void TrackStatusHandler::onStop(wxCommandEvent& event) {
-    NavigationContainer* nav = m_mainFrame->getNavigationContainer();
-
-    if (m_pipeline != NULL) {
-        m_pipeline->stop();
-        nav->setStopButtonEnabled(false);
-        nav->setPlayPauseButtonEnabled(false);
-        nav->setPlayVisible();
-
-        delete m_pipeline;
-        m_pipeline = NULL;
-    }
+    stop();
 }
 
 void TrackStatusHandler::onPosChange(wxScrollEvent& event) {
+    m_scrolling = true;
     if (event.GetEventType() == wxEVT_SCROLL_CHANGED) {
         if (m_pipeline != NULL) {
             m_pipeline->seekSeconds(event.GetPosition());
+            m_scrolling = false;
         }
     }
 }
@@ -264,11 +256,11 @@ void TrackStatusHandler::play() throw() {
     }
 
     m_pipeline->play();
-    m_pipeline->seekSeconds(240);
     nav->setStopButtonEnabled(true);
     nav->setPlayPauseButtonEnabled(true);
     nav->setPauseVisible();
     nav->setTrack(*m_playedTrack);
+    nav->setSeekerValues(0, m_pipeline->getDurationSeconds(), true);
 }
 
 void TrackStatusHandler::unpause() throw() {
@@ -289,9 +281,29 @@ void TrackStatusHandler::pause() throw() {
     } 
 }
 
+void TrackStatusHandler::stop() throw() {
+    NavigationContainer* nav = m_mainFrame->getNavigationContainer();
+
+    if (m_pipeline != NULL) {
+        m_pipeline->stop();
+        nav->setStopButtonEnabled(false);
+        nav->setPlayPauseButtonEnabled(false);
+        nav->setPlayVisible();
+        nav->setSeekerValues(0, 1, false);
+
+        delete m_pipeline;
+        m_pipeline = NULL;
+    }    
+}
+
 void TrackStatusHandler::pipelineStreamEnd(Pipeline* const pipeline) throw() {
-    std::cout << "Stream ended" << std::endl;
-    // stop the pipeline or something.
+    // stop the pipeline. This is actually done by adding a pending event on
+    // the event handler's 'queue'. The result of this, is a call to onStop().
+    // That function stops the pipeline, and updated the UI accordingly.
+    wxCommandEvent evt(NAVI_EVENT_STREAM_STOP);
+    AddPendingEvent(evt);
+
+    // but actually, go to next song. Future!
 }
 
 void TrackStatusHandler::pipelineError(Pipeline* const pipeline, const wxString& error) throw() {
@@ -299,14 +311,31 @@ void TrackStatusHandler::pipelineError(Pipeline* const pipeline, const wxString&
 }
 
 void TrackStatusHandler::pipelinePosChanged(Pipeline* const pipeline, unsigned int pos, unsigned int len) throw() {
-    std::cout << pos << "/" << len << std::endl;
+    wxCommandEvent evt(NAVI_EVENT_POS_CHANGED);
+    StreamPositionData* d = new StreamPositionData(pos, len);
+    evt.SetClientObject(d);
+    AddPendingEvent(evt);
 }
+
+void TrackStatusHandler::doUpdateSlider(wxCommandEvent& evt) {
+    // called because of AddPendingEvent()
+    StreamPositionData* derpity = static_cast<StreamPositionData*>(evt.GetClientObject());
+    if (derpity != NULL && !m_scrolling) {
+       NavigationContainer* nav = m_mainFrame->getNavigationContainer();
+       nav->setSeekerValues(derpity->m_pos, derpity->m_max);
+    }
+    delete derpity;
+}
+
+
 
 BEGIN_EVENT_TABLE(TrackStatusHandler, wxEvtHandler)
     EVT_BUTTON(NavigationContainer::ID_MEDIA_PLAY, TrackStatusHandler::onPlay)
     EVT_BUTTON(NavigationContainer::ID_MEDIA_STOP, TrackStatusHandler::onStop)
     EVT_COMMAND_SCROLL(NavigationContainer::ID_MEDIA_SEEKER, TrackStatusHandler::onPosChange)
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackStatusHandler::onListItemActivate)
+    EVT_COMMAND(wxID_ANY, NAVI_EVENT_POS_CHANGED, TrackStatusHandler::doUpdateSlider)
+    EVT_COMMAND(wxID_ANY, NAVI_EVENT_STREAM_STOP, TrackStatusHandler::onStop)
 END_EVENT_TABLE()
 
 } // namespace navi 

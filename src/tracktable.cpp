@@ -177,10 +177,11 @@ void TrackTable::onSelected(wxListEvent& event) {
 }
 
 void TrackTable::onAddTrackInfo(wxCommandEvent& event) {
-    UpdateClientData* d = dynamic_cast<UpdateClientData*>(event.GetClientObject());
+    TrackInfo* d = static_cast<TrackInfo*>(event.GetClientObject());
     if (d) {
-        TrackInfo ti = d->getTrackInfo();
-        addTrackInfo(ti);
+        addTrackInfo(*d);
+    } else {
+        std::cerr << "TrackInfo should exist here, huh!" << std::endl;
     }
 
     // since the UCD instance was created on the heap in a thread and
@@ -190,39 +191,28 @@ void TrackTable::onAddTrackInfo(wxCommandEvent& event) {
     delete d;
 }
 
+
 BEGIN_EVENT_TABLE(TrackTable, wxListCtrl)
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackTable::onActivate)   
     EVT_LIST_ITEM_SELECTED(TrackTable::ID_TRACKTABLE, TrackTable::onSelected)
     EVT_LIST_COL_CLICK(TrackTable::ID_TRACKTABLE, TrackTable::onColumnClick)
-    // TODO: make this EVT_CUSTOM with a custom wxEvent derived class
-    EVT_COMMAND(TrackTable::ID_EVT_ADD_INFO, wxEVT_COMMAND_TEXT_UPDATED, TrackTable::onAddTrackInfo)
+    EVT_COMMAND(wxID_ANY, NAVI_EVENT_DIR_TRAVERSED, TrackTable::onAddTrackInfo)
 END_EVENT_TABLE()
 
 //================================================================================
 
-UpdateClientData::UpdateClientData(const TrackInfo& info) :
-        m_info(info) {
-}
-
-const TrackInfo UpdateClientData::getTrackInfo() const {
-    
-    return m_info;
-}
-
-//================================================================================
-
-UpdateThread::UpdateThread(TrackTable* parent, const wxFileName& selectedPath) :
+DirTraversalThread::DirTraversalThread(TrackTable* parent, const wxFileName& selectedPath) :
         wxThread(wxTHREAD_JOINABLE),
         m_parent(parent),
         m_selectedPath(selectedPath),
         m_active(true) {
 }
 
-void UpdateThread::setActive(bool active) {
+void DirTraversalThread::setActive(bool active) {
     m_active = active;
 }
 
-wxThread::ExitCode UpdateThread::Entry() {
+wxThread::ExitCode DirTraversalThread::Entry() {
     wxDir thedir(m_selectedPath.GetFullPath());
     wxString filename;
     // only display files, and TODO: use a selector, as in: only mp3, ogg, flac, etc
@@ -237,14 +227,16 @@ wxThread::ExitCode UpdateThread::Entry() {
 
         try {
             TagReader t(uri);
-            TrackInfo info = t.getTrackInfo();
-
-            // add client data to the event, so we can use that to update 
-            // the UI with the correct track information
-            UpdateClientData* d = new UpdateClientData(info);
-
-            wxCommandEvent event(wxEVT_COMMAND_TEXT_UPDATED, TrackTable::ID_EVT_ADD_INFO);
-            event.SetClientObject(d);
+            // this info pointer must be deleted in the onAddTrackInfo() func
+            // we're currently making a copy of the found TrackInfo object, because
+            // of SetClientObject() and stuff.
+            TrackInfo& info = t.getTrackInfo();
+            // Make a copy on the heap, to use as a ClientObject. Must delete later!
+            TrackInfo* derp = new TrackInfo(info);
+            
+            // use the NAVI_EVENT_DIR_TRAVERSED event type (new type)
+            wxCommandEvent event(NAVI_EVENT_DIR_TRAVERSED);
+            event.SetClientObject(derp);
             m_parent->AddPendingEvent(event);
         } catch (const AudioException& ex) {
             std::cerr << ex.what() << std::endl;

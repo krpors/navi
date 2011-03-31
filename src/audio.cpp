@@ -146,10 +146,10 @@ void Pipeline::registerInterval() {
     wxASSERT(m_pipeline != NULL);
 
     // This comes from GObject. We add a timeout to query the current position
-    // every .5 seconds. Use m_pipeline from the class Pipeline as the callback
+    // every second. Use m_pipeline from the class Pipeline as the callback
     // data. The timeout tag can be used later on to disable/destroy the
     // callback.
-    m_intervalTag = g_timeout_add(500, (GSourceFunc) onInterval, this);
+    m_intervalTag = g_timeout_add(1000, (GSourceFunc) onInterval, this);
 
 }
 
@@ -169,12 +169,9 @@ gboolean Pipeline::busWatcher(GstBus* bus, GstMessage* message, gpointer userdat
         gst_message_parse_error (message, &error, &debug);
         g_free (debug);
 
-        const char* lol = "crud";
-        wxString err = wxString::FromAscii(lol);
-
+        wxString err = wxString::FromAscii(error->message);
         pipeline->fireError(err);
 
-        g_printerr ("Error: %s\n", error->message);
         g_error_free (error);
     }
   
@@ -230,8 +227,9 @@ const wxString& Pipeline::getLocation() const throw() {
 
 void Pipeline::seekSeconds(const unsigned int seconds) throw(AudioException) {
     // default pipeline implementation allows seeking in a file
-    //gboolean success = gst_element_seek_simple(
-    //    m_pipeline, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, 60 * GST_SECOND);
+    
+    // FIXME: find out why seeking does not work in my xubuntu lappy toppy.
+    // No exception is thrown, it just 'does not work'...
     gboolean success = gst_element_seek 
         (m_pipeline, 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH,
         GST_SEEK_TYPE_SET, seconds * GST_SECOND, GST_SEEK_TYPE_NONE, 
@@ -504,10 +502,6 @@ const char* TrackInfo::DATE = GST_TAG_DATE;
 TrackInfo::TrackInfo() {
 }
 
-TrackInfo::~TrackInfo() {
-}
-
-
 wxString& TrackInfo::operator[](const char* key) {
     return m_tags[key];
 }
@@ -566,7 +560,7 @@ void TagReader::onTagRead(const GstTagList* list, const gchar* tag, gpointer dat
     guint discNum;
     GDate* date;
 
-    TrackInfo trackInfo = reader->getTrackInfo();
+    TrackInfo& trackInfo = reader->getTrackInfo();
 
     // Before attempting to set a tag in the reader*, make sure if the tag
     // fetching _really_ succeeded. This is simply done by checking for TRUE
@@ -620,6 +614,7 @@ void TagReader::initTags() throw(AudioException) {
     m_trackInfo.setLocation(getLocation());
 
     GstMessage* msg = NULL;
+    // XXX: making using of while(true) sounds dangerous...?
     while (true) {
         GstTagList* tags = NULL;
 
@@ -653,10 +648,8 @@ void TagReader::initTags() throw(AudioException) {
         GError* error;
 
         gst_message_parse_error (msg, &error, &debug);
-        std::cout << debug << std::endl;
         g_free (debug);
 
-        //g_printerr ("Error lulz: %s\n", error->message);
         wxString err = wxString(error->message, wxConvUTF8);
         // Free the error BEFORE throwing the exception! We got it in 
         // the wxString anyway. 
@@ -705,7 +698,7 @@ void TagReader::setTrackInfo(const TrackInfo& trackinfo) {
     m_trackInfo = trackinfo;
 }
 
-const TrackInfo TagReader::getTrackInfo() const {
+TrackInfo& TagReader::getTrackInfo() {
     return m_trackInfo;
 }
 

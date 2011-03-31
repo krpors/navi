@@ -24,6 +24,15 @@
 
 namespace navi {
 
+//================================================================================
+
+StreamPositionData::StreamPositionData(unsigned int pos, unsigned int max) :
+        m_pos(pos),
+        m_max(max) {
+}
+
+//================================================================================
+
 NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFrame) :
         wxPanel(parent, wxID_ANY),
         m_naviFrame(naviFrame) {
@@ -50,14 +59,14 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
     m_btnPlay->Enable(false);
     m_btnStop->Enable(false);
 
-    wxSlider* slider = new wxSlider(panelTop, ID_MEDIA_SEEKER, 0, 0, 100);
+    m_slider = new wxSlider(panelTop, ID_MEDIA_SEEKER, 0, 0, 100);
 
     topSizer->Add(btn1);
     topSizer->Add(m_btnPlay);
     topSizer->Add(m_btnStop);
     topSizer->Add(btn4);
     topSizer->Add(btn5);
-    topSizer->Add(slider, wxSizerFlags(1).Expand());
+    topSizer->Add(m_slider, wxSizerFlags(1).Expand());
 
     panelTop->SetSizer(topSizer);
 
@@ -106,6 +115,12 @@ void NavigationContainer::setPauseVisible() {
 
 void NavigationContainer::setStopButtonEnabled(bool enabled) {
     m_btnStop->Enable(enabled);
+}
+
+void NavigationContainer::setSeekerValues(unsigned int pos, unsigned int max, bool enabled) {
+    m_slider->SetRange(0, max);
+    m_slider->SetValue(pos);
+    m_slider->Enable(enabled);
 }
 
 } //namespace navi 

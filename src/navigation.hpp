@@ -31,6 +31,22 @@ namespace navi {
 
 // Forward declaration due to circular dependency. Also see main.hpp.
 class NaviMainFrame;
+class NavigationContainer;
+
+const wxEventType NAVI_EVENT_POS_CHANGED = wxNewEventType();
+const wxEventType NAVI_EVENT_STREAM_STOP = wxNewEventType();
+
+//================================================================================
+
+class StreamPositionData : public wxClientData {
+public:
+    StreamPositionData(unsigned int pos, unsigned int max);
+
+    unsigned int m_pos;
+    unsigned int m_max;
+};
+
+//================================================================================
 
 class NavigationContainer : public wxPanel {
 private:
@@ -41,6 +57,10 @@ private:
 
     wxStaticText* m_txtTrackTitle;
     wxStaticText* m_txtArtistAlbum;
+
+    wxSlider* m_slider;
+
+    void derp(wxCommandEvent& event);
 
 public:
     static const short ID_MEDIA_PREV = 4000; 
@@ -57,8 +77,12 @@ public:
     void setPlayVisible();
     void setPauseVisible();
     void setStopButtonEnabled(bool enabled);
+    void setSeekerValues(unsigned int pos, unsigned int max, bool enabled = true);
 
 };
+
+
+
 
 } //namespace navi 
 
