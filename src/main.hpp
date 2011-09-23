@@ -147,6 +147,12 @@ private:
     void onStop(wxCommandEvent& event);
 
     /**
+     * Invoked when the next button is pressed on the navigation panel. This
+     * will obviously proceed to the next track.
+     */
+    void onNext(wxCommandEvent& event);
+
+    /**
      * Invoked when the slider is slided. Any type of scroll event is 'caught'.
      */
     void onPosChange(wxScrollEvent& event);

@@ -47,11 +47,11 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
     wxBitmap stop = wxArtProvider::GetBitmap(wxT("gtk-media-stop"));
     wxBitmap next = wxArtProvider::GetBitmap(wxT("gtk-media-next"));
     wxBitmap random = wxArtProvider::GetBitmap(wxT("gtk-refresh"));
-    
-    wxBitmapButton* btn1 = new wxBitmapButton(panelTop, wxID_ANY, prev, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+   
+    m_btnPrev = new wxBitmapButton(panelTop, ID_MEDIA_PREV, prev, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_btnPlay = new wxBitmapButton(panelTop, ID_MEDIA_PLAY, play, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_btnStop = new wxBitmapButton(panelTop, ID_MEDIA_STOP, stop, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    wxBitmapButton* btn4 = new wxBitmapButton(panelTop, wxID_ANY, next, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    m_btnNext = new wxBitmapButton(panelTop, ID_MEDIA_NEXT, next, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     wxBitmapButton* btn5 = new wxBitmapButton(panelTop, wxID_ANY, random, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 
     // the play button is initially disabled, because there's nothing to play
@@ -61,10 +61,10 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
 
     m_slider = new wxSlider(panelTop, ID_MEDIA_SEEKER, 0, 0, 100);
 
-    topSizer->Add(btn1);
+    topSizer->Add(m_btnPrev);
     topSizer->Add(m_btnPlay);
     topSizer->Add(m_btnStop);
-    topSizer->Add(btn4);
+    topSizer->Add(m_btnNext);
     topSizer->Add(btn5);
     topSizer->Add(m_slider, wxSizerFlags(1).Expand());
 
@@ -87,6 +87,9 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
     lolsizer->Add(panelTop, wxSizerFlags(1).Expand());
     lolsizer->Add(panelBottom, wxSizerFlags(1).Expand());
     SetSizer(lolsizer);
+
+    // disable at first.
+    setSeekerValues(0, 1, false);
 }
 
 void NavigationContainer::setTrack(TrackInfo& info) {

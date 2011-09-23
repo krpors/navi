@@ -25,7 +25,8 @@ namespace navi {
 
 TrackTable::TrackTable(wxWindow* parent) :
         wxListCtrl(parent, TrackTable::ID_TRACKTABLE, wxDefaultPosition, 
-        wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL | wxLC_VRULES | wxVSCROLL) {
+        wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL | wxLC_VRULES | wxVSCROLL),
+        m_currTrackItemIndex(0) {
 
     wxListItem item;
 
@@ -125,6 +126,18 @@ TrackInfo* TrackTable::getSelectedItem() throw() {
     return m_selectedItem;
 }
 
+TrackInfo* TrackTable::getNext() throw() {
+    // Magic happens here. Iterate over the current displayed items (sorted).
+    // Then figure out which one is playing right now (by comparing
+    // TODO: FINISH THIS UP
+    wxListItem selectedItem; 
+    selectedItem.SetId(0);
+    selectedItem.SetColumn(1);
+    GetItem(selectedItem);
+    std::cout << "Selected item: " << selectedItem.GetText().mb_str() << std::endl;
+    return NULL;
+}
+
 TrackInfo& TrackTable::getTrackInfo(int index) {
     return m_trackInfos[index];
 }
@@ -135,6 +148,8 @@ void TrackTable::DeleteAllItems() {
 }
 
 void TrackTable::onActivate(wxListEvent& event) {
+    //std::cout << "Activating item. " << event.GetData() << std::endl;
+    m_currTrackItemIndex = event.GetData();
     // skip this when a listitem is activated (propagate it up the chain!)
     // In this case, main.cpp (NaviMainFrame) handles this event.
     event.Skip();

@@ -48,19 +48,38 @@ public:
 
 //================================================================================
 
+/**
+ * This class extends wxPanel, and contains the navigation elements. All events
+ * initiated by the widgets of this panel are handled in the TrackStatusHandler.
+ * Mainly because the TTH needs access to several other classes, which are contained
+ * in the God-class, NaviMainFrame.
+ */
 class NavigationContainer : public wxPanel {
 private:
+
+    /// The main frame.
     NaviMainFrame* m_naviFrame;
 
+    /// Previous track.
+    wxBitmapButton* m_btnPrev;
+
+    /// Play/pause
     wxBitmapButton* m_btnPlay;
+
+    /// Stop track playback. LOL THIS RHYMES
     wxBitmapButton* m_btnStop;
 
+    // Next track.
+    wxBitmapButton* m_btnNext;
+
+    /// Static text containing the track title.
     wxStaticText* m_txtTrackTitle;
+
+    /// Static text containing the artist/album.
     wxStaticText* m_txtArtistAlbum;
 
+    /// Slider, to control the position of the stream.
     wxSlider* m_slider;
-
-    void derp(wxCommandEvent& event);
 
 public:
     static const short ID_MEDIA_PREV = 4000; 
@@ -70,13 +89,41 @@ public:
     static const short ID_MEDIA_RANDOM = 4004; 
     static const short ID_MEDIA_SEEKER = 4005; 
 
+    /**
+     * Ctor. Creates the panel widget with child widgets.
+     *
+     * @param naviFrame The frame parent for Navi.
+     */
     NavigationContainer(wxWindow* parent, NaviMainFrame* naviFrame);
 
+    /**
+     * Sets the track information to display, or some empty-like string
+     * when no id3v2 tag (or similar) could not be found.
+     *
+     * @param info The TrackInfo reference.
+     */
     void setTrack(TrackInfo& info);
+
+    /**
+     * Sets whether the play/pause button is enabled.
+     *
+     * @param enabled True for enabling it, duh. And false if it should be disabled.
+     */
     void setPlayPauseButtonEnabled(bool enabled);
     void setPlayVisible();
     void setPauseVisible();
     void setStopButtonEnabled(bool enabled);
+
+    /**
+     * Set the seeker (slider) value. This is updated by a thread which 'polls' the
+     * current track position. Obviously, when streaming media is used, this thing
+     * should be disabled, or not used. You catch the drift, right.
+     *
+     * @param pos The current position. Must be > max.
+     * @param max The maximum (upper limit).
+     * @param enabled Whether the seeker should be enabled or not (can the user
+     *  interact with it, or not).
+     */
     void setSeekerValues(unsigned int pos, unsigned int max, bool enabled = true);
 
 };

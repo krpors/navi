@@ -69,6 +69,9 @@ NaviMainFrame::NaviMainFrame() :
     m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("template")), wxT("Streams"), false, 2);
 
     wxPanel* lol = createNavPanel(split);
+    // prevent 'unsplitting', i.e. when double clicking, this would make the
+    // splitter dissapear.
+    split->SetMinimumPaneSize(20);
     split->SplitVertically(m_noteBook, lol);
 
     CreateStatusBar();
@@ -212,6 +215,11 @@ void TrackStatusHandler::onStop(wxCommandEvent& event) {
     stop();
 }
 
+void TrackStatusHandler::onNext(wxCommandEvent& event) {
+    TrackTable* tt = m_mainFrame->getTrackTable();
+    tt->getNext();
+}
+
 void TrackStatusHandler::onPosChange(wxScrollEvent& event) {
     m_scrolling = true;
     if (event.GetEventType() == wxEVT_SCROLL_CHANGED) {
@@ -223,6 +231,7 @@ void TrackStatusHandler::onPosChange(wxScrollEvent& event) {
 }
 
 void TrackStatusHandler::onListItemActivate(wxListEvent& event) {
+    // 'data' holds the selected index of the list control.
     long data = event.GetData();    
     TrackTable* tt = m_mainFrame->getTrackTable();
     TrackInfo& trax = tt->getTrackInfo(data);
@@ -247,6 +256,7 @@ void TrackStatusHandler::play() throw() {
 
     try {
         m_pipeline = new GenericPipeline(loc);
+        // subscribe to pipeline events here:
         m_pipeline->addListener(this);
     } catch (const AudioException& ex) {
         // TODO: test if this exception thing works. Oh, and
@@ -327,8 +337,6 @@ void TrackStatusHandler::doUpdateSlider(wxCommandEvent& evt) {
     delete derpity;
 }
 
-
-
 BEGIN_EVENT_TABLE(TrackStatusHandler, wxEvtHandler)
     EVT_BUTTON(NavigationContainer::ID_MEDIA_PLAY, TrackStatusHandler::onPlay)
     EVT_BUTTON(NavigationContainer::ID_MEDIA_STOP, TrackStatusHandler::onStop)
@@ -336,6 +344,7 @@ BEGIN_EVENT_TABLE(TrackStatusHandler, wxEvtHandler)
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackStatusHandler::onListItemActivate)
     EVT_COMMAND(wxID_ANY, NAVI_EVENT_POS_CHANGED, TrackStatusHandler::doUpdateSlider)
     EVT_COMMAND(wxID_ANY, NAVI_EVENT_STREAM_STOP, TrackStatusHandler::onStop)
+    EVT_BUTTON(NavigationContainer::ID_MEDIA_NEXT, TrackStatusHandler::onNext)
 END_EVENT_TABLE()
 
 } // namespace navi 

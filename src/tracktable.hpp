@@ -69,6 +69,9 @@ private:
     /// The current selected item. May be NULL. Don't destroy this thing.
     TrackInfo* m_selectedItem;
 
+    /// The current track item index (in the vector)
+    long m_currTrackItemIndex;
+
 public:
     /// The window ID for this track table.
     static const wxWindowID ID_TRACKTABLE = 2;
@@ -94,6 +97,11 @@ public:
      * pointer, if nothing has been selected.
      */
     TrackInfo* getSelectedItem() throw();
+
+    /**
+     * Get the next track in line.
+     */
+    TrackInfo* getNext() throw();
 
     /**
      * Override from wxListCtrl. In addition to deleting the items from the list
