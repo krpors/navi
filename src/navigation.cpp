@@ -89,23 +89,42 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
     SetSizer(lolsizer);
 
     // disable at first.
+    setPlayPauseButtonEnabled(false);
+    setStopButtonEnabled(false);
     setSeekerValues(0, 1, false);
 }
 
-void NavigationContainer::setTrack(TrackInfo& info) {
-    if (info[TrackInfo::TITLE].IsEmpty()) {
+void NavigationContainer::setTrack(TrackInfo* info) {
+    if (info == NULL) {
+        m_txtTrackTitle->SetLabel(wxT("Nothing played"));
+        m_txtArtistAlbum->SetLabel(wxT("-"));
+        return;
+    }
+
+    // past this point, info must not be null, captain obvious.
+    wxASSERT(info != NULL);
+
+    TrackInfo derp = *info;
+    if (derp[TrackInfo::TITLE].IsEmpty()) {
         wxString s(wxT("(no tag) "));
-        s.Append(info.getLocation());
+        s.Append(derp.getLocation());
 
         m_txtTrackTitle->SetLabel(s);
     } else {
-        m_txtTrackTitle->SetLabel(info[TrackInfo::TITLE]);
+        m_txtTrackTitle->SetLabel(derp[TrackInfo::TITLE]);
     }
-    m_txtArtistAlbum->SetLabel(info[TrackInfo::ARTIST]);
+
+    wxString alb;
+    alb.Append(derp[TrackInfo::ARTIST]);
+    alb.Append(wxT(" from "));
+    alb.Append(derp[TrackInfo::ALBUM]);
+    m_txtArtistAlbum->SetLabel(alb);
 }
 
 void NavigationContainer::setPlayPauseButtonEnabled(bool enabled) {
     m_btnPlay->Enable(enabled);
+    m_btnPrev->Enable(enabled);
+    m_btnNext->Enable(enabled);
 }
 
 void NavigationContainer::setPlayVisible() {
@@ -118,6 +137,8 @@ void NavigationContainer::setPauseVisible() {
 
 void NavigationContainer::setStopButtonEnabled(bool enabled) {
     m_btnStop->Enable(enabled);
+    m_btnPrev->Enable(enabled);
+    m_btnNext->Enable(enabled);
 }
 
 void NavigationContainer::setSeekerValues(unsigned int pos, unsigned int max, bool enabled) {

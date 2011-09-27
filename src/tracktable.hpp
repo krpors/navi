@@ -26,8 +26,10 @@
 #include <wx/filename.h>
 #include <wx/dir.h>
 #include <wx/thread.h>
+#include <wx/colour.h>
 //#define wxUSE_DATAVIEWCTRL
 #include <wx/dataview.h>
+#include <wx/settings.h>
 
 #include <vector>
 #include <iostream>
@@ -61,6 +63,8 @@ private:
 
     TrackInfo* getTrackBeforeOrAfterCurrent(int pos, bool markAsPlaying) throw();
 
+    void markPlayedTrack(long oldItemId, long newItemId) throw();
+
     // static callback methods, for sorting. sortData is always the `this' instance
     // of TrackTable.
     static int wxCALLBACK compareTrackNumber(long item1, long item2, long sortData);
@@ -73,6 +77,9 @@ private:
 
     /// The current track item index (in the vector)
     long m_currTrackItemIndex;
+
+    /// The 
+    long m_currTrackItemIndexInListCtrl;
 
 public:
     /// The window ID for this track table.

@@ -102,7 +102,8 @@ public:
      *
      * @param info The TrackInfo reference.
      */
-    void setTrack(TrackInfo& info);
+    void setTrack(TrackInfo* info);
+
 
     /**
      * Sets whether the play/pause button is enabled.

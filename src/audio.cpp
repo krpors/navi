@@ -173,6 +173,9 @@ gboolean Pipeline::busWatcher(GstBus* bus, GstMessage* message, gpointer userdat
         pipeline->fireError(err);
 
         g_error_free (error);
+    } else if (type == GST_MESSAGE_TAG) {
+        // TODO: live stream publishes messages here:
+        //std::cout << "Found a tag message: " << type << std::endl;
     }
   
     return true;

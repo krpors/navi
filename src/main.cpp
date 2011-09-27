@@ -36,6 +36,8 @@ bool NaviApp::OnInit() {
     SetTopWindow(frame);
 
     //http://scfire-dtc-aa01.stream.aol.com:80/stream/1025
+    //m_p = new GenericPipeline(wxT("http://scfire-dtc-aa01.stream.aol.com:80/stream/1025"));
+    //m_p->play();
     return true;
 }
 
@@ -290,7 +292,7 @@ void TrackStatusHandler::play() throw() {
     nav->setStopButtonEnabled(true);
     nav->setPlayPauseButtonEnabled(true);
     nav->setPauseVisible();
-    nav->setTrack(*m_playedTrack);
+    nav->setTrack(m_playedTrack);
     nav->setSeekerValues(0, m_pipeline->getDurationSeconds(), true);
 }
 
@@ -321,6 +323,7 @@ void TrackStatusHandler::stop() throw() {
         nav->setPlayPauseButtonEnabled(false);
         nav->setPlayVisible();
         nav->setSeekerValues(0, 1, false);
+        nav->setTrack(NULL); // this will reset the 'display'.
 
         delete m_pipeline;
         m_pipeline = NULL;

@@ -49,6 +49,8 @@ class TrackStatusHandler; // from main.hpp below
  * The application class.
  */
 class NaviApp : public wxApp {
+private:
+    GenericPipeline* m_p;
 public:
     /**
      * Initialization stuff.
