@@ -126,16 +126,44 @@ TrackInfo* TrackTable::getSelectedItem() throw() {
     return m_selectedItem;
 }
 
-TrackInfo* TrackTable::getNext() throw() {
+TrackInfo* TrackTable::getTrackBeforeOrAfterCurrent(int pos, bool markAsPlaying) throw() {
     // Magic happens here. Iterate over the current displayed items (sorted).
-    // Then figure out which one is playing right now (by comparing
-    // TODO: FINISH THIS UP
-    wxListItem selectedItem; 
-    selectedItem.SetId(0);
-    selectedItem.SetColumn(1);
-    GetItem(selectedItem);
-    std::cout << "Selected item: " << selectedItem.GetText().mb_str() << std::endl;
+    // Then figure out which one is playing right now (by checking the current
+    // track item index with the GetItemData() result). Once we find it, get the
+    // next track in sequence. 
+
+    for (int i = 0; i < GetItemCount(); i++) {
+        long d = GetItemData(i);
+        if (d == m_currTrackItemIndex) {
+            TrackInfo currentlyPlaying = m_trackInfos[d];
+
+            long next = i + pos;
+            if (next >= GetItemCount()) {
+                next = 0; // 'rotate' to the first track
+            } else if (next <= 0) {
+                next = GetItemCount() - 1; // 'rotate' to the last track
+            }
+
+
+            long nextData = GetItemData(next);
+            if (markAsPlaying) {
+                m_currTrackItemIndex = nextData;
+            }
+            TrackInfo nextx = m_trackInfos[nextData];
+            return &m_trackInfos[nextData];
+        }
+    }
+
+    // XXX: return none??
     return NULL;
+}
+
+TrackInfo* TrackTable::getPrev(bool markAsPlaying) throw() {
+    return getTrackBeforeOrAfterCurrent(-1, markAsPlaying);
+}
+
+TrackInfo* TrackTable::getNext(bool markAsPlaying) throw() {
+    return getTrackBeforeOrAfterCurrent(1, markAsPlaying);
 }
 
 TrackInfo& TrackTable::getTrackInfo(int index) {

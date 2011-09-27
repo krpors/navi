@@ -147,6 +147,12 @@ private:
     void onStop(wxCommandEvent& event);
 
     /**
+     * Invoked when the prev button is pressed on the navigation panel. This
+     * will obviously proceed to the previous track.
+     */
+    void onPrev(wxCommandEvent& event);
+
+    /**
      * Invoked when the next button is pressed on the navigation panel. This
      * will obviously proceed to the next track.
      */

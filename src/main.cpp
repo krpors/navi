@@ -194,6 +194,7 @@ END_EVENT_TABLE()
 
 TrackStatusHandler::TrackStatusHandler(NaviMainFrame* frame) throw() :
         m_mainFrame(frame),
+        m_playedTrack(NULL),
         m_pipeline(NULL) {
 }
 
@@ -215,9 +216,28 @@ void TrackStatusHandler::onStop(wxCommandEvent& event) {
     stop();
 }
 
+
+// XXX: I am not entirely sure if this pointer usage (tt->getPrev etc) is 
+// robust and whatnot. 
+
+void TrackStatusHandler::onPrev(wxCommandEvent& event) {
+    TrackTable* tt = m_mainFrame->getTrackTable();
+    TrackInfo* info = tt->getPrev(true);
+    // prevent segfaults here pl0x
+    if (info != NULL) {
+        m_playedTrack = info;
+        play();
+    }
+}
+
 void TrackStatusHandler::onNext(wxCommandEvent& event) {
     TrackTable* tt = m_mainFrame->getTrackTable();
-    tt->getNext();
+    TrackInfo* info = tt->getNext(true);
+    // prevent segfaults here pl0x
+    if (info != NULL) {
+        m_playedTrack = info;
+        play();
+    }
 }
 
 void TrackStatusHandler::onPosChange(wxScrollEvent& event) {
@@ -245,6 +265,7 @@ void TrackStatusHandler::play() throw() {
 
     NavigationContainer* nav = m_mainFrame->getNavigationContainer();
     
+    // m_playedTrack CAN BE NULL, not sure??
     const wxString& loc = m_playedTrack->getLocation();
     if (m_pipeline != NULL) {
         // if a pipeline already exists, stop it, delete it, nullify it, and
@@ -310,13 +331,15 @@ void TrackStatusHandler::pipelineStreamEnd(Pipeline* const pipeline) throw() {
     // stop the pipeline. This is actually done by adding a pending event on
     // the event handler's 'queue'. The result of this, is a call to onStop().
     // That function stops the pipeline, and updated the UI accordingly.
-    wxCommandEvent evt(NAVI_EVENT_STREAM_STOP);
-    AddPendingEvent(evt);
+     wxCommandEvent evt(NAVI_EVENT_STREAM_STOP);
+    //AddPendingEvent(evt);
 
+    onNext(evt);
     // but actually, go to next song. Future!
 }
 
 void TrackStatusHandler::pipelineError(Pipeline* const pipeline, const wxString& error) throw() {
+    // never had a pipeline error before, need to test this though.
     std::cout << "Error: " << error.mb_str() << std::endl;
 }
 
@@ -344,6 +367,7 @@ BEGIN_EVENT_TABLE(TrackStatusHandler, wxEvtHandler)
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackStatusHandler::onListItemActivate)
     EVT_COMMAND(wxID_ANY, NAVI_EVENT_POS_CHANGED, TrackStatusHandler::doUpdateSlider)
     EVT_COMMAND(wxID_ANY, NAVI_EVENT_STREAM_STOP, TrackStatusHandler::onStop)
+    EVT_BUTTON(NavigationContainer::ID_MEDIA_PREV, TrackStatusHandler::onPrev)
     EVT_BUTTON(NavigationContainer::ID_MEDIA_NEXT, TrackStatusHandler::onNext)
 END_EVENT_TABLE()
 

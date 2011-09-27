@@ -59,6 +59,8 @@ private:
     /// Executed when track info is about to be added (from another thread).
     void onAddTrackInfo(wxCommandEvent& event);
 
+    TrackInfo* getTrackBeforeOrAfterCurrent(int pos, bool markAsPlaying) throw();
+
     // static callback methods, for sorting. sortData is always the `this' instance
     // of TrackTable.
     static int wxCALLBACK compareTrackNumber(long item1, long item2, long sortData);
@@ -99,9 +101,14 @@ public:
     TrackInfo* getSelectedItem() throw();
 
     /**
+     * Get the previous track in line.
+     */
+    TrackInfo* getPrev(bool markAsPlaying = false) throw();
+
+    /**
      * Get the next track in line.
      */
-    TrackInfo* getNext() throw();
+    TrackInfo* getNext(bool markAsPlaying = false) throw();
 
     /**
      * Override from wxListCtrl. In addition to deleting the items from the list
