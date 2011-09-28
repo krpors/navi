@@ -24,6 +24,27 @@
 
 namespace navi {
 
+const wxString secsToMins(int secs) {
+    wxString s;
+    int mins = secs / 60;
+    int leftover = secs % 60;
+
+    if (mins <= 9) {
+        s.Append(wxString::Format(wxT("%i"), mins).Pad(1, '0', false));
+    } else {
+        s.Append(wxString::Format(wxT("%i"), mins));
+    }
+    
+    s.Append(wxT(":"));
+
+    if (leftover <= 9) {
+        s.Append(wxString::Format(wxT("%i"), leftover).Pad(1, '0', false));
+    } else {
+        s.Append(wxString::Format(wxT("%i"), leftover));
+    }
+
+    return s;
+}
 
 bool NaviApp::OnInit() {
     gst_init(NULL, NULL);
@@ -34,6 +55,11 @@ bool NaviApp::OnInit() {
     frame->Center();
     frame->Show();
     SetTopWindow(frame);
+
+    std::cout << secsToMins(640).mb_str() << std::endl;
+    std::cout << secsToMins(530).mb_str() << std::endl;
+    std::cout << secsToMins(552).mb_str() << std::endl;
+    std::cout << secsToMins(123).mb_str() << std::endl;
 
     //http://scfire-dtc-aa01.stream.aol.com:80/stream/1025
     //m_p = new GenericPipeline(wxT("http://scfire-dtc-aa01.stream.aol.com:80/stream/1025"));
@@ -356,6 +382,8 @@ void TrackStatusHandler::pipelinePosChanged(Pipeline* const pipeline, unsigned i
 void TrackStatusHandler::doUpdateSlider(wxCommandEvent& evt) {
     // called because of AddPendingEvent()
     StreamPositionData* derpity = static_cast<StreamPositionData*>(evt.GetClientObject());
+    // !m_scrolling determines whether we are currently dragging the slider.
+    // If so, do not dynamically update the seeker values.
     if (derpity != NULL && !m_scrolling) {
        NavigationContainer* nav = m_mainFrame->getNavigationContainer();
        nav->setSeekerValues(derpity->m_pos, derpity->m_max);

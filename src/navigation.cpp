@@ -39,6 +39,7 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
 
     //top panel
     wxPanel* panelTop = new wxPanel(this);
+
     wxBoxSizer* topSizer = new wxBoxSizer(wxHORIZONTAL);
 
     wxBitmap prev = wxArtProvider::GetBitmap(wxT("gtk-media-previous"));
@@ -53,22 +54,28 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
     m_btnStop = new wxBitmapButton(panelTop, ID_MEDIA_STOP, stop, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_btnNext = new wxBitmapButton(panelTop, ID_MEDIA_NEXT, next, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     wxBitmapButton* btn5 = new wxBitmapButton(panelTop, wxID_ANY, random, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    m_txtTimeIndicator = new wxStaticText(panelTop, wxID_ANY, wxT("-:- of -:-"));
 
     // the play button is initially disabled, because there's nothing to play
     // Same thing with the stop button (nothing to stop)
     m_btnPlay->Enable(false);
     m_btnStop->Enable(false);
 
-    m_slider = new wxSlider(panelTop, ID_MEDIA_SEEKER, 0, 0, 100);
-
     topSizer->Add(m_btnPrev);
     topSizer->Add(m_btnPlay);
     topSizer->Add(m_btnStop);
     topSizer->Add(m_btnNext);
     topSizer->Add(btn5);
-    topSizer->Add(m_slider, wxSizerFlags(1).Expand());
-
+    topSizer->AddStretchSpacer(1);
+    topSizer->Add(m_txtTimeIndicator, wxSizerFlags(0).Center().Border(wxALL, 5));
     panelTop->SetSizer(topSizer);
+
+    // middle part:
+    wxPanel* panelMiddle = new wxPanel(this);
+    wxBoxSizer* middleSizer = new wxBoxSizer(wxHORIZONTAL);
+    m_slider = new wxSlider(panelMiddle, ID_MEDIA_SEEKER, 0, 0, 100);
+    middleSizer->Add(m_slider, wxSizerFlags(1).Expand());
+    panelMiddle->SetSizer(middleSizer);
 
     // bottom part (name of the song etc.)
     wxPanel* panelBottom = new wxPanel(this);
@@ -85,6 +92,7 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
 
     wxBoxSizer* lolsizer = new wxBoxSizer(wxVERTICAL);
     lolsizer->Add(panelTop, wxSizerFlags(1).Expand());
+    lolsizer->Add(panelMiddle, wxSizerFlags(1).Expand());
     lolsizer->Add(panelBottom, wxSizerFlags(1).Expand());
     SetSizer(lolsizer);
 
@@ -119,6 +127,8 @@ void NavigationContainer::setTrack(TrackInfo* info) {
     alb.Append(wxT(" from "));
     alb.Append(derp[TrackInfo::ALBUM]);
     m_txtArtistAlbum->SetLabel(alb);
+
+
 }
 
 void NavigationContainer::setPlayPauseButtonEnabled(bool enabled) {
@@ -145,7 +155,22 @@ void NavigationContainer::setSeekerValues(unsigned int pos, unsigned int max, bo
     m_slider->SetRange(0, max);
     m_slider->SetValue(pos);
     m_slider->Enable(enabled);
+    
+    if (enabled) {
+        wxString lol;
+        lol.Append(secsToMins(pos));
+        lol.Append(wxT(" of "));
+        lol.Append(secsToMins(max));
+        m_txtTimeIndicator->SetLabel(lol);
+        // XXX: re-layouting every second... sounds a bit overkill, doesnt it.
+        m_txtTimeIndicator->GetParent()->Layout(); 
+    } else {
+        m_txtTimeIndicator->SetLabel(wxT("-:- of -:-"));
+    }
 }
+
+BEGIN_EVENT_TABLE(NavigationContainer, wxPanel)
+END_EVENT_TABLE()
 
 } //namespace navi 
 

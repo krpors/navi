@@ -39,6 +39,8 @@
 
 namespace navi {
 
+const wxString secsToMins(int);
+
 // Forward declarations due to circular dependencies:
 class NavigationContainer; // from navigation.hpp
 class TrackStatusHandler; // from main.hpp below

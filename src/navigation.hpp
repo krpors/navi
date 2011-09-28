@@ -72,6 +72,9 @@ private:
     // Next track.
     wxBitmapButton* m_btnNext;
 
+    /// Time indicator
+    wxStaticText* m_txtTimeIndicator;
+
     /// Static text containing the track title.
     wxStaticText* m_txtTrackTitle;
 
@@ -127,6 +130,8 @@ public:
      */
     void setSeekerValues(unsigned int pos, unsigned int max, bool enabled = true);
 
+
+    DECLARE_EVENT_TABLE()
 };
 
 
