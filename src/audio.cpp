@@ -56,9 +56,6 @@ Pipeline::Pipeline() throw() :
 }
 
 Pipeline::~Pipeline() {
-    // clear the vector with listeners.
-    m_listeners.clear();
-
     // Set state of pipeline to GST_STATE_NULL. We also do an explicit checking
     // of m_pipeline NULLage, or else GST_IS_ELEMENT will brabble about assertions
     // failed etc. etc.
@@ -96,6 +93,8 @@ void Pipeline::addListener(PipelineListener* const listener) throw() {
 }
 
 void Pipeline::fireError(const wxString& error) throw() {
+    wxMutexLocker lock(s_pipelineListenerMutex);  
+
     std::vector<PipelineListener*>::iterator it = m_listeners.begin();
     while(it < m_listeners.end()) {
         // convert nanoseconds to seconds here plx.
@@ -105,6 +104,8 @@ void Pipeline::fireError(const wxString& error) throw() {
 }
 
 void Pipeline::firePositionChanged(gint64 pos, gint64 len) throw() {
+    wxMutexLocker lock(s_pipelineListenerMutex);  
+
     std::vector<PipelineListener*>::iterator it = m_listeners.begin();
     while(it < m_listeners.end()) {
         // convert nanoseconds to seconds here plx.
@@ -114,13 +115,14 @@ void Pipeline::firePositionChanged(gint64 pos, gint64 len) throw() {
 }
 
 void Pipeline::fireStreamEnd() throw() {
+    // lolmutex
+    wxMutexLocker lock(s_pipelineListenerMutex);  
+
     std::vector<PipelineListener*>::iterator it = m_listeners.begin();
     while(it < m_listeners.end()) {
-        if (this == NULL) {
-            std::cout << "lolwat. segfault?" << std::endl;
-        }
         // FIXME: this may horribly segfault when skipping to a next song
         (*it)->pipelineStreamEnd(this);
+        it++;
     }   
 }
 

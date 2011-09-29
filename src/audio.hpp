@@ -25,12 +25,26 @@
 #include <sstream>
 
 #include <wx/wx.h>
+#include <wx/thread.h>
 #include <gst/gst.h>
 
 namespace navi {
 
 // Forward declarations:
 class Pipeline; // for PipelineListener.
+
+//================================================================================
+
+/**
+ * I ran into problems with the callback functions from the PipelineListeners.
+ * As soon as the stream automatically stopped (due to a gst bus watcher), I would
+ * iterate through all the stream listeners. However, I also deleted the Pipeline
+ * which (triggered the events in the first place) in another thread. Thus, while
+ * iterating through the vector's contents, `this' was already destroyed! Leading
+ * to segfaults galore. I checked upon mutexes in wxWidgets, and this lock object
+ * seems to work alright. Before delete-ing the Pipeline*, lock it, then unlock it.
+ */
+static wxMutex s_pipelineListenerMutex;
 
 //================================================================================
 

@@ -110,6 +110,7 @@ public:
 
 //================================================================================
 
+
 /**
  * This class can be seen as quite some meat of the playability of Navi. It makes
  * sure the play, stop, next etc. buttons do its work, and update the UI accordingly.

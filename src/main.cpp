@@ -263,6 +263,7 @@ void TrackStatusHandler::onNext(wxCommandEvent& event) {
     TrackInfo* info = tt->getNext(true);
     // prevent segfaults here pl0x
     if (info != NULL) {
+        std::cout << "Invoked by wxThread." << std::endl;
         m_playedTrack = info;
         play();
     }
@@ -299,8 +300,16 @@ void TrackStatusHandler::play() throw() {
         // if a pipeline already exists, stop it, delete it, nullify it, and
         // start a new pipeline.
         m_pipeline->stop();
+
+        // Since we are using pipeline listeners (callbacks) which return the
+        // 'this' pointer, we must ensure that the pipeline does not get deleted
+        // too 'soon'. Or else we get segfaults your mother will be jealous of.
+        // Therefore, we lock the mutex before deleting it. See the 
+        // Pipeline::fireX functions to see how the mutex is positioned.
+        s_pipelineListenerMutex.Lock(); 
         delete m_pipeline;
         m_pipeline = NULL;
+        s_pipelineListenerMutex.Unlock(); 
     }
 
     try {
@@ -351,20 +360,18 @@ void TrackStatusHandler::stop() throw() {
         nav->setSeekerValues(0, 1, false);
         nav->setTrack(NULL); // this will reset the 'display'.
 
+        // same story as play(): mutexes.
+        s_pipelineListenerMutex.Lock(); 
         delete m_pipeline;
         m_pipeline = NULL;
+        s_pipelineListenerMutex.Unlock(); 
     }    
 }
 
 void TrackStatusHandler::pipelineStreamEnd(Pipeline* const pipeline) throw() {
-    // stop the pipeline. This is actually done by adding a pending event on
-    // the event handler's 'queue'. The result of this, is a call to onStop().
-    // That function stops the pipeline, and updated the UI accordingly.
-     wxCommandEvent evt(NAVI_EVENT_STREAM_STOP);
-    //AddPendingEvent(evt);
-
-    onNext(evt);
-    // but actually, go to next song. Future!
+    // XXX: this function is called from a gst thread.
+    wxCommandEvent evt(NAVI_EVENT_TRACK_NEXT);
+    AddPendingEvent(evt);
 }
 
 void TrackStatusHandler::pipelineError(Pipeline* const pipeline, const wxString& error) throw() {
@@ -398,6 +405,7 @@ BEGIN_EVENT_TABLE(TrackStatusHandler, wxEvtHandler)
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackStatusHandler::onListItemActivate)
     EVT_COMMAND(wxID_ANY, NAVI_EVENT_POS_CHANGED, TrackStatusHandler::doUpdateSlider)
     EVT_COMMAND(wxID_ANY, NAVI_EVENT_STREAM_STOP, TrackStatusHandler::onStop)
+    EVT_COMMAND(wxID_ANY, NAVI_EVENT_TRACK_NEXT, TrackStatusHandler::onNext)
     EVT_BUTTON(NavigationContainer::ID_MEDIA_PREV, TrackStatusHandler::onPrev)
     EVT_BUTTON(NavigationContainer::ID_MEDIA_NEXT, TrackStatusHandler::onNext)
 END_EVENT_TABLE()

@@ -33,6 +33,7 @@ namespace navi {
 class NaviMainFrame;
 class NavigationContainer;
 
+const wxEventType NAVI_EVENT_TRACK_NEXT  = wxNewEventType();
 const wxEventType NAVI_EVENT_POS_CHANGED = wxNewEventType();
 const wxEventType NAVI_EVENT_STREAM_STOP = wxNewEventType();
 
