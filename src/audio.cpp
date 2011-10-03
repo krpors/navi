@@ -23,6 +23,9 @@
 
 namespace navi {
 
+// XXX: move this event type to a different CPP file, like utils.cpp or misc.cpp
+const wxEventType NAVI_EVENT_DIR_TRAVERSED = wxNewEventType();
+
 //==============================================================================
 
 AudioException::AudioException(const wxString& what) throw() :

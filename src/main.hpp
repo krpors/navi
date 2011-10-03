@@ -98,6 +98,8 @@ private:
 
     wxStatusBar* OnCreateStatusBar(int number, long style, wxWindowID id, const wxString& name);
 
+    void onAddTrackInfo(wxCommandEvent& event);
+    
 public:
     NaviMainFrame();
 

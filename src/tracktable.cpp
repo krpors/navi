@@ -21,6 +21,7 @@
 
 namespace navi {
 
+//
 //================================================================================
 
 TrackTable::TrackTable(wxWindow* parent) :
@@ -224,6 +225,7 @@ void TrackTable::onColumnClick(wxListEvent& event) {
             default: break;
         }
     }
+
 }
 
 void TrackTable::onSelected(wxListEvent& event) {
@@ -238,6 +240,7 @@ void TrackTable::onSelected(wxListEvent& event) {
 }
 
 void TrackTable::onAddTrackInfo(wxCommandEvent& event) {
+    std::cout << "onAddTrackInfo()!" << std::endl;
     TrackInfo* d = static_cast<TrackInfo*>(event.GetClientObject());
     if (d) {
         addTrackInfo(*d);
@@ -250,8 +253,9 @@ void TrackTable::onAddTrackInfo(wxCommandEvent& event) {
     // the event itself won't delete it in its destructor. This is conforming
     // the documentation from wxCommandEvent.
     delete d;
-}
 
+    event.Skip();
+}
 
 BEGIN_EVENT_TABLE(TrackTable, wxListCtrl)
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackTable::onActivate)   
@@ -300,7 +304,7 @@ wxThread::ExitCode DirTraversalThread::Entry() {
             event.SetClientObject(derp);
             m_parent->AddPendingEvent(event);
         } catch (const AudioException& ex) {
-            std::cerr << ex.what() << std::endl;
+            std::cerr << "DirTraversalThread() err : " << ex.what() << std::endl;
         }
 
         // Get the next dir, if available. This is something like an iterator.

@@ -27,7 +27,6 @@
 #include <wx/dir.h>
 #include <wx/thread.h>
 #include <wx/colour.h>
-//#define wxUSE_DATAVIEWCTRL
 #include <wx/dataview.h>
 #include <wx/settings.h>
 
@@ -42,7 +41,10 @@ namespace navi {
 
 /// New event type for directory traversal (all UI things must be done on the
 /// main thread). 
-const wxEventType NAVI_EVENT_DIR_TRAVERSED = wxNewEventType();
+//const wxEventType NAVI_EVENT_DIR_TRAVERSED = wxNewEventType();
+extern const wxEventType NAVI_EVENT_DIR_TRAVERSED;
+
+//================================================================================
 
 class TrackTable : public wxListCtrl {
 private:

@@ -20,6 +20,8 @@
 #ifndef DIRBROWSER_HPP
 #define DIRBROWSER_HPP
 
+#include "audio.hpp"
+
 #include <wx/wx.h>
 #include <wx/app.h>
 #include <wx/dir.h>

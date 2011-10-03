@@ -130,7 +130,6 @@ void NaviMainFrame::initMenu() {
     SetMenuBar(bar);
 }
 
-
 wxPanel* NaviMainFrame::createNavPanel(wxWindow* parent) {
     wxPanel* panel = new wxPanel(parent);
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
