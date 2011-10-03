@@ -35,14 +35,10 @@
 
 namespace navi {
 
-
-
 //================================================================================
 
 /// New event type for directory traversal (all UI things must be done on the
 /// main thread). 
-//const wxEventType NAVI_EVENT_DIR_TRAVERSED = wxNewEventType();
-extern const wxEventType NAVI_EVENT_DIR_TRAVERSED;
 
 //================================================================================
 

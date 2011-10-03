@@ -30,6 +30,7 @@
 
 namespace navi {
 
+
 // Forward declarations:
 class Pipeline; // for PipelineListener.
 

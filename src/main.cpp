@@ -24,6 +24,8 @@
 
 namespace navi {
 
+extern wxEventType naviDirTraversedEvent;
+
 const wxString secsToMins(int secs) {
     wxString s;
     int mins = secs / 60;
@@ -156,9 +158,13 @@ void NaviMainFrame::onResize(wxSizeEvent& event) {
     event.Skip();
 }
 
+void NaviMainFrame::onAddTrackInfo(wxCommandEvent& event) {
+    std::cout << "adad COCKS!!!" << std::endl;
+}
+
 void NaviMainFrame::dostuff(wxTreeEvent& event) {
     const wxFileName& selectedPath = m_dirBrowser->getDirBrowser()->getSelectedPath();
-    std::cout << selectedPath.GetFullPath().mb_str() << std::endl;
+    std::cout << "Go full retard: " << selectedPath.GetFullPath().mb_str() << std::endl;
     
     if (m_dirTraversalThread != NULL) {
         m_dirTraversalThread->setActive(false);
@@ -214,6 +220,7 @@ BEGIN_EVENT_TABLE(NaviMainFrame, wxFrame)
     EVT_SIZE(NaviMainFrame::onResize)
     EVT_TREE_ITEM_ACTIVATED(DirBrowser::ID_NAVI_DIR_BROWSER, NaviMainFrame::dostuff)
     EVT_MENU(wxID_ABOUT, NaviMainFrame::onAbout)
+    EVT_COMMAND(wxID_ANY, naviDirTraversedEvent, NaviMainFrame::onAddTrackInfo)
 END_EVENT_TABLE()
 
 

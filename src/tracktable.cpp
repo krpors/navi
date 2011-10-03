@@ -21,7 +21,8 @@
 
 namespace navi {
 
-//
+extern wxEventType naviDirTraversedEvent;
+
 //================================================================================
 
 TrackTable::TrackTable(wxWindow* parent) :
@@ -224,8 +225,11 @@ void TrackTable::onColumnClick(wxListEvent& event) {
             case 3: SortItems(TrackTable::compareAlbum, (long) this); break;
             default: break;
         }
+
     }
 
+    wxCommandEvent et(naviDirTraversedEvent);
+    AddPendingEvent(et);
 }
 
 void TrackTable::onSelected(wxListEvent& event) {
@@ -254,6 +258,8 @@ void TrackTable::onAddTrackInfo(wxCommandEvent& event) {
     // the documentation from wxCommandEvent.
     delete d;
 
+    std::cout << "aldkjalsdkjas" << std::endl;
+
     event.Skip();
 }
 
@@ -261,7 +267,7 @@ BEGIN_EVENT_TABLE(TrackTable, wxListCtrl)
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackTable::onActivate)   
     EVT_LIST_ITEM_SELECTED(TrackTable::ID_TRACKTABLE, TrackTable::onSelected)
     EVT_LIST_COL_CLICK(TrackTable::ID_TRACKTABLE, TrackTable::onColumnClick)
-    EVT_COMMAND(wxID_ANY, NAVI_EVENT_DIR_TRAVERSED, TrackTable::onAddTrackInfo)
+    EVT_COMMAND(wxID_ANY, naviDirTraversedEvent, TrackTable::onAddTrackInfo)
 END_EVENT_TABLE()
 
 //================================================================================
@@ -300,7 +306,7 @@ wxThread::ExitCode DirTraversalThread::Entry() {
             TrackInfo* derp = new TrackInfo(info);
             
             // use the NAVI_EVENT_DIR_TRAVERSED event type (new type)
-            wxCommandEvent event(NAVI_EVENT_DIR_TRAVERSED);
+            wxCommandEvent event(naviDirTraversedEvent);
             event.SetClientObject(derp);
             m_parent->AddPendingEvent(event);
         } catch (const AudioException& ex) {
