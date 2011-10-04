@@ -11,7 +11,8 @@ OBJECTS=$(BIN)/main.o\
         $(BIN)/audio.o\
         $(BIN)/dirbrowser.o\
         $(BIN)/tracktable.o\
-        $(BIN)/navigation.o
+        $(BIN)/navigation.o\
+		$(BIN)/misc.o
 
 # Following targets build the source files.
 .PHONY: all
@@ -32,6 +33,9 @@ $(BIN)/tracktable.o: $(SRC)/tracktable.cpp $(SRC)/tracktable.hpp
 
 $(BIN)/navigation.o: $(SRC)/navigation.cpp $(SRC)/navigation.hpp
 	$(CC) $(CFLAGS) $(SRC)/navigation.cpp -o $@
+
+$(BIN)/misc.o: $(SRC)/misc.cpp $(SRC)/misc.hpp
+	$(CC) $(CFLAGS) $(SRC)/misc.cpp -o $@
 
 
 

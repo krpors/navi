@@ -242,7 +242,6 @@ void TrackTable::onSelected(wxListEvent& event) {
 }
 
 void TrackTable::onAddTrackInfo(wxCommandEvent& event) {
-    std::cout << "onAddTrackInfo()!" << std::endl;
     TrackInfo* d = static_cast<TrackInfo*>(event.GetClientObject());
     if (d) {
         addTrackInfo(*d);
@@ -255,8 +254,6 @@ void TrackTable::onAddTrackInfo(wxCommandEvent& event) {
     // the event itself won't delete it in its destructor. This is conforming
     // the documentation from wxCommandEvent.
     delete d;
-
-    std::cout << "aldkjalsdkjas" << std::endl;
 
     event.Skip();
 }

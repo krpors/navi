@@ -23,8 +23,6 @@
 
 namespace navi {
 
-// XXX: move this event type to a different CPP file, like utils.cpp or misc.cpp
-extern const wxEventType naviDirTraversedEvent = wxNewEventType();
 
 //==============================================================================
 

@@ -22,6 +22,7 @@
 
 #include "main.hpp"
 #include "audio.hpp"
+#include "misc.hpp"
 
 #include <wx/wx.h>
 #include <wx/artprov.h>

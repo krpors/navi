@@ -27,6 +27,7 @@
 #include "navigation.hpp"
 
 #include <wx/wx.h>
+#include <wx/taskbar.h>
 #include <wx/debug.h>
 #include <wx/treectrl.h>
 #include <wx/tglbtn.h>
@@ -39,7 +40,6 @@
 
 namespace navi {
 
-const wxString secsToMins(int);
 
 // Forward declarations due to circular dependencies:
 class NavigationContainer; // from navigation.hpp
@@ -69,6 +69,31 @@ DECLARE_APP(NaviApp)
 
 //==============================================================================
 
+/**
+ * The SystrayIcon is a `system-tray' icon which is optionally visible. When the
+ * user minimizes Navi, it will reside there, instead of in the 'task-bar'.
+ */
+class SystrayIcon : public wxTaskBarIcon {
+private:
+    /// The navi main frame.
+    NaviMainFrame* m_mainFrame;
+public:
+    /**
+     * Constructor.
+     *
+     * @param frame The navi main frame.
+     */
+    SystrayIcon(NaviMainFrame* frame);
+
+    /**
+     * Invoked when the thing is double clicked.
+     */
+    void onLeftDblClick(wxTaskBarIconEvent& event);    
+
+    DECLARE_EVENT_TABLE()
+};
+
+//==============================================================================
 
 class NaviMainFrame : public wxFrame {
 private:
@@ -85,22 +110,26 @@ private:
 
     TrackStatusHandler* m_trackStatusHandler;
 
+    /// 'System tray' icon.
+    SystrayIcon* m_taskBarIcon;
+
     void initMenu();
 
     wxPanel* createNavPanel(wxWindow* parent);
 
-    void dostuff(wxTreeEvent& event);
+    wxStatusBar* OnCreateStatusBar(int number, long style, wxWindowID id, const wxString& name);
 
     void onResize(wxSizeEvent& event);
 
     void onAbout(wxCommandEvent& event);
 
-    wxStatusBar* OnCreateStatusBar(int number, long style, wxWindowID id, const wxString& name);
-
-    void onAddTrackInfo(wxCommandEvent& event);
+    void onIconize(wxIconizeEvent& event);
     
+    void onExit(wxCommandEvent& event);
+
 public:
     NaviMainFrame();
+    ~NaviMainFrame();
 
     TrackTable* getTrackTable() const;
 
@@ -220,7 +249,13 @@ private:
     void pipelinePosChanged(Pipeline* const pipeline, unsigned int pos, unsigned int len) throw();
 ///@}    
 
-
+    /**
+     * Being called by the main wx thread to periodically (every second) update
+     * the slider position.
+     *
+     * @param evt The command event. The client object passed is a StreamPositionData
+     *   pointer, and is deleted within this function.
+     */
     void doUpdateSlider(wxCommandEvent& evt);
 
 public:

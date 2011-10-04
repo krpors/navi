@@ -24,30 +24,8 @@
 
 namespace navi {
 
-extern wxEventType naviDirTraversedEvent;
-
-const wxString secsToMins(int secs) {
-    wxString s;
-    int mins = secs / 60;
-    int leftover = secs % 60;
-
-    if (mins <= 9) {
-        s.Append(wxString::Format(wxT("%i"), mins).Pad(1, '0', false));
-    } else {
-        s.Append(wxString::Format(wxT("%i"), mins));
-    }
-    
-    s.Append(wxT(":"));
-
-    if (leftover <= 9) {
-        s.Append(wxString::Format(wxT("%i"), leftover).Pad(1, '0', false));
-    } else {
-        s.Append(wxString::Format(wxT("%i"), leftover));
-    }
-
-    return s;
-}
-
+//==============================================================================
+//
 bool NaviApp::OnInit() {
     gst_init(NULL, NULL);
     wxInitAllImageHandlers();
@@ -58,16 +36,30 @@ bool NaviApp::OnInit() {
     frame->Show();
     SetTopWindow(frame);
 
-    std::cout << secsToMins(640).mb_str() << std::endl;
-    std::cout << secsToMins(530).mb_str() << std::endl;
-    std::cout << secsToMins(552).mb_str() << std::endl;
-    std::cout << secsToMins(123).mb_str() << std::endl;
+    NaviPreferences* prefs = NaviPreferences::getInstance();
+
 
     //http://scfire-dtc-aa01.stream.aol.com:80/stream/1025
     //m_p = new GenericPipeline(wxT("http://scfire-dtc-aa01.stream.aol.com:80/stream/1025"));
     //m_p->play();
-    return true;
+    return false;
 }
+
+//==============================================================================
+
+SystrayIcon::SystrayIcon(NaviMainFrame* frame) :
+    m_mainFrame(frame) {
+}
+
+void SystrayIcon::onLeftDblClick(wxTaskBarIconEvent&) {
+    m_mainFrame->Show(true);
+    m_mainFrame->Raise();
+}
+
+BEGIN_EVENT_TABLE(SystrayIcon, wxTaskBarIcon)
+    EVT_TASKBAR_LEFT_DCLICK(SystrayIcon::onLeftDblClick)
+END_EVENT_TABLE()
+
 
 //==============================================================================
 
@@ -114,11 +106,25 @@ NaviMainFrame::NaviMainFrame() :
     // Push that event handler, otherwise events will not be propagated to
     // this new track status handler.
     PushEventHandler(m_trackStatusHandler);
+
+    // create a systray icon.
+    m_taskBarIcon = new SystrayIcon(this);
+    wxBitmap bm(wxT("./data/icons/32x32/navi_icon.png"), wxBITMAP_TYPE_PNG);
+    wxIcon icon;
+    icon.CopyFromBitmap(bm);
+    m_taskBarIcon->SetIcon(icon, wxT("Hai!"));
+}
+
+NaviMainFrame::~NaviMainFrame() {
+    // must delete this pointer, or else the program will not exit.
+    delete m_taskBarIcon;
 }
 
 void NaviMainFrame::initMenu() {
     wxMenu* menuFile = new wxMenu;
     menuFile->Append(wxID_PREFERENCES, wxT("&Preferences"));
+    menuFile->AppendSeparator();
+    menuFile->Append(wxID_EXIT, wxT("E&xit"));
 
     wxMenu* menuHelp = new wxMenu;
     menuHelp->Append(wxID_ABOUT, wxT("&About"));
@@ -126,6 +132,8 @@ void NaviMainFrame::initMenu() {
     wxMenuBar* bar = new wxMenuBar;
     bar->Append(menuFile, wxT("&File"));
     bar->Append(menuHelp, wxT("&Help"));
+
+    bar->SetHelpString(wxID_PREFERENCES, wxT("Navi properties and preferences"));
     bar->SetHelpString(wxID_ABOUT, wxT("About Navi"));
     
     SetMenuBar(bar);
@@ -157,15 +165,11 @@ void NaviMainFrame::onResize(wxSizeEvent& event) {
     event.Skip();
 }
 
-void NaviMainFrame::dostuff(wxTreeEvent& event) {
-
-}
-
 void NaviMainFrame::onAbout(wxCommandEvent& event) {
     wxAboutDialogInfo info;
     info.SetName(wxT("Navi"));
     info.SetVersion(wxT("0.1a"));
-    info.SetDescription(wxT("Hey, listen! Hey, listen!\nNavi is a directory based music player for Linux."));
+    info.SetDescription(wxT("Hey, listen! Hello! Hey, listen!\nNavi is a directory based music player for Linux."));
     info.AddArtist(wxT("James 'adamorjames' Corley"));
     info.AddDeveloper(wxT("Kevin 'Azzkikr' Pors"));
     info.SetWebSite(wxT("http://github.com/krpors/navi"));
@@ -176,7 +180,14 @@ void NaviMainFrame::onAbout(wxCommandEvent& event) {
     info.SetIcon(icon);
 
     wxAboutBox(info);
+}
 
+void NaviMainFrame::onExit(wxCommandEvent& event) {
+    Close(true);
+}
+
+void NaviMainFrame::onIconize(wxIconizeEvent& event) {
+    Show(!event.Iconized());
 }
 
 TrackTable* NaviMainFrame::getTrackTable() const {
@@ -190,8 +201,9 @@ NavigationContainer* NaviMainFrame::getNavigationContainer() const {
 // Event table.
 BEGIN_EVENT_TABLE(NaviMainFrame, wxFrame)
     EVT_SIZE(NaviMainFrame::onResize)
-    //EVT_TREE_ITEM_ACTIVATED(DirBrowser::ID_NAVI_DIR_BROWSER, NaviMainFrame::dostuff)
     EVT_MENU(wxID_ABOUT, NaviMainFrame::onAbout)
+    EVT_MENU(wxID_EXIT, NaviMainFrame::onExit)
+    EVT_ICONIZE(NaviMainFrame::onIconize)
 END_EVENT_TABLE()
 
 
@@ -378,13 +390,16 @@ void TrackStatusHandler::doUpdateSlider(wxCommandEvent& evt) {
 BEGIN_EVENT_TABLE(TrackStatusHandler, wxEvtHandler)
     EVT_BUTTON(NavigationContainer::ID_MEDIA_PLAY, TrackStatusHandler::onPlay)
     EVT_BUTTON(NavigationContainer::ID_MEDIA_STOP, TrackStatusHandler::onStop)
+    EVT_BUTTON(NavigationContainer::ID_MEDIA_PREV, TrackStatusHandler::onPrev)
+    EVT_BUTTON(NavigationContainer::ID_MEDIA_NEXT, TrackStatusHandler::onNext)
+
     EVT_COMMAND_SCROLL(NavigationContainer::ID_MEDIA_SEEKER, TrackStatusHandler::onPosChange)
+
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackStatusHandler::onListItemActivate)
+
     EVT_COMMAND(wxID_ANY, NAVI_EVENT_POS_CHANGED, TrackStatusHandler::doUpdateSlider)
     EVT_COMMAND(wxID_ANY, NAVI_EVENT_STREAM_STOP, TrackStatusHandler::onStop)
     EVT_COMMAND(wxID_ANY, NAVI_EVENT_TRACK_NEXT, TrackStatusHandler::onNext)
-    EVT_BUTTON(NavigationContainer::ID_MEDIA_PREV, TrackStatusHandler::onPrev)
-    EVT_BUTTON(NavigationContainer::ID_MEDIA_NEXT, TrackStatusHandler::onNext)
 END_EVENT_TABLE()
 
 } // namespace navi 

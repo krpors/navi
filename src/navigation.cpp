@@ -158,9 +158,9 @@ void NavigationContainer::setSeekerValues(unsigned int pos, unsigned int max, bo
     
     if (enabled) {
         wxString lol;
-        lol.Append(secsToMins(pos));
+        lol.Append(formatSeconds(pos));
         lol.Append(wxT(" of "));
-        lol.Append(secsToMins(max));
+        lol.Append(formatSeconds(max));
         m_txtTimeIndicator->SetLabel(lol);
         // XXX: re-layouting every second... sounds a bit overkill, doesnt it.
         m_txtTimeIndicator->GetParent()->Layout(); 

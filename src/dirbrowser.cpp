@@ -150,8 +150,7 @@ void DirBrowser::onActivateItem(wxTreeEvent& event) {
     Refresh();
 
     const wxFileName& selectedPath = getSelectedPath();
-    std::cout << "Always go full retard: " << selectedPath.GetFullPath().mb_str() << std::endl;
-    
+
     if (m_dirTraversalThread != NULL) {
         m_dirTraversalThread->setActive(false);
         // wait for thread to finish doing its work.
