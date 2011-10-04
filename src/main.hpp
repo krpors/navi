@@ -44,6 +44,7 @@ const wxString secsToMins(int);
 // Forward declarations due to circular dependencies:
 class NavigationContainer; // from navigation.hpp
 class TrackStatusHandler; // from main.hpp below
+class DirBrowserContainer; // from dirbrowser.hpp
 
 //==============================================================================
     
@@ -77,8 +78,6 @@ private:
     DirBrowserContainer* m_dirBrowser;
 
     TrackTable* m_trackTable;
-
-    DirTraversalThread* m_dirTraversalThread;
 
     NavigationContainer* m_navigation;
 

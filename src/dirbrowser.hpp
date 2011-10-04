@@ -21,6 +21,8 @@
 #define DIRBROWSER_HPP
 
 #include "audio.hpp"
+#include "main.hpp"
+#include "tracktable.hpp"
 
 #include <wx/wx.h>
 #include <wx/app.h>
@@ -35,6 +37,9 @@
 #include <wx/dirdlg.h>
 
 namespace navi {
+
+class NaviMainFrame;
+class DirTraversalThread;
 
 class DirBrowserItemData : public wxTreeItemData {
 private:
@@ -69,6 +74,13 @@ private:
     /// The current active tree item (i.e. the directory which is played)
     /// This is used to reset it's state when a new tree item is activated.
     wxTreeItemId m_currentActiveItem;
+
+    /// Thread for directory traversal (find all files). Used to not let
+    /// the UI get 'stuck', i.e. waiting until it's finished.
+    DirTraversalThread* m_dirTraversalThread;
+
+    /// The Navi mainframe parent, top level window.
+    NaviMainFrame* m_mainFrame;
 
     /**
      * This function will be invoked as a callback by the wxTreeCtrl.
@@ -128,7 +140,7 @@ private:
 public:
     static const wxWindowID ID_NAVI_DIR_BROWSER = 1;
 
-    DirBrowser(wxWindow* parent);
+    DirBrowser(wxWindow* parent, NaviMainFrame* frame);
     ~DirBrowser();
 
     wxString getBase() const;
@@ -176,12 +188,63 @@ private:
 public:
     static const short ID_BROWSE_DIR = 1030; 
 
-    DirBrowserContainer(wxWindow* parent);
+    DirBrowserContainer(wxWindow* parent, NaviMainFrame* frame);
 
     DirBrowser* getDirBrowser() const;
 
     // Events plx for the buttons hurr durr
     DECLARE_EVENT_TABLE()
+};
+
+//================================================================================
+
+/**
+ * The DirTraversalThread is a joinable (not detached) thread to update the user interface
+ * with new track infos. If we don't update the UI in another thread, the UI would
+ * block until all files in a directory or the like are finished adding. This would
+ * be severely problematic if you have a LOT of files in one directory.
+ * 
+ * The thread is created joinable so we can safely interrupt it be calling this
+ * thread's public functions. If it was detached, it would be destroyed after it
+ * has finished doing its work, and calling functions on the created instance will
+ * then most certainly invoke terrorist attacks on the application.
+ *
+ * TODO: fer chrissake rename this thing. It's so generic.
+ */
+class DirTraversalThread : public wxThread {
+private:
+    /// The tracktable parent. We will be add pending events to this wxWindow.
+    TrackTable* m_parent;
+
+    /// The selected path to read files from.
+    wxFileName m_selectedPath;
+
+    /// Whether this thread should be active or not. This value is polled
+    bool m_active;
+public:
+    /**
+     * Creates the DirTraversalThread, with the 'parent' TrackTable (to add pending
+     * events to) and the selected path to get a dir listing from.
+     *
+     * @param parent The TrackTable parent.
+     * @param selectedPath The path to get a listing from.
+     */
+    DirTraversalThread(TrackTable* parent, const wxFileName& selectedPath);
+
+    /**
+     * Sets the 'activity' state of this thread. This is only useful right now
+     * for deactivation (see the Entry() override function).
+     *
+     * @param active Set this to false to stop the thread gracefully.
+     */
+    void setActive(bool active);
+
+    /**
+     * Override from wxThread. This is the 'meat' of this subclass.
+     *
+     * @return ExitCode (a short or something)
+     */
+    virtual wxThread::ExitCode Entry(); 
 };
 
 } //namespace navi 

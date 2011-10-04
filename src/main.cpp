@@ -73,8 +73,7 @@ bool NaviApp::OnInit() {
 
 NaviMainFrame::NaviMainFrame() :
         wxFrame((wxFrame*) NULL, wxID_ANY, wxT("Navi")),
-        m_noteBook(NULL),
-        m_dirTraversalThread(NULL) {
+        m_noteBook(NULL) {
 
     // XXX: images are now just for demonstration purposes.
     // attempt to initialize image lists:
@@ -90,7 +89,7 @@ NaviMainFrame::NaviMainFrame() :
     m_noteBook = new wxNotebook(split, wxID_ANY);
     m_noteBook->AssignImageList(m_imageList);
 
-    m_dirBrowser = new DirBrowserContainer(m_noteBook);
+    m_dirBrowser = new DirBrowserContainer(m_noteBook, this);
     m_dirBrowser->getDirBrowser()->setBase(wxT("/home/krpors/Desktop"));
     m_dirBrowser->getDirBrowser()->setFilesVisible(false);
 
@@ -158,35 +157,8 @@ void NaviMainFrame::onResize(wxSizeEvent& event) {
     event.Skip();
 }
 
-void NaviMainFrame::onAddTrackInfo(wxCommandEvent& event) {
-    std::cout << "adad COCKS!!!" << std::endl;
-}
-
 void NaviMainFrame::dostuff(wxTreeEvent& event) {
-    const wxFileName& selectedPath = m_dirBrowser->getDirBrowser()->getSelectedPath();
-    std::cout << "Go full retard: " << selectedPath.GetFullPath().mb_str() << std::endl;
-    
-    if (m_dirTraversalThread != NULL) {
-        m_dirTraversalThread->setActive(false);
-        // wait for thread to finish doing its work.
-        /*wxThread::ExitCode code = */
-        m_dirTraversalThread->Wait();
-    }
-    // XXX: deleting all items does not seem to work reliably, i.e. always some
-    // 'residue' seem to be left behind from the previous directory crap.
-    m_trackTable->DeleteAllItems();
 
-    m_dirTraversalThread = new DirTraversalThread(m_trackTable, selectedPath);
-    wxThreadError err = m_dirTraversalThread->Create();
-    if (err != wxTHREAD_NO_ERROR) {
-        wxMessageBox(wxT("Couldn't create thread!"));
-    }
-
-    err = m_dirTraversalThread->Run();
-
-    if (err != wxTHREAD_NO_ERROR) {
-        wxMessageBox(wxT("Couldn't run thread!"));
-    }
 }
 
 void NaviMainFrame::onAbout(wxCommandEvent& event) {
@@ -218,9 +190,8 @@ NavigationContainer* NaviMainFrame::getNavigationContainer() const {
 // Event table.
 BEGIN_EVENT_TABLE(NaviMainFrame, wxFrame)
     EVT_SIZE(NaviMainFrame::onResize)
-    EVT_TREE_ITEM_ACTIVATED(DirBrowser::ID_NAVI_DIR_BROWSER, NaviMainFrame::dostuff)
+    //EVT_TREE_ITEM_ACTIVATED(DirBrowser::ID_NAVI_DIR_BROWSER, NaviMainFrame::dostuff)
     EVT_MENU(wxID_ABOUT, NaviMainFrame::onAbout)
-    EVT_COMMAND(wxID_ANY, naviDirTraversedEvent, NaviMainFrame::onAddTrackInfo)
 END_EVENT_TABLE()
 
 

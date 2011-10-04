@@ -21,7 +21,8 @@
 
 namespace navi {
 
-extern wxEventType naviDirTraversedEvent;
+// Declared in XXX.cpp
+extern const wxEventType naviDirTraversedEvent;
 
 //================================================================================
 
@@ -227,9 +228,6 @@ void TrackTable::onColumnClick(wxListEvent& event) {
         }
 
     }
-
-    wxCommandEvent et(naviDirTraversedEvent);
-    AddPendingEvent(et);
 }
 
 void TrackTable::onSelected(wxListEvent& event) {
@@ -269,56 +267,6 @@ BEGIN_EVENT_TABLE(TrackTable, wxListCtrl)
     EVT_LIST_COL_CLICK(TrackTable::ID_TRACKTABLE, TrackTable::onColumnClick)
     EVT_COMMAND(wxID_ANY, naviDirTraversedEvent, TrackTable::onAddTrackInfo)
 END_EVENT_TABLE()
-
-//================================================================================
-
-DirTraversalThread::DirTraversalThread(TrackTable* parent, const wxFileName& selectedPath) :
-        wxThread(wxTHREAD_JOINABLE),
-        m_parent(parent),
-        m_selectedPath(selectedPath),
-        m_active(true) {
-}
-
-void DirTraversalThread::setActive(bool active) {
-    m_active = active;
-}
-
-wxThread::ExitCode DirTraversalThread::Entry() {
-    wxDir thedir(m_selectedPath.GetFullPath());
-    wxString filename;
-    // only display files, and TODO: use a selector, as in: only mp3, ogg, flac, etc
-    bool gotfiles = thedir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
-    // as long as more files are found, and the thread should remain active:
-    while (gotfiles && m_active) {
-        wxFileName fullFile;
-        fullFile.Assign(m_selectedPath.GetFullPath(), filename);
-
-        wxString uri = wxT("file://");
-        uri << fullFile.GetFullPath();
-
-        try {
-            TagReader t(uri);
-            // this info pointer must be deleted in the onAddTrackInfo() func
-            // we're currently making a copy of the found TrackInfo object, because
-            // of SetClientObject() and stuff.
-            TrackInfo& info = t.getTrackInfo();
-            // Make a copy on the heap, to use as a ClientObject. Must delete later!
-            TrackInfo* derp = new TrackInfo(info);
-            
-            // use the NAVI_EVENT_DIR_TRAVERSED event type (new type)
-            wxCommandEvent event(naviDirTraversedEvent);
-            event.SetClientObject(derp);
-            m_parent->AddPendingEvent(event);
-        } catch (const AudioException& ex) {
-            std::cerr << "DirTraversalThread() err : " << ex.what() << std::endl;
-        }
-
-        // Get the next dir, if available. This is something like an iterator.
-        gotfiles = thedir.GetNext(&filename);
-    }
-
-    return 0;
-}
 
 //================================================================================
 

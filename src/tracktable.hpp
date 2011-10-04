@@ -135,56 +135,7 @@ public:
 };
 
 
-//================================================================================
 
-/**
- * The DirTraversalThread is a joinable (not detached) thread to update the user interface
- * with new track infos. If we don't update the UI in another thread, the UI would
- * block until all files in a directory or the like are finished adding. This would
- * be severely problematic if you have a LOT of files in one directory.
- * 
- * The thread is created joinable so we can safely interrupt it be calling this
- * thread's public functions. If it was detached, it would be destroyed after it
- * has finished doing its work, and calling functions on the created instance will
- * then most certainly invoke terrorist attacks on the application.
- *
- * TODO: fer chrissake rename this thing. It's so generic.
- */
-class DirTraversalThread : public wxThread {
-private:
-    /// The tracktable parent. We will be add pending events to this wxWindow.
-    TrackTable* m_parent;
-
-    /// The selected path to read files from.
-    wxFileName m_selectedPath;
-
-    /// Whether this thread should be active or not. This value is polled
-    bool m_active;
-public:
-    /**
-     * Creates the DirTraversalThread, with the 'parent' TrackTable (to add pending
-     * events to) and the selected path to get a dir listing from.
-     *
-     * @param parent The TrackTable parent.
-     * @param selectedPath The path to get a listing from.
-     */
-    DirTraversalThread(TrackTable* parent, const wxFileName& selectedPath);
-
-    /**
-     * Sets the 'activity' state of this thread. This is only useful right now
-     * for deactivation (see the Entry() override function).
-     *
-     * @param active Set this to false to stop the thread gracefully.
-     */
-    void setActive(bool active);
-
-    /**
-     * Override from wxThread. This is the 'meat' of this subclass.
-     *
-     * @return ExitCode (a short or something)
-     */
-    virtual wxThread::ExitCode Entry(); 
-};
 
 //================================================================================
 

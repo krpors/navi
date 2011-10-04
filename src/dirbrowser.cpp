@@ -23,6 +23,9 @@
 
 namespace navi {
 
+// Declared in XXX.cpp
+extern const wxEventType naviDirTraversedEvent;
+
 DirBrowserItemData::DirBrowserItemData(const wxFileName& fileName) :
         m_fileName(fileName) {
 }
@@ -36,11 +39,13 @@ const wxFileName& DirBrowserItemData::getFileName() const {
 
 //==============================================================================
 
-DirBrowser::DirBrowser(wxWindow* parent) :
+DirBrowser::DirBrowser(wxWindow* parent, NaviMainFrame* frame) :
         wxTreeCtrl(parent, DirBrowser::ID_NAVI_DIR_BROWSER, wxDefaultPosition, 
             wxDefaultSize, wxTR_HAS_BUTTONS | wxTR_FULL_ROW_HIGHLIGHT),
         m_filesVisible(true),
-        m_currentActiveItem(NULL) {
+        m_currentActiveItem(NULL),
+        m_dirTraversalThread(NULL),
+        m_mainFrame(frame) {
 
     // intialize the used icons in the wxTreeCtrl.
     initIcons();
@@ -143,6 +148,34 @@ void DirBrowser::onActivateItem(wxTreeEvent& event) {
     SetItemBold(m_currentActiveItem, true);
     // Refresh the wxWindow (will display teh boldness lulz)
     Refresh();
+
+    const wxFileName& selectedPath = getSelectedPath();
+    std::cout << "Always go full retard: " << selectedPath.GetFullPath().mb_str() << std::endl;
+    
+    if (m_dirTraversalThread != NULL) {
+        m_dirTraversalThread->setActive(false);
+        // wait for thread to finish doing its work.
+        /*wxThread::ExitCode code = */
+        m_dirTraversalThread->Wait();
+    }
+    // XXX: deleting all items does not seem to work reliably, i.e. always some
+    // 'residue' seem to be left behind from the previous directory crap.
+    TrackTable* tt = m_mainFrame->getTrackTable();
+    tt->DeleteAllItems();
+
+    m_dirTraversalThread = new DirTraversalThread(tt, selectedPath);
+    wxThreadError err = m_dirTraversalThread->Create();
+    if (err != wxTHREAD_NO_ERROR) {
+        wxMessageBox(wxT("Couldn't create thread!"));
+    }
+
+    err = m_dirTraversalThread->Run();
+
+    if (err != wxTHREAD_NO_ERROR) {
+        wxMessageBox(wxT("Couldn't run thread!"));
+    }
+
+
     // Parent event handlers must be able to process this event as well.
     event.Skip();
 }
@@ -210,7 +243,7 @@ END_EVENT_TABLE()
 
 //==============================================================================
 
-DirBrowserContainer::DirBrowserContainer(wxWindow* parent) :
+DirBrowserContainer::DirBrowserContainer(wxWindow* parent, NaviMainFrame* frame) :
         wxPanel(parent, wxID_ANY) {
 
     // Panel with the buttons
@@ -230,7 +263,7 @@ DirBrowserContainer::DirBrowserContainer(wxWindow* parent) :
     sizerBtns->Add(btn1);
     sizerBtns->Add(btn2);
 
-    m_browser = new DirBrowser(this);
+    m_browser = new DirBrowser(this, frame);
 
     // Sizer of the main thing
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
@@ -244,6 +277,8 @@ DirBrowser* DirBrowserContainer::getDirBrowser() const {
 }
 
 void DirBrowserContainer::onBrowseNewDir(wxCommandEvent& event) {
+    // when button is clicked to browse for a new base dir, open a modal window
+    // so the user can choose a new directory. Reset the base, etc.
     wxDirDialog* dlg = new wxDirDialog(this);
     dlg->SetPath(m_browser->getBase());
     if (dlg->ShowModal() == wxID_OK) {
@@ -255,6 +290,56 @@ void DirBrowserContainer::onBrowseNewDir(wxCommandEvent& event) {
 BEGIN_EVENT_TABLE(DirBrowserContainer, wxPanel)
     EVT_BUTTON(DirBrowserContainer::ID_BROWSE_DIR, DirBrowserContainer::onBrowseNewDir)
 END_EVENT_TABLE()
+
+//================================================================================
+
+DirTraversalThread::DirTraversalThread(TrackTable* parent, const wxFileName& selectedPath) :
+        wxThread(wxTHREAD_JOINABLE),
+        m_parent(parent),
+        m_selectedPath(selectedPath),
+        m_active(true) {
+}
+
+void DirTraversalThread::setActive(bool active) {
+    m_active = active;
+}
+
+wxThread::ExitCode DirTraversalThread::Entry() {
+    wxDir thedir(m_selectedPath.GetFullPath());
+    wxString filename;
+    // only display files, and TODO: use a selector, as in: only mp3, ogg, flac, etc
+    bool gotfiles = thedir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
+    // as long as more files are found, and the thread should remain active:
+    while (gotfiles && m_active) {
+        wxFileName fullFile;
+        fullFile.Assign(m_selectedPath.GetFullPath(), filename);
+
+        wxString uri = wxT("file://");
+        uri << fullFile.GetFullPath();
+
+        try {
+            TagReader t(uri);
+            // this info pointer must be deleted in the onAddTrackInfo() func
+            // we're currently making a copy of the found TrackInfo object, because
+            // of SetClientObject() and stuff.
+            TrackInfo& info = t.getTrackInfo();
+            // Make a copy on the heap, to use as a ClientObject. Must delete later!
+            TrackInfo* derp = new TrackInfo(info);
+            
+            wxCommandEvent event(naviDirTraversedEvent);
+            event.SetClientObject(derp);
+            m_parent->AddPendingEvent(event);
+        } catch (const AudioException& ex) {
+            std::cerr << "DirTraversalThread() err : " << ex.what() << std::endl;
+        }
+
+        // Get the next dir, if available. This is something like an iterator.
+        gotfiles = thedir.GetNext(&filename);
+    }
+
+    return 0;
+}
+
 
 
 
