@@ -39,16 +39,21 @@ const wxString formatSeconds(int seconds);
 
 class NaviPreferences : public wxFileConfig {
 private:
-    NaviPreferences(wxInputStream& is);
+    wxString m_configFile;
+
+    NaviPreferences(wxInputStream& is, const wxString& configFile);
 
 public:
+    ~NaviPreferences();
+
     static const wxString CONFIG_FILE;
     static const wxString MINIMIZE_TO_TRAY;
+    static const wxString ASK_ON_EXIT;
     
-    static NaviPreferences* getInstance();
+    static NaviPreferences* createInstance();
 
-
-    void createDefaults();
+    void setDefaults();
+    void save();
 };
 
 } // namespace navi

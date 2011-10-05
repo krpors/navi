@@ -30,19 +30,21 @@ bool NaviApp::OnInit() {
     gst_init(NULL, NULL);
     wxInitAllImageHandlers();
 
+    // Initialize default preferences crap here
+    NaviPreferences* prefs = NaviPreferences::createInstance(); //should be done once
+    wxConfigBase::Set(prefs);
+
+    // construct the main frame.
     NaviMainFrame* frame = new NaviMainFrame;
     frame->SetSize(800, 600);
     frame->Center();
     frame->Show();
     SetTopWindow(frame);
 
-    NaviPreferences* prefs = NaviPreferences::getInstance();
-
-
     //http://scfire-dtc-aa01.stream.aol.com:80/stream/1025
     //m_p = new GenericPipeline(wxT("http://scfire-dtc-aa01.stream.aol.com:80/stream/1025"));
     //m_p->play();
-    return false;
+    return true;
 }
 
 //==============================================================================
@@ -183,11 +185,25 @@ void NaviMainFrame::onAbout(wxCommandEvent& event) {
 }
 
 void NaviMainFrame::onExit(wxCommandEvent& event) {
+    NaviPreferences* lol = static_cast<NaviPreferences*>(wxConfigBase::Get()); 
+    bool ask;
+    lol->Read(NaviPreferences::ASK_ON_EXIT, &ask, false);
+    if (ask) {
+        wxMessageDialog dlg(this, wxT("Hey, listen! Do you really want to exit Navi?"), wxT("Exit Navi?"), wxYES_NO | wxNO_DEFAULT);
+        if (dlg.ShowModal() == wxID_NO) {
+            return;
+        }
+    }
+
     Close(true);
 }
 
 void NaviMainFrame::onIconize(wxIconizeEvent& event) {
     Show(!event.Iconized());
+}
+
+void NaviMainFrame::onPreferences(wxCommandEvent& event) {
+
 }
 
 TrackTable* NaviMainFrame::getTrackTable() const {
@@ -201,6 +217,7 @@ NavigationContainer* NaviMainFrame::getNavigationContainer() const {
 // Event table.
 BEGIN_EVENT_TABLE(NaviMainFrame, wxFrame)
     EVT_SIZE(NaviMainFrame::onResize)
+    EVT_MENU(wxID_PREFERENCES, NaviMainFrame::onPreferences)
     EVT_MENU(wxID_ABOUT, NaviMainFrame::onAbout)
     EVT_MENU(wxID_EXIT, NaviMainFrame::onExit)
     EVT_ICONIZE(NaviMainFrame::onIconize)

@@ -127,6 +127,8 @@ private:
     
     void onExit(wxCommandEvent& event);
 
+    void onPreferences(wxCommandEvent& event);
+
 public:
     NaviMainFrame();
     ~NaviMainFrame();

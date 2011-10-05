@@ -50,43 +50,63 @@ const wxString formatSeconds(int secs) {
 
 //================================================================================
 
-const wxString NaviPreferences::CONFIG_FILE      = wxT(".navi");
+const wxString NaviPreferences::CONFIG_FILE      = wxT("preferences");
 const wxString NaviPreferences::MINIMIZE_TO_TRAY = wxT("/NaviPreferences/MinimizeToTray");
+const wxString NaviPreferences::ASK_ON_EXIT      = wxT("/NaviPreferences/AskOnExit");
 
-NaviPreferences::NaviPreferences(wxInputStream& is) :
-    wxFileConfig(is) {
+NaviPreferences::NaviPreferences(wxInputStream& is, const wxString& configFile) :
+        wxFileConfig(is),
+        m_configFile(configFile) {
 
+    DontCreateOnDemand();
 }
 
-void NaviPreferences::createDefaults() {
-    
+NaviPreferences::~NaviPreferences() {
 }
 
-NaviPreferences* NaviPreferences::getInstance() {
+void NaviPreferences::setDefaults() {
+    Write(MINIMIZE_TO_TRAY, true);
+    Write(ASK_ON_EXIT,      false);
+
+    save();
+}
+
+void NaviPreferences::save() {
+    wxFileOutputStream fos(m_configFile);
+    Save(fos);
+}
+
+NaviPreferences* NaviPreferences::createInstance() {
     // get the standard base path, and make a path with the configuration file.
     wxStandardPathsBase& wxsp = wxStandardPaths::Get();
-    wxFileName fn(wxsp.GetUserConfigDir(), CONFIG_FILE);
-    wxString configfile = fn.GetFullPath();
+
+    wxFileName naviDir(wxsp.GetUserConfigDir(), wxT(".navi"));
+    // check if the .navi dir exists. If not, create it.
+    if (!wxDirExists(naviDir.GetFullPath())) {
+        wxMkdir(naviDir.GetFullPath());
+    } 
+
+    wxFileName fn(naviDir.GetFullPath(), CONFIG_FILE);
+    wxString configFile = fn.GetFullPath();
 
     NaviPreferences* config;
-    
     // create new file, if it doesn't exist yet.
-    if (!wxFileExists(configfile)) {
+    if (!wxFileExists(configFile)) {
         // will create it:
-        wxFile file(configfile, wxFile::write);
+        wxFile file(configFile, wxFile::write);
         
-        wxFileInputStream fis(configfile);
+        wxFileInputStream fis(configFile);
         // wxFileConfig has to be created after we know the file exists, or some
         // stupid dialog box pops up, saying the file cannot be found. How quaint.
-        config = new NaviPreferences(fis);
+        config = new NaviPreferences(fis, configFile);
 
         // write some default values to the CONFIG_FILE.
-        //setDefaults();
+        config->setDefaults();
     } else {
         // load from the file too.
-        wxFileInputStream fis(configfile);
+        wxFileInputStream fis(configFile);
         // same story as above:
-        config = new NaviPreferences(fis);
+        config = new NaviPreferences(fis, configFile);
     }
     
     return config;
