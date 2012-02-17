@@ -175,8 +175,9 @@ void DirBrowser::onActivateItem(wxTreeEvent& event) {
     }
 
 
-    // Parent event handlers must be able to process this event as well.
-    event.Skip();
+    // XXX: okay, we skip the event here, so the tree item is not expanded
+    // automatically (or collapsed). 
+    //event.Skip();
 }
 
 void DirBrowser::addChildrenToDir(wxTreeItemId& parent) {
@@ -305,7 +306,41 @@ void DirTraversalThread::setActive(bool active) {
 
 wxThread::ExitCode DirTraversalThread::Entry() {
     wxDir thedir(m_selectedPath.GetFullPath());
-    wxString filename;
+    
+    thedir.Traverse(*this);
+    std::cout << "Directory contains " << m_files.GetCount() << " addable files." << std::endl;
+
+    for (unsigned int i = 0; i < m_files.GetCount(); i++) {
+        if (m_active) {
+            wxString filename = m_files[i];
+            wxFileName fullFile;
+            fullFile.Assign(m_selectedPath.GetFullPath(), filename);
+
+            wxString uri = wxT("file://");
+            uri << fullFile.GetFullPath();
+
+            try {
+                TagReader t(uri);
+                // this info pointer must be deleted in the onAddTrackInfo() func
+                // we're currently making a copy of the found TrackInfo object, because
+                // of SetClientObject() and stuff.
+                TrackInfo& info = t.getTrackInfo();
+                // Make a copy on the heap, to use as a ClientObject. Must delete later!
+                TrackInfo* derp = new TrackInfo(info);
+                
+                wxCommandEvent event(naviDirTraversedEvent);
+                event.SetClientObject(derp);
+                m_parent->AddPendingEvent(event);
+            } catch (const AudioException& ex) {
+                // this exception is thrown when for instance a file is trying to
+                // be parsed when it's not a valid audio/video file. I don't want
+                // to hide the exception cause, so I'm just printing it out to 
+                // standard error.
+                std::cerr << "DirTraversalThread() err : " << ex.what() << std::endl;
+            }
+        }
+    }
+#if 0
     // only display files, and TODO: use a selector, as in: only mp3, ogg, flac, etc
     bool gotfiles = thedir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
     // as long as more files are found, and the thread should remain active:
@@ -329,14 +364,52 @@ wxThread::ExitCode DirTraversalThread::Entry() {
             event.SetClientObject(derp);
             m_parent->AddPendingEvent(event);
         } catch (const AudioException& ex) {
+            // this exception is thrown when for instance a file is trying to
+            // be parsed when it's not a valid audio/video file. I don't want
+            // to hide the exception cause, so I'm just printing it out to 
+            // standard error.
             std::cerr << "DirTraversalThread() err : " << ex.what() << std::endl;
         }
 
         // Get the next dir, if available. This is something like an iterator.
         gotfiles = thedir.GetNext(&filename);
     }
-
+#endif
     return 0;
+}
+
+wxDirTraverseResult DirTraversalThread::OnFile(const wxString& filename) {
+    // LOL UGLY. But it works. Ideally, I should add the list of allowed
+    // extensions to a static set or vector, but I can't be arsed at this
+    // moment to figure it out. C++ gets weirder, the more I am coding 
+    // with it. ANYWAY: it's not that we need to have a crazy amount of 
+    // performance with this part.
+    wxArrayString allowed;
+    allowed.Add(wxT(".ogg"));
+    allowed.Add(wxT(".mp3"));
+    allowed.Add(wxT(".aac"));
+    allowed.Add(wxT(".wav"));
+    allowed.Add(wxT(".flac"));
+
+    for (unsigned int i = 0; i < allowed.GetCount(); i++) {
+        if (filename.EndsWith(allowed[i])) {
+            m_files.Add(filename);
+            // no need to check the rest.
+            return m_active ? wxDIR_CONTINUE : wxDIR_STOP;
+        }
+    }
+
+    // when the thread is still active, continue looking.
+    // if we set it to inactive (false), stop searching. This still may
+    // result in some residue...
+    return m_active ? wxDIR_CONTINUE : wxDIR_STOP;
+}
+
+wxDirTraverseResult DirTraversalThread::OnDir(const wxString& filename) {
+    // During traversing, STOP reading into subdirectories for obvious
+    // reasons. We are viewing the contents of the current directory
+    // only, at all times. Cocks!
+    return wxDIR_STOP;
 }
 
 

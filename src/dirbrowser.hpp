@@ -36,6 +36,8 @@
 #include <wx/artprov.h>
 #include <wx/dirdlg.h>
 
+#include <set>
+
 namespace navi {
 
 class NaviMainFrame;
@@ -211,7 +213,7 @@ public:
  *
  * TODO: fer chrissake rename this thing. It's so generic.
  */
-class DirTraversalThread : public wxThread {
+class DirTraversalThread : public wxThread, wxDirTraverser {
 private:
     /// The tracktable parent. We will be add pending events to this wxWindow.
     TrackTable* m_parent;
@@ -221,6 +223,9 @@ private:
 
     /// Whether this thread should be active or not. This value is polled
     bool m_active;
+
+    wxArrayString m_files;
+
 public:
     /**
      * Creates the DirTraversalThread, with the 'parent' TrackTable (to add pending
@@ -245,6 +250,9 @@ public:
      * @return ExitCode (a short or something)
      */
     virtual wxThread::ExitCode Entry(); 
+
+    virtual wxDirTraverseResult OnFile(const wxString& filename);
+    virtual wxDirTraverseResult OnDir(const wxString& dirname);
 };
 
 } //namespace navi 

@@ -125,7 +125,11 @@ void NavigationContainer::setTrack(TrackInfo* info) {
     wxString alb;
     alb.Append(derp[TrackInfo::ARTIST]);
     alb.Append(wxT(" from "));
-    alb.Append(derp[TrackInfo::ALBUM]);
+    if (derp[TrackInfo::ALBUM].IsEmpty()) {
+        alb.Append(wxT("unknown album"));
+    } else {
+        alb.Append(derp[TrackInfo::ALBUM]);
+    }
     m_txtArtistAlbum->SetLabel(alb);
 
 

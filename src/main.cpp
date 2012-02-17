@@ -27,6 +27,7 @@ namespace navi {
 //==============================================================================
 //
 bool NaviApp::OnInit() {
+    // initialize the gstreamer api here:
     gst_init(NULL, NULL);
     wxInitAllImageHandlers();
 
@@ -84,7 +85,7 @@ NaviMainFrame::NaviMainFrame() :
     m_noteBook->AssignImageList(m_imageList);
 
     m_dirBrowser = new DirBrowserContainer(m_noteBook, this);
-    m_dirBrowser->getDirBrowser()->setBase(wxT("/home/krpors/Desktop"));
+    m_dirBrowser->getDirBrowser()->setBase(wxT("/home/krpors/"));
     m_dirBrowser->getDirBrowser()->setFilesVisible(false);
 
     m_noteBook->AddPage(m_dirBrowser, wxT("Browser"), true, 0);
@@ -114,7 +115,7 @@ NaviMainFrame::NaviMainFrame() :
     wxBitmap bm(wxT("./data/icons/32x32/navi_icon.png"), wxBITMAP_TYPE_PNG);
     wxIcon icon;
     icon.CopyFromBitmap(bm);
-    m_taskBarIcon->SetIcon(icon, wxT("Hai!"));
+    m_taskBarIcon->SetIcon(icon, wxT("Navi - Hey, listen!"));
 }
 
 NaviMainFrame::~NaviMainFrame() {

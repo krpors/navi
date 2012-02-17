@@ -170,7 +170,10 @@ protected:
      */
     void registerInterval();
 
-
+    /**
+     * Fires a pipelineError callback to all registered listeners.
+     * @param error The error string.
+     */
     void fireError(const wxString& error) throw();
 
 
