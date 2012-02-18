@@ -10,6 +10,7 @@ DOC=./doc
 OBJECTS=$(BIN)/main.o\
         $(BIN)/audio.o\
         $(BIN)/dirbrowser.o\
+        $(BIN)/streambrowser.o\
         $(BIN)/tracktable.o\
         $(BIN)/navigation.o\
 		$(BIN)/misc.o
@@ -27,6 +28,9 @@ $(BIN)/audio.o: $(SRC)/audio.cpp $(SRC)/audio.hpp
 
 $(BIN)/dirbrowser.o: $(SRC)/dirbrowser.cpp $(SRC)/dirbrowser.hpp
 	$(CC) $(CFLAGS) $(SRC)/dirbrowser.cpp -o $@
+
+$(BIN)/streambrowser.o: $(SRC)/streambrowser.cpp $(SRC)/streambrowser.hpp
+	$(CC) $(CFLAGS) $(SRC)/streambrowser.cpp -o $@
 
 $(BIN)/tracktable.o: $(SRC)/tracktable.cpp $(SRC)/tracktable.hpp
 	$(CC) $(CFLAGS) $(SRC)/tracktable.cpp -o $@

@@ -461,7 +461,7 @@ void OGGFilePipeline::init() throw (AudioException) {
     // Element alsasink (gst-inspect alsasink)
     m_sink = gst_element_factory_make("autoaudiosink", NULL);
     if (!m_sink) {
-        throw AudioException(wxT("Failed to create `alsasink' GST element"));
+        throw AudioException(wxT("Failed to create `autoaudiosink' GST element"));
     }
 
     // m_pipeline and m_bus are protected in parent class Pipeline.
@@ -569,6 +569,13 @@ void TagReader::onTagRead(const GstTagList* list, const gchar* tag, gpointer dat
     guint discNum;
     GDate* date;
 
+#ifdef DEBUG
+    gchar* misc;
+    if (gst_tag_list_get_string(list, tag, &misc)) {
+        std::cout << "Tag content: " << misc << std::endl;
+    }
+#endif 
+
     TrackInfo& trackInfo = reader->getTrackInfo();
 
     // Before attempting to set a tag in the reader*, make sure if the tag
@@ -646,7 +653,7 @@ void TagReader::initTags() throw(AudioException) {
 
         gst_message_parse_tag (msg, &tags);
 
-        // std::cout << "Got tags from element: " << GST_OBJECT_NAME(msg->src) << std::endl;
+        //std::cout << "Got tags from element: " << GST_OBJECT_NAME(msg->src) << std::endl;
         gst_tag_list_foreach (tags, onTagRead, this);
         gst_tag_list_free (tags);
         gst_message_unref (msg);
@@ -678,7 +685,7 @@ void TagReader::init() throw (AudioException) {
     // Element uridecodebin (gst-inspect uridecodebin)
     m_uridecodebin= gst_element_factory_make("uridecodebin", NULL);
     if (!m_uridecodebin) {
-        throw AudioException(wxT("Failed to create `filesrc' GST element"));
+        throw AudioException(wxT("Failed to create `uridecodebin' GST element"));
     }
 
     // Element fakesink (gst-inspect fakesink)

@@ -23,6 +23,7 @@
 
 #include "audio.hpp"
 #include "dirbrowser.hpp"
+#include "streambrowser.hpp"
 #include "tracktable.hpp"
 #include "navigation.hpp"
 
@@ -36,7 +37,7 @@
 #include <wx/aboutdlg.h>
 #include <wx/bitmap.h>
 #include <wx/msgdlg.h>
-
+#include <wx/splitter.h>
 
 namespace navi {
 
@@ -45,6 +46,7 @@ namespace navi {
 class NavigationContainer; // from navigation.hpp
 class TrackStatusHandler; // from main.hpp below
 class DirBrowserContainer; // from dirbrowser.hpp
+class StreamBrowserContainer; // from streambrowser.hpp
 
 //==============================================================================
     
@@ -101,6 +103,8 @@ private:
     wxNotebook* m_noteBook;
 
     DirBrowserContainer* m_dirBrowser;
+    
+    StreamBrowserContainer* m_streamBrowser;
 
     TrackTable* m_trackTable;
 
@@ -115,7 +119,8 @@ private:
 
     void initMenu();
 
-    wxPanel* createNavPanel(wxWindow* parent);
+    wxPanel* createDirBrowserPanel(wxWindow* parent);
+    wxPanel* createBottom(wxWindow* parent);
 
     wxStatusBar* OnCreateStatusBar(int number, long style, wxWindowID id, const wxString& name);
 

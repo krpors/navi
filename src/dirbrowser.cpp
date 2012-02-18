@@ -98,6 +98,10 @@ void DirBrowser::setBase(const wxString& basePath) {
     SetItemHasChildren(root);
     // by default, expand the root.
     Expand(root);
+
+    NaviPreferences* prefs = static_cast<NaviPreferences*>(wxConfigBase::Get()); 
+    prefs->Write(NaviPreferences::MEDIA_DIRECTORY, basePath);
+    prefs->save();
 }
 
 int DirBrowser::OnCompareItems(const wxTreeItemId& one, const wxTreeItemId& two) {

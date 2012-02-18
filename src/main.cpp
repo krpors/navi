@@ -19,10 +19,30 @@
 
 #include "main.hpp"
 
-#include <wx/splitter.h>
 #include <iostream>
 
 namespace navi {
+
+class Test {
+private:
+    GenericPipeline* m_p;
+public:
+    Test() {
+        wxString src = wxT("http://scfire-dtc-aa01.stream.aol.com:80/stream/1025");
+        std::cout << "constructed" << std::endl;
+        m_p = new GenericPipeline(src);
+        m_p->play();
+
+        TagReader* t = new TagReader(src);
+        TrackInfo info = t->getTrackInfo();
+        std::cout << "Info: " << info[TrackInfo::GENRE].mb_str() << std::endl;
+    }
+
+    ~Test() {
+        m_p->stop();
+        delete m_p;
+    }
+};
 
 //==============================================================================
 //
@@ -42,9 +62,8 @@ bool NaviApp::OnInit() {
     frame->Show();
     SetTopWindow(frame);
 
-    //http://scfire-dtc-aa01.stream.aol.com:80/stream/1025
-    //m_p = new GenericPipeline(wxT("http://scfire-dtc-aa01.stream.aol.com:80/stream/1025"));
-    //m_p->play();
+    //Test* t = new Test;
+
     return true;
 }
 
@@ -69,35 +88,27 @@ END_EVENT_TABLE()
 NaviMainFrame::NaviMainFrame() :
         wxFrame((wxFrame*) NULL, wxID_ANY, wxT("Navi")),
         m_noteBook(NULL) {
-
-    // XXX: images are now just for demonstration purposes.
-    // attempt to initialize image lists:
-    m_imageList = new wxImageList(16, 16);
-    m_imageList->Add(wxArtProvider::GetIcon(wxART_HARDDISK));
-    m_imageList->Add(wxArtProvider::GetIcon(wxART_ADD_BOOKMARK));
-    m_imageList->Add(wxArtProvider::GetIcon(wxT("gtk-network")));
-
-    // create our menu here
+    // create our menu here 
     initMenu();
-    wxSplitterWindow* split = new wxSplitterWindow(this, wxID_ANY);
 
-    m_noteBook = new wxNotebook(split, wxID_ANY);
-    m_noteBook->AssignImageList(m_imageList);
+    // navigation up top (play pause buttons)
+    wxPanel* panelMain = new wxPanel(this);
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+    panelMain->SetSizer(sizer);
 
-    m_dirBrowser = new DirBrowserContainer(m_noteBook, this);
-    m_dirBrowser->getDirBrowser()->setBase(wxT("/home/krpors/"));
-    m_dirBrowser->getDirBrowser()->setFilesVisible(false);
+    m_navigation = new NavigationContainer(panelMain, this);
 
-    m_noteBook->AddPage(m_dirBrowser, wxT("Browser"), true, 0);
-    m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("template")), wxT("Favorites"), false, 1);
-    m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("template")), wxT("Streams"), false, 2);
+    // bottom part:
+    wxPanel* p = createBottom(panelMain);
 
-    wxPanel* lol = createNavPanel(split);
-    // prevent 'unsplitting', i.e. when double clicking, this would make the
-    // splitter dissapear.
-    split->SetMinimumPaneSize(20);
-    split->SplitVertically(m_noteBook, lol);
-
+    // Add the components to the sizer. Add a border of 5 px so the widgets aren't
+    // 'attached' to the edges of the wxFrame itself (looks neater).
+    // add navigation to the sizer
+    sizer->Add(m_navigation, wxSizerFlags().Expand().Border(wxALL, 5));
+    // add the bottom pieces to the sizer. Note that we user a proportion of 1 here to max
+    // it out all the way to the bottom.
+    sizer->Add(p, wxSizerFlags(1).Expand().Border(wxALL, 5));
+    
     CreateStatusBar();
 
     // create the track status handler event handling stuff. This thing
@@ -116,6 +127,7 @@ NaviMainFrame::NaviMainFrame() :
     wxIcon icon;
     icon.CopyFromBitmap(bm);
     m_taskBarIcon->SetIcon(icon, wxT("Navi - Hey, listen!"));
+
 }
 
 NaviMainFrame::~NaviMainFrame() {
@@ -142,18 +154,64 @@ void NaviMainFrame::initMenu() {
     SetMenuBar(bar);
 }
 
-wxPanel* NaviMainFrame::createNavPanel(wxWindow* parent) {
-    wxPanel* panel = new wxPanel(parent);
-    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    panel->SetSizer(sizer);
+wxPanel* NaviMainFrame::createDirBrowserPanel(wxWindow* parent) {
+    NaviPreferences* prefs = static_cast<NaviPreferences*>(wxConfigBase::Get()); 
 
-    m_navigation = new NavigationContainer(panel, this);
-    m_trackTable = new TrackTable(panel);
+    wxPanel* p = new wxPanel(parent);
+    wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+    p->SetSizer(sizer);
 
-    sizer->Add(m_navigation, wxSizerFlags().Expand().Border(5));
-    sizer->Add(m_trackTable, wxSizerFlags(1).Expand().Border(5));
+    // Create the splitter component here.
+    wxSplitterWindow* split = new wxSplitterWindow(p, wxID_ANY);
 
-    return panel;
+    // directory browser (left side)
+    wxString directory;
+    prefs->Read(NaviPreferences::MEDIA_DIRECTORY, &directory, wxT("/"));
+    m_dirBrowser = new DirBrowserContainer(split, this);
+    m_dirBrowser->getDirBrowser()->setBase(directory);
+    m_dirBrowser->getDirBrowser()->setFilesVisible(false);
+
+    // track table (right side)
+    m_trackTable = new TrackTable(split);
+
+
+    // FIXME: all of a sudden, setting the MINIMUM pane size to 20, explicitly
+    // sets the actual pane size to 20... Thats why I increased it to 200, or else...
+    split->SetMinimumPaneSize(200);
+    split->SplitVertically(m_dirBrowser, m_trackTable);
+
+    sizer->Add(split, wxSizerFlags(1).Expand());
+    
+    return p;
+}
+
+wxPanel* NaviMainFrame::createBottom(wxWindow* parent) {
+    // XXX: images are now just for demonstration purposes.
+    // attempt to initialize image lists:
+    m_imageList = new wxImageList(16, 16);
+    m_imageList->Add(wxArtProvider::GetIcon(wxART_HARDDISK));
+    m_imageList->Add(wxArtProvider::GetIcon(wxART_ADD_BOOKMARK));
+    m_imageList->Add(wxArtProvider::GetIcon(wxT("gtk-network")));
+
+
+    wxPanel* panelWrapper = new wxPanel(parent);
+    wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL);
+    panelWrapper->SetSizer(boxSizer);
+
+    m_noteBook = new wxNotebook(panelWrapper, wxID_ANY);
+    m_noteBook->AssignImageList(m_imageList);
+
+    wxPanel* panelDirBrPanel = createDirBrowserPanel(m_noteBook);
+    m_noteBook->AddPage(panelDirBrPanel, wxT("Browser"), true, 0);
+
+    m_streamBrowser = new StreamBrowserContainer(m_noteBook, this);
+
+    m_noteBook->AddPage(new wxButton(m_noteBook, wxID_ANY, wxT("template")), wxT("Favorites"), false, 1);
+    m_noteBook->AddPage(m_streamBrowser, wxT("Streams"), false, 2);
+
+    boxSizer->Add(m_noteBook, wxSizerFlags(1).Expand());
+
+    return panelWrapper;
 }
 
 wxStatusBar* NaviMainFrame::OnCreateStatusBar(int number, long style, wxWindowID id, const wxString& name) {
