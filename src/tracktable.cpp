@@ -1,15 +1,4 @@
-//      tracktable.cpp
-//      
-//      Copyright 2010 Kevin Pors <krpors@users.sf.net>
-//      
-//      This program is free software; you can redistribute it and/or modify
-//      it under the terms of the GNU General Public License as published by
-//      the Free Software Foundation; either version 2 of the License, or
-//      (at your option) any later version.
-//      
-//      This program is distributed in the hope that it will be useful,
-//      but WITHOUT ANY WARRANTY; without even the implied warranty of
-//      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//      tracktable.cpp //      //      Copyright 2010 Kevin Pors <krpors@users.sf.net> //      //      This program is free software; you can redistribute it and/or modify //      it under the terms of the GNU General Public License as published by //      the Free Software Foundation; either version 2 of the License, or //      (at your option) any later version.  //      //      This program is distributed in the hope that it will be useful, //      but WITHOUT ANY WARRANTY; without even the implied warranty of //      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //      GNU General Public License for more details.
 //      
 //      You should have received a copy of the GNU General Public License
@@ -40,11 +29,11 @@ TrackTable::TrackTable(wxWindow* parent) :
 
     item.SetText(wxT("Artist"));
     InsertColumn(1, item);
-    SetColumnWidth(1, 80);
+    SetColumnWidth(1, 150);
 
     item.SetText(wxT("Title"));
     InsertColumn(2, item);
-    SetColumnWidth(2, 100);
+    SetColumnWidth(2, 150);
 
     item.SetText(wxT("Album"));
     InsertColumn(3, item);
@@ -256,6 +245,19 @@ void TrackTable::onAddTrackInfo(wxCommandEvent& event) {
     delete d;
 
     event.Skip();
+}
+
+void TrackTable::resizeHeaders() {
+    int width, height;
+    GetSize(&width, &height);
+
+    // automatically set some widths here after resizing
+    SetColumnWidth(0, 40);
+    SetColumnWidth(1, 0.4 * width);
+    SetColumnWidth(2, 0.3 * width);
+    SetColumnWidth(3, 0.2 * width);
+
+    Layout();
 }
 
 BEGIN_EVENT_TABLE(TrackTable, wxListCtrl)

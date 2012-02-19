@@ -344,41 +344,7 @@ wxThread::ExitCode DirTraversalThread::Entry() {
             }
         }
     }
-#if 0
-    // only display files, and TODO: use a selector, as in: only mp3, ogg, flac, etc
-    bool gotfiles = thedir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
-    // as long as more files are found, and the thread should remain active:
-    while (gotfiles && m_active) {
-        wxFileName fullFile;
-        fullFile.Assign(m_selectedPath.GetFullPath(), filename);
 
-        wxString uri = wxT("file://");
-        uri << fullFile.GetFullPath();
-
-        try {
-            TagReader t(uri);
-            // this info pointer must be deleted in the onAddTrackInfo() func
-            // we're currently making a copy of the found TrackInfo object, because
-            // of SetClientObject() and stuff.
-            TrackInfo& info = t.getTrackInfo();
-            // Make a copy on the heap, to use as a ClientObject. Must delete later!
-            TrackInfo* derp = new TrackInfo(info);
-            
-            wxCommandEvent event(naviDirTraversedEvent);
-            event.SetClientObject(derp);
-            m_parent->AddPendingEvent(event);
-        } catch (const AudioException& ex) {
-            // this exception is thrown when for instance a file is trying to
-            // be parsed when it's not a valid audio/video file. I don't want
-            // to hide the exception cause, so I'm just printing it out to 
-            // standard error.
-            std::cerr << "DirTraversalThread() err : " << ex.what() << std::endl;
-        }
-
-        // Get the next dir, if available. This is something like an iterator.
-        gotfiles = thedir.GetNext(&filename);
-    }
-#endif
     return 0;
 }
 
@@ -390,6 +356,7 @@ wxDirTraverseResult DirTraversalThread::OnFile(const wxString& filename) {
     // performance with this part.
     wxArrayString allowed;
     allowed.Add(wxT(".ogg"));
+    allowed.Add(wxT(".oga"));
     allowed.Add(wxT(".mp3"));
     allowed.Add(wxT(".aac"));
     allowed.Add(wxT(".wav"));

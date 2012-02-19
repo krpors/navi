@@ -130,6 +130,12 @@ public:
      */
     TrackInfo& getTrackInfo(int index);
 
+    /**
+     * Resizes the headers automatically based on the current size of the widget.
+     * Ideally called during every resize of the parent wxFrame, NaviMainFrame.
+     */
+    void resizeHeaders();
+
     // Plx respond to events.
     DECLARE_EVENT_TABLE()
 };

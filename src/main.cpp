@@ -223,6 +223,7 @@ wxStatusBar* NaviMainFrame::OnCreateStatusBar(int number, long style, wxWindowID
 
 void NaviMainFrame::onResize(wxSizeEvent& event) {
     Refresh();
+    m_trackTable->resizeHeaders();
     event.Skip();
 }
 
