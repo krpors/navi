@@ -39,12 +39,25 @@ namespace navi {
 
 class NaviMainFrame;
 
+
+class StreamTable: public wxListCtrl {
+private:
+public:
+    StreamTable(wxWindow* parent); 
+
+    void onResize(wxSizeEvent& event);
+
+    DECLARE_EVENT_TABLE()
+};
+
 /**
  * This DirBrowserContainer is actually the container of the DirBrowser class
  * itself, with a few additional action buttons, all neatly layed out.
  */
 class StreamBrowserContainer : public wxPanel {
 private:
+    StreamTable* m_streamTable;
+    wxPanel* createStreamPanel(wxWindow* parent);
 public:
     StreamBrowserContainer(wxWindow* parent, NaviMainFrame* frame);
 

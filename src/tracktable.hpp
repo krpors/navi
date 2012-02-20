@@ -132,9 +132,11 @@ public:
 
     /**
      * Resizes the headers automatically based on the current size of the widget.
-     * Ideally called during every resize of the parent wxFrame, NaviMainFrame.
+     * This function is called by the EVT_SIZE event handling mapping.
+     *
+     * @param event The wxSizeEvent.
      */
-    void resizeHeaders();
+    void onResize(wxSizeEvent& event);
 
     // Plx respond to events.
     DECLARE_EVENT_TABLE()

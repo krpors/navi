@@ -10,7 +10,7 @@
 
 namespace navi {
 
-// Declared in XXX.cpp
+// Declared in misc.cpp
 extern const wxEventType naviDirTraversedEvent;
 
 //================================================================================
@@ -247,7 +247,7 @@ void TrackTable::onAddTrackInfo(wxCommandEvent& event) {
     event.Skip();
 }
 
-void TrackTable::resizeHeaders() {
+void TrackTable::onResize(wxSizeEvent& event) {
     int width, height;
     GetSize(&width, &height);
 
@@ -257,7 +257,12 @@ void TrackTable::resizeHeaders() {
     SetColumnWidth(2, 0.3 * width);
     SetColumnWidth(3, 0.2 * width);
 
+    // re-layout the control, to the column sizes are actually being done.
     Layout();
+
+    // propagate this event up the chain. If we don't do this, the control
+    // will not be automatically resized.
+    event.Skip();
 }
 
 BEGIN_EVENT_TABLE(TrackTable, wxListCtrl)
@@ -265,6 +270,7 @@ BEGIN_EVENT_TABLE(TrackTable, wxListCtrl)
     EVT_LIST_ITEM_SELECTED(TrackTable::ID_TRACKTABLE, TrackTable::onSelected)
     EVT_LIST_COL_CLICK(TrackTable::ID_TRACKTABLE, TrackTable::onColumnClick)
     EVT_COMMAND(wxID_ANY, naviDirTraversedEvent, TrackTable::onAddTrackInfo)
+    EVT_SIZE(TrackTable::onResize)
 END_EVENT_TABLE()
 
 //================================================================================

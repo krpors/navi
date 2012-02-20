@@ -123,7 +123,7 @@ NaviMainFrame::NaviMainFrame() :
 
     // create a systray icon.
     m_taskBarIcon = new SystrayIcon(this);
-    wxBitmap bm(wxT("./data/icons/32x32/navi_icon.png"), wxBITMAP_TYPE_PNG);
+    wxBitmap bm(wxT("./data/icons/navi.png"), wxBITMAP_TYPE_PNG);
     wxIcon icon;
     icon.CopyFromBitmap(bm);
     m_taskBarIcon->SetIcon(icon, wxT("Navi - Hey, listen!"));
@@ -222,8 +222,9 @@ wxStatusBar* NaviMainFrame::OnCreateStatusBar(int number, long style, wxWindowID
 }
 
 void NaviMainFrame::onResize(wxSizeEvent& event) {
+    // wx quirk? If we don't call "Refresh", the wxSplitWindow's resize-handle
+    // will not refresh properly (graphical glitch).
     Refresh();
-    m_trackTable->resizeHeaders();
     event.Skip();
 }
 
