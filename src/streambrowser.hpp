@@ -43,23 +43,55 @@ class NaviMainFrame;
 class StreamTable: public wxListCtrl {
 private:
 public:
+
+    /// The window ID for this track table.
+    static const wxWindowID ID_STREAMTABLE = 1929;
+
     StreamTable(wxWindow* parent); 
 
     void onResize(wxSizeEvent& event);
+    void onActivate(wxListEvent& event);
+    void addStream(const wxString& desc, const wxString& loc);
 
     DECLARE_EVENT_TABLE()
 };
 
+
+//================================================================================
+
+class AddStreamDialog : public wxDialog {
+private:
+    wxTextCtrl* m_txtDesc;
+    wxTextCtrl* m_txtLoc;
+
+public:
+    AddStreamDialog(wxWindow* parent);
+
+
+    const wxString getDescription() const;
+    const wxString getLocation() const;
+
+};
+
+//================================================================================
 /**
  * This DirBrowserContainer is actually the container of the DirBrowser class
  * itself, with a few additional action buttons, all neatly layed out.
  */
 class StreamBrowserContainer : public wxPanel {
 private:
+    static const int ID_ADD = 1;
+    static const int ID_REMOVE = 2;
+
     StreamTable* m_streamTable;
     wxPanel* createStreamPanel(wxWindow* parent);
 public:
     StreamBrowserContainer(wxWindow* parent, NaviMainFrame* frame);
+
+    void onAdd(wxCommandEvent& event);
+    void onRemove(wxCommandEvent& event);
+
+    StreamTable* getStreamTable() const;
 
     // Events plx for the buttons hurr durr
     DECLARE_EVENT_TABLE()

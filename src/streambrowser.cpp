@@ -24,7 +24,7 @@
 namespace navi {
 
 StreamTable::StreamTable(wxWindow* parent) :
-    wxListCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
+    wxListCtrl(parent, ID_STREAMTABLE, wxDefaultPosition, wxDefaultSize, 
         wxLC_REPORT | wxLC_SINGLE_SEL | wxLC_VRULES | wxVSCROLL) {
 
     wxListItem item;
@@ -38,8 +38,8 @@ StreamTable::StreamTable(wxWindow* parent) :
     SetColumnWidth(1, 340);
 
     long index = InsertItem(item);
-    SetItem(index, 0, wxT("Fresh.FM"));
-    SetItem(index, 1, wxT("http://crap.fm"));
+    SetItem(index, 0, wxT("Digitally Imported : Vocal Trance"));
+    SetItem(index, 1, wxT("http://scfire-dtc-aa01.stream.aol.com:80/stream/1065"));
 
     SetItemData(index, index);
 }
@@ -60,13 +60,97 @@ void StreamTable::onResize(wxSizeEvent& event) {
     event.Skip();
 }
 
+void StreamTable::onActivate(wxListEvent& event) {
+    // find out what we have got in our second column:
+    long index = event.GetIndex();
+    wxListItem info;
+    info.SetId(index); // which row do we want?
+    info.SetColumn(1); // and which column?
+    GetItem(info); // now FETCH IT (in the same object instance, weiiiiiird
+
+    TagReader tr(info.GetText());
+    TrackInfo ti = tr.getTrackInfo();
+    // make copy of this trackinfo on the heap, so we can pass it as a client
+    // object in the wxListEvent for later use. We must delete it though later.
+    TrackInfo* onDaHeap = new TrackInfo(ti);
+    // We set a void* here. It's a pointer to the `onDaHeap' TrackInfo object.
+    // Later on (see the `TrackStatusHandler::onStreamActivated' function), we
+    // can cast it back to a TrackInfo* and work with it. That function must
+    // also delete that very same pointer, or else we're fucked.
+    event.SetClientObject(onDaHeap);
+
+    // make sure this event is handled by event handlers up in the chain.
+    event.Skip();
+}
+
+void StreamTable::addStream(const wxString& desc, const wxString& loc) {
+    wxListItem item;
+    long index = InsertItem(item);
+
+    SetItem(index, 0, desc);
+    SetItem(index, 1, loc);
+}
+
 BEGIN_EVENT_TABLE(StreamTable, wxListCtrl)
-    //EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackTable::onActivate)   
-    //EVT_LIST_ITEM_SELECTED(TrackTable::ID_TRACKTABLE, TrackTable::onSelected)
-    //EVT_LIST_COL_CLICK(TrackTable::ID_TRACKTABLE, TrackTable::onColumnClick)
-    //EVT_COMMAND(wxID_ANY, naviDirTraversedEvent, TrackTable::onAddTrackInfo)
+    EVT_LIST_ITEM_ACTIVATED(StreamTable::ID_STREAMTABLE, StreamTable::onActivate)   
     EVT_SIZE(StreamTable::onResize)
 END_EVENT_TABLE()
+
+//================================================================================
+
+AddStreamDialog::AddStreamDialog(wxWindow* parent) :
+        wxDialog(parent, wxID_ANY, wxT("Add new network stream")) {
+    wxBoxSizer* sizerDialog = new wxBoxSizer(wxVERTICAL);
+    SetSizer(sizerDialog);
+
+    // text fields:
+    wxPanel* panelTextFields = new wxPanel(this); 
+    wxFlexGridSizer* sizer = new wxFlexGridSizer(2, 2, 5, 5);
+    panelTextFields->SetSizer(sizer);
+
+    wxStaticText* lblDesc = new wxStaticText(panelTextFields, wxID_ANY, wxT("Description:"));
+    m_txtDesc = new wxTextCtrl(panelTextFields, wxID_ANY);
+    m_txtDesc->SetToolTip(wxT("Description of this stream"));
+    wxStaticText* lblLoc = new wxStaticText(panelTextFields, wxID_ANY, wxT("Stream location:"));
+    m_txtLoc = new wxTextCtrl(panelTextFields, wxID_ANY);
+    m_txtLoc->SetToolTip(wxT("Stream location (e.g. 'http://example.org/stream.ogg')"));
+
+    sizer->AddGrowableCol(1);
+    sizer->SetFlexibleDirection(wxHORIZONTAL);
+    
+    sizer->Add(lblDesc, wxSizerFlags().Align(wxALIGN_CENTER_VERTICAL));
+    sizer->Add(m_txtDesc, wxSizerFlags().Expand().Top());
+    sizer->Add(lblLoc, wxSizerFlags().Align(wxALIGN_CENTER_VERTICAL));
+    sizer->Add(m_txtLoc, wxSizerFlags().Expand().Bottom());
+
+    // buttons:
+    wxPanel* panelButtons = new wxPanel(this);
+    wxBoxSizer* sizerButtons = new wxBoxSizer(wxHORIZONTAL);
+    panelButtons->SetSizer(sizerButtons);
+    wxButton* btnOK = new wxButton(panelButtons, wxID_OK, wxT("Add"));
+    wxButton* btnCancel = new wxButton(panelButtons, wxID_CANCEL, wxT("Cancel"));
+
+    sizerButtons->Add(btnOK);
+    sizerButtons->Add(btnCancel);
+
+    // add all the components to the main panel sizer.
+    sizerDialog->Add(panelTextFields, wxSizerFlags().Expand().Border(wxALL, 5));
+    sizerDialog->Add(panelButtons, wxSizerFlags().Center());
+    
+    wxSize s = GetSize();
+    SetSize(s.GetWidth(), 100);
+
+    m_txtDesc->SetFocus();
+}
+
+const wxString AddStreamDialog::getDescription() const {
+    return m_txtDesc->GetValue();
+}
+
+const wxString AddStreamDialog::getLocation() const {
+    return m_txtLoc->GetValue();
+}
+
 
 //================================================================================
 
@@ -80,10 +164,10 @@ StreamBrowserContainer::StreamBrowserContainer(wxWindow* parent, NaviMainFrame* 
     wxBitmap imgAdd = wxArtProvider::GetBitmap(wxT("gtk-add"));
     wxBitmap imgDel = wxArtProvider::GetBitmap(wxT("gtk-remove"));
  
-    wxBitmapButton* btnAdd = new wxBitmapButton(panelBtns, wxID_ANY, imgAdd, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    wxBitmapButton* btnAdd = new wxBitmapButton(panelBtns, ID_ADD, imgAdd, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     btnAdd->SetToolTip(wxT("Add network stream"));
 
-    wxBitmapButton* btnDel = new wxBitmapButton(panelBtns, wxID_ANY, imgDel, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    wxBitmapButton* btnDel = new wxBitmapButton(panelBtns, ID_REMOVE, imgDel, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     btnDel->SetToolTip(wxT("Delete selected network stream"));
 
     panelBtns->SetSizer(sizerBtns);
@@ -105,12 +189,31 @@ wxPanel* StreamBrowserContainer::createStreamPanel(wxWindow* parent) {
 
     m_streamTable = new StreamTable(panel); 
     sizer->Add(m_streamTable, wxSizerFlags(1).Expand());
-
     return panel;
+}
+
+void StreamBrowserContainer::onAdd(wxCommandEvent& event) {
+    AddStreamDialog d(this);
+    if (d.ShowModal() == wxID_OK) {
+        std::cout << d.getDescription().mb_str() << std::endl;
+        std::cout << d.getLocation().mb_str() << std::endl;
+        m_streamTable->addStream(d.getDescription(), d.getLocation());
+    } else {
+        std::cout << "Cancel" << std::endl;
+    }
+}
+void StreamBrowserContainer::onRemove(wxCommandEvent& event) {
+    std::cout << "hai" << std::endl;
+}
+
+StreamTable* StreamBrowserContainer::getStreamTable() const {
+    return m_streamTable;
 }
 
 // Event table.
 BEGIN_EVENT_TABLE(StreamBrowserContainer, wxPanel)
+    EVT_BUTTON(ID_ADD, StreamBrowserContainer::onAdd)
+    EVT_BUTTON(ID_REMOVE, StreamBrowserContainer::onRemove)
 END_EVENT_TABLE()
 
 //================================================================================

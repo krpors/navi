@@ -346,7 +346,7 @@ void TrackStatusHandler::onPosChange(wxScrollEvent& event) {
     }
 }
 
-void TrackStatusHandler::onListItemActivate(wxListEvent& event) {
+void TrackStatusHandler::onTrackActivated(wxListEvent& event) {
     // 'data' holds the selected index of the list control.
     long data = event.GetData();    
     TrackTable* tt = m_mainFrame->getTrackTable();
@@ -354,6 +354,16 @@ void TrackStatusHandler::onListItemActivate(wxListEvent& event) {
     m_playedTrack = &trax;
 
     play();
+}
+
+void TrackStatusHandler::onStreamItemActivated(wxListEvent& event) {
+    TrackInfo* info = static_cast<TrackInfo*>(event.GetClientObject());
+    std::cout << (*info)[TrackInfo::GENRE].mb_str() << std::endl;
+    m_playedTrack = info;
+
+    play();
+
+    delete info;
 }
 
 void TrackStatusHandler::play() throw() {
@@ -473,7 +483,8 @@ BEGIN_EVENT_TABLE(TrackStatusHandler, wxEvtHandler)
 
     EVT_COMMAND_SCROLL(NavigationContainer::ID_MEDIA_SEEKER, TrackStatusHandler::onPosChange)
 
-    EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackStatusHandler::onListItemActivate)
+    EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackStatusHandler::onTrackActivated)
+    EVT_LIST_ITEM_ACTIVATED(StreamTable::ID_STREAMTABLE, TrackStatusHandler::onStreamItemActivated)
 
     EVT_COMMAND(wxID_ANY, NAVI_EVENT_POS_CHANGED, TrackStatusHandler::doUpdateSlider)
     EVT_COMMAND(wxID_ANY, NAVI_EVENT_STREAM_STOP, TrackStatusHandler::onStop)

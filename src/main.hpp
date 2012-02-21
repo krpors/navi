@@ -206,10 +206,12 @@ private:
     void onPosChange(wxScrollEvent& event);
 
     /**
-     * Invoked when an item is actived (i.e. double clicked, enter-ed) from the
+     * Invoked when a track is actived (i.e. double clicked, enter-ed) from the
      * track table widget.
      */
-    void onListItemActivate(wxListEvent& event);
+    void onTrackActivated(wxListEvent& event);
+
+    void onStreamItemActivated(wxListEvent& event);
 ///@}
 
 
