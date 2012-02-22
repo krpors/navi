@@ -40,8 +40,34 @@ StreamTable::StreamTable(wxWindow* parent) :
     long index = InsertItem(item);
     SetItem(index, 0, wxT("Digitally Imported : Vocal Trance"));
     SetItem(index, 1, wxT("http://scfire-dtc-aa01.stream.aol.com:80/stream/1065"));
-
     SetItemData(index, index);
+
+    index = InsertItem(item);
+    SetItem(index, 0, wxT("Invalid URI"));
+    SetItem(index, 1, wxT("asdlkjasoiuj1203"));
+    SetItemData(index, index);
+
+    index = InsertItem(item);
+    SetItem(index, 0, wxT("URI"));
+    SetItem(index, 1, wxT("http://example.org/nonexistent.mp3"));
+    SetItemData(index, index);
+}
+
+const wxString StreamTable::getCellContents(long row, long col) const {
+    wxListItem info;
+    info.SetId(row); // which row do we want?
+    info.SetColumn(col); // and which column?
+    GetItem(info); // now FETCH IT (in the same object instance, weiiiiiird
+    //std::cout << info.GetText().mb_str() << std::endl;
+    return info.GetText();
+}
+
+const wxString StreamTable::getDescription(long index) const {
+    return getCellContents(index, 0); 
+}
+
+const wxString StreamTable::getLocation(long index) const {
+    return getCellContents(index, 1); 
 }
 
 void StreamTable::onResize(wxSizeEvent& event) {
@@ -63,23 +89,35 @@ void StreamTable::onResize(wxSizeEvent& event) {
 void StreamTable::onActivate(wxListEvent& event) {
     // find out what we have got in our second column:
     long index = event.GetIndex();
-    wxListItem info;
-    info.SetId(index); // which row do we want?
-    info.SetColumn(1); // and which column?
-    GetItem(info); // now FETCH IT (in the same object instance, weiiiiiird
+    const wxString& loc = getLocation(index);
+    if (loc.IsEmpty()) {
+        std::cerr << "Location is invalid (empty)" << std::endl;
+        return;
+    }
 
-    TagReader tr(info.GetText());
-    // make copy of this trackinfo on the heap, so we can pass it as a client
-    // object in the wxListEvent for later use. We must delete it though later.
-    TrackInfo* onDaHeap = new TrackInfo(tr.getTrackInfo());
-    // We set a void* here. It's a pointer to the `onDaHeap' TrackInfo object.
-    // Later on (see the `TrackStatusHandler::onStreamActivated' function), we
-    // can cast it back to a TrackInfo* and work with it. That function must
-    // also delete that very same pointer, or else we're fucked.
-    event.SetClientObject(onDaHeap);
+    try {
+        TagReader tr(loc);
+        // make copy of this trackinfo on the heap, so we can pass it as a client
+        // object in the wxListEvent for later use. We must delete it though later.
+        TrackInfo& tinfo = tr.getTrackInfo();
+        tinfo[TrackInfo::TITLE] = getDescription(index);
+        tinfo[TrackInfo::ALBUM] = loc;
+        TrackInfo* onDaHeap = new TrackInfo(tinfo);
+        // We set a void* here. It's a pointer to the `onDaHeap' TrackInfo object.
+        // Later on (see the `TrackStatusHandler::onStreamActivated' function), we
+        // can cast it back to a TrackInfo* and work with it. That function must
+        // also delete that very same pointer, or else we're fucked.
+        event.SetClientObject(onDaHeap);
 
-    // make sure this event is handled by event handlers up in the chain.
-    event.Skip();
+        // make sure this event is handled by event handlers up in the chain.
+        event.Skip();
+    } catch (AudioException& ex) {
+        wxString msg;
+        msg << wxT("Unable to open the URL `") << loc << wxT("'.\n\n");
+        msg << wxT("GStreamer error description:\n") << ex.getAsWxString();
+        wxMessageDialog dlg(this, msg, wxT("Error"), wxICON_ERROR | wxOK);
+        dlg.ShowModal();
+    }
 }
 
 void StreamTable::addStream(const wxString& desc, const wxString& loc) {

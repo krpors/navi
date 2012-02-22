@@ -166,14 +166,14 @@ wxPanel* NaviMainFrame::createDirBrowserPanel(wxWindow* parent) {
 
     // directory browser (left side)
     wxString directory;
-    prefs->Read(NaviPreferences::MEDIA_DIRECTORY, &directory, wxT("/"));
+    wxStandardPaths stdpath; 
+    prefs->Read(NaviPreferences::MEDIA_DIRECTORY, &directory, stdpath.GetUserConfigDir());
     m_dirBrowser = new DirBrowserContainer(split, this);
     m_dirBrowser->getDirBrowser()->setBase(directory);
     m_dirBrowser->getDirBrowser()->setFilesVisible(false);
 
     // track table (right side)
     m_trackTable = new TrackTable(split);
-
 
     // FIXME: all of a sudden, setting the MINIMUM pane size to 20, explicitly
     // sets the actual pane size to 20... Thats why I increased it to 200, or else...
@@ -335,6 +335,12 @@ void TrackStatusHandler::onNext(wxCommandEvent& event) {
 }
 
 void TrackStatusHandler::onPosChange(wxScrollEvent& event) {
+    // only allow scrolling if not a stream.
+    if (m_pipelineType == PIPELINE_STREAM) {
+        return;
+    }
+
+    // else, allow position seeking.
     m_scrolling = true;
     if (event.GetEventType() == wxEVT_SCROLL_CHANGED) {
         if (m_pipeline != NULL) {
@@ -345,6 +351,8 @@ void TrackStatusHandler::onPosChange(wxScrollEvent& event) {
 }
 
 void TrackStatusHandler::onTrackActivated(wxListEvent& event) {
+    m_pipelineType = PIPELINE_TRACK;
+
     // 'data' holds the selected index of the list control.
     long data = event.GetData();    
     TrackTable* tt = m_mainFrame->getTrackTable();
@@ -355,8 +363,9 @@ void TrackStatusHandler::onTrackActivated(wxListEvent& event) {
 }
 
 void TrackStatusHandler::onStreamItemActivated(wxListEvent& event) {
+    m_pipelineType = PIPELINE_STREAM;
+
     TrackInfo* info = static_cast<TrackInfo*>(event.GetClientObject());
-    std::cout << (*info)[TrackInfo::GENRE].mb_str() << std::endl;
     m_playedTrack = *info;
 
     play();
@@ -402,10 +411,15 @@ void TrackStatusHandler::play() throw() {
 
     m_pipeline->play();
     nav->setStopButtonEnabled(true);
-    nav->setPlayPauseButtonEnabled(true);
     nav->setPauseVisible();
     nav->setTrack(m_playedTrack);
-    nav->setSeekerValues(0, m_pipeline->getDurationSeconds(), true);
+    if (m_pipelineType == PIPELINE_STREAM) {
+        nav->setSeekerValues(0, 1, false);
+        nav->setPlayPauseButtonEnabled(false);
+    } else {
+        nav->setSeekerValues(0, m_pipeline->getDurationSeconds(), true);
+        nav->setPlayPauseButtonEnabled(true);
+    }
 }
 
 void TrackStatusHandler::unpause() throw() {
@@ -462,6 +476,7 @@ void TrackStatusHandler::pipelinePosChanged(Pipeline* const pipeline, unsigned i
     StreamPositionData* d = new StreamPositionData(pos, len);
     evt.SetClientObject(d);
     AddPendingEvent(evt);
+    // this will in turn call doUpdateSlider.
 }
 
 void TrackStatusHandler::doUpdateSlider(wxCommandEvent& evt) {
@@ -470,8 +485,11 @@ void TrackStatusHandler::doUpdateSlider(wxCommandEvent& evt) {
     // !m_scrolling determines whether we are currently dragging the slider.
     // If so, do not dynamically update the seeker values.
     if (derpity != NULL && !m_scrolling) {
-       NavigationContainer* nav = m_mainFrame->getNavigationContainer();
-       nav->setSeekerValues(derpity->m_pos, derpity->m_max);
+        if (m_pipelineType == PIPELINE_STREAM) {
+        } else {
+            NavigationContainer* nav = m_mainFrame->getNavigationContainer();
+            nav->setSeekerValues(derpity->m_pos, derpity->m_max);
+        }
     }
     delete derpity;
 }

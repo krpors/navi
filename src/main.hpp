@@ -156,9 +156,15 @@ public:
  */
 class TrackStatusHandler : public wxEvtHandler, public PipelineListener {
 private:
+    const static unsigned short PIPELINE_STREAM = 0;
+    const static unsigned short PIPELINE_TRACK = 1;
+
+
     /// Boolean to indicate whether we are currently scrolling with the
     /// slider. XXX: this may be a butt fugly hack!?!?! BUT WORKS
     bool m_scrolling;
+
+    unsigned short m_pipelineType;
 
     /// The main frame of the application.
     NaviMainFrame* m_mainFrame;

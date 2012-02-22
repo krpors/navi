@@ -215,7 +215,10 @@ void Pipeline::stop() throw() {
         GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE);
 
     if (!seekSuccess) {
-        std::cerr << "Seek failed!" << std::endl;
+        // XXX: seek always fails when a stream is stopped. Obviously though,
+        // since we can not 'seek' to the start of the stream. It's no biggie
+        // though, but annoying if you keep seeing it. Let's hide it for now...
+        //std::cerr << "Seek failed!" << std::endl;
     }
 }
 
@@ -237,8 +240,6 @@ const wxString& Pipeline::getLocation() const throw() {
 void Pipeline::seekSeconds(const unsigned int seconds) throw(AudioException) {
     // default pipeline implementation allows seeking in a file
     
-    // FIXME: find out why seeking does not work in my xubuntu lappy toppy.
-    // No exception is thrown, it just 'does not work'...
     gboolean success = gst_element_seek 
         (m_pipeline, 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH,
         GST_SEEK_TYPE_SET, seconds * GST_SECOND, GST_SEEK_TYPE_NONE, 
@@ -689,7 +690,7 @@ void TagReader::initTags() throw(AudioException) {
 
 void TagReader::init() throw (AudioException) {
     // Element uridecodebin (gst-inspect uridecodebin)
-    m_uridecodebin= gst_element_factory_make("uridecodebin", NULL);
+    m_uridecodebin = gst_element_factory_make("uridecodebin", NULL);
     if (!m_uridecodebin) {
         throw AudioException(wxT("Failed to create `uridecodebin' GST element"));
     }

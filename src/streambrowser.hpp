@@ -42,12 +42,16 @@ class NaviMainFrame;
 
 class StreamTable: public wxListCtrl {
 private:
+    const wxString getCellContents(long row, long col) const;
 public:
 
     /// The window ID for this track table.
     static const wxWindowID ID_STREAMTABLE = 1929;
 
     StreamTable(wxWindow* parent); 
+
+    const wxString getDescription(long index) const;
+    const wxString getLocation(long index) const;
 
     void onResize(wxSizeEvent& event);
     void onActivate(wxListEvent& event);
