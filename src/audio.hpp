@@ -140,6 +140,8 @@ private:
 
     std::vector<PipelineListener*> m_listeners;
 
+    static void handleTags(const GstTagList* list, const gchar* tag, gpointer userdata);
+
 protected:
     /// The location of the file or stream to play.
     wxString m_location;

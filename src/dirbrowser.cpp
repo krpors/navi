@@ -147,7 +147,9 @@ void DirBrowser::onActivateItem(wxTreeEvent& event) {
     wxTreeItemId item = event.GetItem();
 
     // Highlight the current item.
-    SetItemBold(m_currentActiveItem, false);
+    if (m_currentActiveItem.IsOk()) {
+        SetItemBold(m_currentActiveItem, false);
+    }
     m_currentActiveItem = item;
     SetItemBold(m_currentActiveItem, true);
     // Refresh the wxWindow (will display teh boldness lulz)

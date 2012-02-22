@@ -181,10 +181,26 @@ gboolean Pipeline::busWatcher(GstBus* bus, GstMessage* message, gpointer userdat
         g_error_free (error);
     } else if (type == GST_MESSAGE_TAG) {
         // TODO: live stream publishes messages here:
-        //std::cout << "Found a tag message: " << type << std::endl;
+        std::cout << "Found a tag message." << std::endl;
+        GstTagList* tags = NULL;
+        gst_message_parse_tag (message, &tags);
+        gst_tag_list_foreach(tags, handleTags, userdata);
+        gst_tag_list_free (tags);
+    } else if (type == GST_MESSAGE_BUFFERING) {
+        //std::cout << "Everybody's bufferin'" << std::endl;
     }
   
     return true;
+}
+
+void Pipeline::handleTags(const GstTagList* list, const gchar* tag, gpointer userdata) {
+    Pipeline* pipeline = static_cast<Pipeline*>(userdata);
+
+    std::cout << "Handling tag: " << tag << std::endl;
+    gchar* title;
+    if (gst_tag_list_get_string(list, TrackInfo::TITLE, &title)) {
+        std::cout << "The actual title is " << title << std::endl;
+    } 
 }
 
 void Pipeline::play() throw() {
