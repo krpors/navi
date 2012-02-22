@@ -524,6 +524,12 @@ const wxString& TrackInfo::getLocation() {
     return m_location;
 }
 
+bool TrackInfo::isValid() const {
+    return m_location.IsEmpty();
+}
+
+
+
 //==============================================================================
 
 
@@ -717,7 +723,6 @@ void TagReader::setTrackInfo(const TrackInfo& trackinfo) {
 TrackInfo& TagReader::getTrackInfo() {
     return m_trackInfo;
 }
-
 
 
 } // namespace pl

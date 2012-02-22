@@ -114,12 +114,12 @@ void TrackTable::addTrackInfo(TrackInfo& info) {
     m_trackInfos.push_back(info);
 }
 
-TrackInfo* TrackTable::getSelectedItem() throw() {
+TrackInfo TrackTable::getSelectedItem() throw() {
     // m_selectedItem may be NULL.
     return m_selectedItem;
 }
 
-TrackInfo* TrackTable::getTrackBeforeOrAfterCurrent(int pos, bool markAsPlaying) throw() {
+TrackInfo TrackTable::getTrackBeforeOrAfterCurrent(int pos, bool markAsPlaying) throw() {
     // Magic happens here. Iterate over the current displayed items (sorted).
     // Then figure out which one is playing right now (by checking the current
     // track item index with the GetItemData() result). Once we find it, get the
@@ -150,19 +150,20 @@ TrackInfo* TrackTable::getTrackBeforeOrAfterCurrent(int pos, bool markAsPlaying)
                 m_currTrackItemIndex = nextData;
             }
             TrackInfo nextx = m_trackInfos[nextData];
-            return &m_trackInfos[nextData];
+            return m_trackInfos[nextData];
         }
     }
 
     // XXX: return none??
-    return NULL;
+    TrackInfo emptyone;
+    return emptyone;
 }
 
-TrackInfo* TrackTable::getPrev(bool markAsPlaying) throw() {
+TrackInfo TrackTable::getPrev(bool markAsPlaying) throw() {
     return getTrackBeforeOrAfterCurrent(-1, markAsPlaying);
 }
 
-TrackInfo* TrackTable::getNext(bool markAsPlaying) throw() {
+TrackInfo TrackTable::getNext(bool markAsPlaying) throw() {
     return getTrackBeforeOrAfterCurrent(1, markAsPlaying);
 }
 
@@ -227,7 +228,7 @@ void TrackTable::onSelected(wxListEvent& event) {
     long data = event.GetData();
     TrackInfo& info = getTrackInfo(data);
     // assign the address of this thing as the selected item.
-    m_selectedItem = &info;
+    m_selectedItem = info;
 }
 
 void TrackTable::onAddTrackInfo(wxCommandEvent& event) {

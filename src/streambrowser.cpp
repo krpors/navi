@@ -69,10 +69,9 @@ void StreamTable::onActivate(wxListEvent& event) {
     GetItem(info); // now FETCH IT (in the same object instance, weiiiiiird
 
     TagReader tr(info.GetText());
-    TrackInfo ti = tr.getTrackInfo();
     // make copy of this trackinfo on the heap, so we can pass it as a client
     // object in the wxListEvent for later use. We must delete it though later.
-    TrackInfo* onDaHeap = new TrackInfo(ti);
+    TrackInfo* onDaHeap = new TrackInfo(tr.getTrackInfo());
     // We set a void* here. It's a pointer to the `onDaHeap' TrackInfo object.
     // Later on (see the `TrackStatusHandler::onStreamActivated' function), we
     // can cast it back to a TrackInfo* and work with it. That function must

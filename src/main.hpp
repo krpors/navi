@@ -163,11 +163,10 @@ private:
     /// The main frame of the application.
     NaviMainFrame* m_mainFrame;
 
-    /// The currently played track. May be null. Don't delete. It's a pointer
-    /// to a TrackInfo from the TrackTable. The TrackTable will delete it.
-    /// XXX: inspect of this pointer-to-tracktable-trackinfo is robust... I
-    /// suspect NOT, since it may be deleted by DeleteAllItems()
-    TrackInfo* m_playedTrack;
+    /// So... that pointer thing wasn't robust at all. We're just now passing
+    /// TrackInfos as references, or just plain copies. We can use the isValid
+    /// on this instance to check whether we are 'able' to play it.
+    TrackInfo m_playedTrack;
 
     /// Pipeline with the current song.
     GenericPipeline* m_pipeline;

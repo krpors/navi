@@ -59,7 +59,7 @@ private:
     /// Executed when track info is about to be added (from another thread).
     void onAddTrackInfo(wxCommandEvent& event);
 
-    TrackInfo* getTrackBeforeOrAfterCurrent(int pos, bool markAsPlaying) throw();
+    TrackInfo getTrackBeforeOrAfterCurrent(int pos, bool markAsPlaying) throw();
 
     void markPlayedTrack(long oldItemId, long newItemId) throw();
 
@@ -71,7 +71,7 @@ private:
     static int wxCALLBACK compareAlbum(long item1, long item2, long sortData);
 
     /// The current selected item. May be NULL. Don't destroy this thing.
-    TrackInfo* m_selectedItem;
+    TrackInfo m_selectedItem;
 
     /// The current track item index (in the vector)
     long m_currTrackItemIndex;
@@ -103,17 +103,17 @@ public:
      * Gets the current (possibly) selected track. It may return a null
      * pointer, if nothing has been selected.
      */
-    TrackInfo* getSelectedItem() throw();
+    TrackInfo getSelectedItem() throw();
 
     /**
      * Get the previous track in line.
      */
-    TrackInfo* getPrev(bool markAsPlaying = false) throw();
+    TrackInfo getPrev(bool markAsPlaying = false) throw();
 
     /**
      * Get the next track in line.
      */
-    TrackInfo* getNext(bool markAsPlaying = false) throw();
+    TrackInfo getNext(bool markAsPlaying = false) throw();
 
     /**
      * Override from wxListCtrl. In addition to deleting the items from the list

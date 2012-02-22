@@ -503,6 +503,18 @@ public:
      * @return The track's location TODO: (URI only? File abs path only?)
      */
     const wxString& getLocation();
+
+    /**
+     * Returns true if the TrackInfo is `valid'. This means it can be played
+     * because the location actually has content. So this means this is just
+     * a simple proxy for TrackInfo.getLocation().IsEmpty(). It's actually 
+     * more clear to read that using `isValid()' than comparing the emptiness
+     * of the string.
+     *
+     * @return true when the location is filled, false if otherwise. If false
+     *  is returned, this is a signal to you to NOT attempt to play this, etc.
+     */
+    bool isValid() const;
 };
 
 //================================================================================

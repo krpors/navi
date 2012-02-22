@@ -102,33 +102,29 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
     setSeekerValues(0, 1, false);
 }
 
-void NavigationContainer::setTrack(TrackInfo* info) {
-    if (info == NULL) {
+void NavigationContainer::setTrack(TrackInfo& info) {
+    if (info.isValid()) {
         m_txtTrackTitle->SetLabel(wxT("Nothing played"));
         m_txtArtistAlbum->SetLabel(wxT("-"));
         return;
     }
 
-    // past this point, info must not be null, captain obvious.
-    wxASSERT(info != NULL);
-
-    TrackInfo derp = *info;
-    if (derp[TrackInfo::TITLE].IsEmpty()) {
+    if (info[TrackInfo::TITLE].IsEmpty()) {
         wxString s(wxT("(no tag) "));
-        s.Append(derp.getLocation());
+        s.Append(info.getLocation());
 
         m_txtTrackTitle->SetLabel(s);
     } else {
-        m_txtTrackTitle->SetLabel(derp[TrackInfo::TITLE]);
+        m_txtTrackTitle->SetLabel(info[TrackInfo::TITLE]);
     }
 
     wxString alb;
-    alb.Append(derp[TrackInfo::ARTIST]);
+    alb.Append(info[TrackInfo::ARTIST]);
     alb.Append(wxT(" from "));
-    if (derp[TrackInfo::ALBUM].IsEmpty()) {
+    if (info[TrackInfo::ALBUM].IsEmpty()) {
         alb.Append(wxT("unknown album"));
     } else {
-        alb.Append(derp[TrackInfo::ALBUM]);
+        alb.Append(info[TrackInfo::ALBUM]);
     }
     m_txtArtistAlbum->SetLabel(alb);
 

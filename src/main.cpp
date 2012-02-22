@@ -289,7 +289,7 @@ END_EVENT_TABLE()
 
 TrackStatusHandler::TrackStatusHandler(NaviMainFrame* frame) throw() :
         m_mainFrame(frame),
-        m_playedTrack(NULL),
+        //m_playedTrack(NULL),
         m_pipeline(NULL) {
 }
 
@@ -317,9 +317,8 @@ void TrackStatusHandler::onStop(wxCommandEvent& event) {
 
 void TrackStatusHandler::onPrev(wxCommandEvent& event) {
     TrackTable* tt = m_mainFrame->getTrackTable();
-    TrackInfo* info = tt->getPrev(true);
-    // prevent segfaults here pl0x
-    if (info != NULL) {
+    TrackInfo info = tt->getPrev(true);
+    if (!info.isValid()) {
         m_playedTrack = info;
         play();
     }
@@ -327,9 +326,8 @@ void TrackStatusHandler::onPrev(wxCommandEvent& event) {
 
 void TrackStatusHandler::onNext(wxCommandEvent& event) {
     TrackTable* tt = m_mainFrame->getTrackTable();
-    TrackInfo* info = tt->getNext(true);
-    // prevent segfaults here pl0x
-    if (info != NULL) {
+    TrackInfo info = tt->getNext(true);
+    if (!info.isValid()) {
         std::cout << "Invoked by wxThread." << std::endl;
         m_playedTrack = info;
         play();
@@ -350,8 +348,8 @@ void TrackStatusHandler::onTrackActivated(wxListEvent& event) {
     // 'data' holds the selected index of the list control.
     long data = event.GetData();    
     TrackTable* tt = m_mainFrame->getTrackTable();
-    TrackInfo& trax = tt->getTrackInfo(data);
-    m_playedTrack = &trax;
+    TrackInfo trax = tt->getTrackInfo(data);
+    m_playedTrack = trax;
 
     play();
 }
@@ -359,7 +357,7 @@ void TrackStatusHandler::onTrackActivated(wxListEvent& event) {
 void TrackStatusHandler::onStreamItemActivated(wxListEvent& event) {
     TrackInfo* info = static_cast<TrackInfo*>(event.GetClientObject());
     std::cout << (*info)[TrackInfo::GENRE].mb_str() << std::endl;
-    m_playedTrack = info;
+    m_playedTrack = *info;
 
     play();
 
@@ -367,12 +365,14 @@ void TrackStatusHandler::onStreamItemActivated(wxListEvent& event) {
 }
 
 void TrackStatusHandler::play() throw() {
-    wxASSERT(m_playedTrack != NULL);
+    if (m_playedTrack.isValid()) {
+        wxLogMessage(wxT("Houston, meet Problem."));
+    }
 
     NavigationContainer* nav = m_mainFrame->getNavigationContainer();
     
     // m_playedTrack CAN BE NULL, not sure??
-    const wxString& loc = m_playedTrack->getLocation();
+    const wxString& loc = m_playedTrack.getLocation();
     if (m_pipeline != NULL) {
         // if a pipeline already exists, stop it, delete it, nullify it, and
         // start a new pipeline.
@@ -435,7 +435,8 @@ void TrackStatusHandler::stop() throw() {
         nav->setPlayPauseButtonEnabled(false);
         nav->setPlayVisible();
         nav->setSeekerValues(0, 1, false);
-        nav->setTrack(NULL); // this will reset the 'display'.
+        TrackInfo empty;
+        nav->setTrack(empty); // this will reset the 'display'.
 
         // same story as play(): mutexes.
         s_pipelineListenerMutex.Lock(); 
