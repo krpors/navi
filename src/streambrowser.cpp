@@ -51,6 +51,15 @@ StreamTable::StreamTable(wxWindow* parent) :
     SetItem(index, 0, wxT("URI"));
     SetItem(index, 1, wxT("http://example.org/nonexistent.mp3"));
     SetItemData(index, index);
+
+    StreamConfiguration sc;
+    std::vector<std::pair<wxString, wxString> >::iterator it;
+    it = sc.getStreams().begin();
+    while(it < sc.getStreams().end()) {
+        std::pair<wxString, wxString> p = *it;
+        addStream(p.first, p.second);
+        it++;
+    }
 }
 
 const wxString StreamTable::getCellContents(long row, long col) const {
@@ -126,6 +135,8 @@ void StreamTable::addStream(const wxString& desc, const wxString& loc) {
 
     SetItem(index, 0, desc);
     SetItem(index, 1, loc);
+
+    // save it to file
 }
 
 BEGIN_EVENT_TABLE(StreamTable, wxListCtrl)

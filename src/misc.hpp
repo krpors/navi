@@ -20,11 +20,16 @@
 #ifndef MISC_HPP 
 #define MISC_HPP 
 
+#include <vector>
+#include <utility> // for pair
+
 #include <wx/wx.h>
+#include <wx/xml/xml.h>
 #include <wx/fileconf.h>
 #include <wx/wfstream.h>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
+
 namespace navi {
 
 // Utility functions etc. first:
@@ -34,6 +39,27 @@ namespace navi {
  * @param seconds The amount of seconds to format.
  */
 const wxString formatSeconds(int seconds);
+
+//================================================================================
+
+class StreamConfiguration {
+private:
+    std::vector<std::pair<wxString, wxString> > m_streams;
+
+    wxFileName m_naviDir;
+    wxFileName m_configFile;
+
+    void createInitialConfig();
+public:
+    static const wxString CONFIG_FILE;
+
+    StreamConfiguration();
+
+    void load();
+    void save();
+    void addStream(const wxString& desc, const wxString& loc);
+    std::vector<std::pair<wxString, wxString> > getStreams() const;
+};
 
 //================================================================================
 

@@ -50,6 +50,91 @@ const wxString formatSeconds(int secs) {
 
 //================================================================================
 
+const wxString StreamConfiguration::CONFIG_FILE = wxT("streams");
+
+StreamConfiguration::StreamConfiguration() {
+    // get the standard base path, and make a path with the configuration file.
+    wxStandardPathsBase& wxsp = wxStandardPaths::Get();
+
+    m_naviDir = wxFileName(wxsp.GetUserConfigDir(), wxT(".navi"));
+    // check if the .navi dir exists. If not, create it.
+    if (!wxDirExists(m_naviDir.GetFullPath())) {
+        wxMkdir(m_naviDir.GetFullPath());
+    } 
+
+    m_configFile = wxFileName(m_naviDir.GetFullPath(), CONFIG_FILE);
+    if(!wxFileExists(m_configFile.GetFullPath())) {
+        createInitialConfig();
+    } else {
+        load();
+    }
+}
+
+void StreamConfiguration::createInitialConfig() {
+    wxXmlDocument doc;
+    wxXmlNode* root = new wxXmlNode(NULL, wxXML_ELEMENT_NODE, wxT("stream-configuration"));
+    doc.SetRoot(root);
+    doc.Save(m_configFile.GetFullPath());
+}
+
+void StreamConfiguration::load() {
+    m_streams.clear(); // empty the vector
+
+    wxXmlDocument doc;
+    doc.Load(m_configFile.GetFullPath());
+    wxXmlNode* streams = doc.GetRoot()->GetChildren();
+    while(streams != NULL) {
+        if (streams->GetName() == wxT("stream")) {
+            wxString desc = streams->GetPropVal(wxT("description"), wxT(""));
+            wxString loc  = streams->GetPropVal(wxT("location"), wxT(""));
+
+            std::pair<wxString, wxString> p(desc,loc);
+            m_streams.push_back(p);
+        }
+
+        streams = streams->GetNext();
+    }
+}
+
+void StreamConfiguration::save() {
+    std::cout << "save" << std::endl;
+    wxXmlDocument doc;
+    wxXmlNode* root = new wxXmlNode(NULL, wxXML_ELEMENT_NODE, wxT("stream-configuration"));
+
+    std::vector<std::pair<wxString, wxString> >::iterator it;
+    it = m_streams.begin();
+    while(it < m_streams.end()) {
+        std::pair<wxString, wxString> meh = *it;
+
+        std::cout << meh.first.mb_str() << std::endl; 
+        std::cout << meh.second.mb_str() << std::endl; 
+
+        wxXmlNode* stream = new wxXmlNode(NULL, wxXML_ELEMENT_NODE, wxT("stream"));
+
+        stream->AddProperty(wxT("description"), meh.first);
+        stream->AddProperty(wxT("location"), meh.second);
+
+        root->AddChild(stream);
+
+        it++;
+    }
+
+    doc.SetRoot(root);
+
+    doc.Save(m_configFile.GetFullPath());
+}
+
+void StreamConfiguration::addStream(const wxString& desc, const wxString& loc) {
+    std::pair<wxString, wxString> p(desc,loc);
+    m_streams.push_back(p);
+}
+
+std::vector<std::pair<wxString, wxString> > StreamConfiguration::getStreams() const {
+    return m_streams;
+}
+
+//================================================================================
+
 const wxString NaviPreferences::CONFIG_FILE      = wxT("preferences");
 const wxString NaviPreferences::MINIMIZE_TO_TRAY = wxT("/NaviPreferences/MinimizeToTray");
 const wxString NaviPreferences::ASK_ON_EXIT      = wxT("/NaviPreferences/AskOnExit");

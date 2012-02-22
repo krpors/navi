@@ -63,7 +63,6 @@ bool NaviApp::OnInit() {
     SetTopWindow(frame);
 
     //Test* t = new Test;
-
     return true;
 }
 
@@ -166,7 +165,7 @@ wxPanel* NaviMainFrame::createDirBrowserPanel(wxWindow* parent) {
 
     // directory browser (left side)
     wxString directory;
-    wxStandardPaths stdpath; 
+    wxStandardPathsBase& stdpath = wxStandardPaths::Get();
     prefs->Read(NaviPreferences::MEDIA_DIRECTORY, &directory, stdpath.GetUserConfigDir());
     m_dirBrowser = new DirBrowserContainer(split, this);
     m_dirBrowser->getDirBrowser()->setBase(directory);

@@ -57,6 +57,9 @@ public:
     void onActivate(wxListEvent& event);
     void addStream(const wxString& desc, const wxString& loc);
 
+    void saveToFile();
+    void loadFromFile();
+
     DECLARE_EVENT_TABLE()
 };
 
