@@ -58,7 +58,7 @@ public:
     void load();
     void save();
     void addStream(const wxString& desc, const wxString& loc);
-    std::vector<std::pair<wxString, wxString> > getStreams() const;
+    std::vector<std::pair<wxString, wxString> >& getStreams();
 };
 
 //================================================================================

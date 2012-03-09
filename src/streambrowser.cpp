@@ -23,6 +23,9 @@
 
 namespace navi {
 
+// TODO: delete multiple items by multiple selection. Has some tricky
+// method, because of shifting indexes during deletion.
+
 StreamTable::StreamTable(wxWindow* parent) :
     wxListCtrl(parent, ID_STREAMTABLE, wxDefaultPosition, wxDefaultSize, 
         wxLC_REPORT | wxLC_SINGLE_SEL | wxLC_VRULES | wxVSCROLL) {
@@ -37,29 +40,7 @@ StreamTable::StreamTable(wxWindow* parent) :
     InsertColumn(1, item);
     SetColumnWidth(1, 340);
 
-    long index = InsertItem(item);
-    SetItem(index, 0, wxT("Digitally Imported : Vocal Trance"));
-    SetItem(index, 1, wxT("http://scfire-dtc-aa01.stream.aol.com:80/stream/1065"));
-    SetItemData(index, index);
-
-    index = InsertItem(item);
-    SetItem(index, 0, wxT("Invalid URI"));
-    SetItem(index, 1, wxT("asdlkjasoiuj1203"));
-    SetItemData(index, index);
-
-    index = InsertItem(item);
-    SetItem(index, 0, wxT("URI"));
-    SetItem(index, 1, wxT("http://example.org/nonexistent.mp3"));
-    SetItemData(index, index);
-
-    StreamConfiguration sc;
-    std::vector<std::pair<wxString, wxString> >::iterator it;
-    it = sc.getStreams().begin();
-    while(it < sc.getStreams().end()) {
-        std::pair<wxString, wxString> p = *it;
-        addStream(p.first, p.second);
-        it++;
-    }
+    loadFromFile();
 }
 
 const wxString StreamTable::getCellContents(long row, long col) const {
@@ -67,7 +48,6 @@ const wxString StreamTable::getCellContents(long row, long col) const {
     info.SetId(row); // which row do we want?
     info.SetColumn(col); // and which column?
     GetItem(info); // now FETCH IT (in the same object instance, weiiiiiird
-    //std::cout << info.GetText().mb_str() << std::endl;
     return info.GetText();
 }
 
@@ -135,8 +115,38 @@ void StreamTable::addStream(const wxString& desc, const wxString& loc) {
 
     SetItem(index, 0, desc);
     SetItem(index, 1, loc);
+}
 
-    // save it to file
+void StreamTable::removeSelectedStream() {
+    // TODO: code this.
+    long item = -1;
+    item = GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    if (item >= 0) {
+        DeleteItem(item);
+    }
+}
+
+void StreamTable::saveToFile() {
+    StreamConfiguration sc;
+    for(int i = 0; i < GetItemCount(); i++) {
+        wxString desc = getDescription(i);
+        wxString loca = getLocation(i);
+        sc.addStream(desc, loca);
+    }
+
+    sc.save();
+}
+
+void StreamTable::loadFromFile() {
+    StreamConfiguration sc;
+    sc.load(); // load configured streams
+    std::vector<std::pair<wxString, wxString> >::iterator it;
+    it = sc.getStreams().begin();
+    while(it < sc.getStreams().end()) {
+        std::pair<wxString, wxString> p = *it;
+        addStream(p.first, p.second);
+        it++;
+    }
 }
 
 BEGIN_EVENT_TABLE(StreamTable, wxListCtrl)
@@ -246,12 +256,14 @@ void StreamBrowserContainer::onAdd(wxCommandEvent& event) {
         std::cout << d.getDescription().mb_str() << std::endl;
         std::cout << d.getLocation().mb_str() << std::endl;
         m_streamTable->addStream(d.getDescription(), d.getLocation());
+        m_streamTable->saveToFile();
     } else {
         std::cout << "Cancel" << std::endl;
     }
 }
 void StreamBrowserContainer::onRemove(wxCommandEvent& event) {
-    std::cout << "hai" << std::endl;
+    m_streamTable->removeSelectedStream();
+    m_streamTable->saveToFile();
 }
 
 StreamTable* StreamBrowserContainer::getStreamTable() const {

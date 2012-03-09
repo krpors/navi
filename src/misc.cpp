@@ -65,9 +65,7 @@ StreamConfiguration::StreamConfiguration() {
     m_configFile = wxFileName(m_naviDir.GetFullPath(), CONFIG_FILE);
     if(!wxFileExists(m_configFile.GetFullPath())) {
         createInitialConfig();
-    } else {
-        load();
-    }
+    } 
 }
 
 void StreamConfiguration::createInitialConfig() {
@@ -88,12 +86,12 @@ void StreamConfiguration::load() {
             wxString desc = streams->GetPropVal(wxT("description"), wxT(""));
             wxString loc  = streams->GetPropVal(wxT("location"), wxT(""));
 
-            std::pair<wxString, wxString> p(desc,loc);
-            m_streams.push_back(p);
+            addStream(desc, loc);
         }
 
         streams = streams->GetNext();
     }
+    std::cout << std::endl;
 }
 
 void StreamConfiguration::save() {
@@ -105,9 +103,6 @@ void StreamConfiguration::save() {
     it = m_streams.begin();
     while(it < m_streams.end()) {
         std::pair<wxString, wxString> meh = *it;
-
-        std::cout << meh.first.mb_str() << std::endl; 
-        std::cout << meh.second.mb_str() << std::endl; 
 
         wxXmlNode* stream = new wxXmlNode(NULL, wxXML_ELEMENT_NODE, wxT("stream"));
 
@@ -129,7 +124,7 @@ void StreamConfiguration::addStream(const wxString& desc, const wxString& loc) {
     m_streams.push_back(p);
 }
 
-std::vector<std::pair<wxString, wxString> > StreamConfiguration::getStreams() const {
+std::vector<std::pair<wxString, wxString> >& StreamConfiguration::getStreams() {
     return m_streams;
 }
 
