@@ -84,22 +84,35 @@ public:
 
 //================================================================================
 /**
- * This DirBrowserContainer is actually the container of the DirBrowser class
- * itself, with a few additional action buttons, all neatly layed out.
+ * This StreamBrowserContainer is actually the container of the
+ * StreamBrowser  itself, with a few additional action buttons, all neatly layed out.
  */
 class StreamBrowserContainer : public wxPanel {
 private:
     static const int ID_ADD = 1;
     static const int ID_REMOVE = 2;
 
+    /// StreamTable instance point0r
     StreamTable* m_streamTable;
+
+    /// Creates the stream addition and table panel.
     wxPanel* createStreamPanel(wxWindow* parent);
 public:
     StreamBrowserContainer(wxWindow* parent, NaviMainFrame* frame);
 
+    /**
+     * Invoked when a stream is added by clicking the + button.
+     */
     void onAdd(wxCommandEvent& event);
+
+    /**
+     * Invoked when a stream is removed by clicking the + button.
+     */
     void onRemove(wxCommandEvent& event);
 
+    /**
+     * Returns the streamtable.
+     */
     StreamTable* getStreamTable() const;
 
     // Events plx for the buttons hurr durr
