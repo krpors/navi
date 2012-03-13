@@ -89,6 +89,93 @@ public:
 
 //================================================================================
 
+/**
+ * TrackInfo is a simple class for holding data of a track. It does not provide
+ * pipeline capabilities like the TagReader. This class encapsulates a location
+ * (file) and an std::map containing the information of a track. This data used
+ * to be residing inside TagReader, but like this it's more lightweight and can
+ * be used in user interfaces as well. For instance, when lots of files have to
+ * be tag-parsed, and displayed. I will not 'risk' adding lots of GST elements 
+ * to user interface widgets.
+ */
+class TrackInfo : public wxClientData {
+private:
+    /// Map with tag and value mapping.
+    std::map<const char*, wxString> m_tags;
+
+    /// Location of the track on HD
+    wxString m_location;
+
+public:
+    /// Title of the stream (GST_TAG_TITLE)
+    static const char* TITLE;
+
+    /// Artist of the stream (GST_TAG_ARTIST)
+    static const char* ARTIST;
+
+    /// Album of the stream (GST_TAG_ALBUM)
+    static const char* ALBUM;
+    
+    /// Genre of the stream (GST_TAG_GENRE)
+    static const char* GENRE;
+    
+    /// Comment of the stream (GST_TAG_COMMENT)
+    static const char* COMMENT;
+
+    /// Composer of the stream (GST_TAG_COMPOSER)
+    static const char* COMPOSER;
+
+    /// Track number of the stream (GST_TRACK_TITLE)
+    static const char* TRACK_NUMBER;
+
+    /// Disc number of the stream (GST_TAG_VOLUME_NUMBER)
+    static const char* DISC_NUMBER;
+
+    /// Date (currently, only the year) of the stream (GST_TAG_DATE)
+    static const char* DATE;
+
+public:
+    /**
+     * Creates a TrackInfo object.
+     */
+    TrackInfo();
+
+    /**
+     * Allows us to get and set tags using tag[TAG_XYZ] and tag[TAG_XYZ] = "lol".
+     *
+     * @param key The key get or set.
+     */
+    wxString& operator[](const char* key);
+
+    /**
+     * Sets location of this track.
+     */
+    void setLocation(const wxString& location);
+
+    /**
+     * Gets the location of the track.
+     * 
+     * @return The track's location TODO: (URI only? File abs path only?)
+     */
+    const wxString& getLocation();
+
+    /**
+     * Returns true if the TrackInfo is `valid'. This means it can be played
+     * because the location actually has content. So this means this is just
+     * a simple proxy for TrackInfo.getLocation().IsEmpty(). It's actually 
+     * more clear to read that using `isValid()' than comparing the emptiness
+     * of the string.
+     *
+     * @return true when the location is filled, false if otherwise. If false
+     *  is returned, this is a signal to you to NOT attempt to play this, etc.
+     */
+    bool isValid() const;
+};
+
+
+
+//================================================================================
+
 class PipelineListener {
 public:
     PipelineListener();
@@ -97,6 +184,16 @@ public:
     void onPause(Pipeline* pipeline);
     void onStop(Pipeline* pipeline);
 */
+
+    /**
+     * When a pipeline has read a tag, this function will be invoked. This function
+     * is ideal for polling tags from a livestream.
+     *
+     * @param pipeline The pipeline object pointer
+     * @param type The type, one of the static members of TrackInfo.
+     * @param value The value of the given type.
+     */
+    virtual void pipelineTagRead(Pipeline* const pipeline, const char* type, const wxString& value) throw() = 0;
 
     /**
      * Invoked as a callback function when the pipeline encountered an 
@@ -173,11 +270,17 @@ protected:
     void registerInterval();
 
     /**
+     * Fires a pipelineTagRead callback to all registered listeners.
+     * @param type One of the TrackInfo static consts.
+     * @param value The value of the type.
+     */
+    void fireTagRead(const char* type, const wxString& value) throw();
+
+    /**
      * Fires a pipelineError callback to all registered listeners.
      * @param error The error string.
      */
     void fireError(const wxString& error) throw();
-
 
     /**
      * Fires a positionChanged callback to every listener available.
@@ -429,94 +532,6 @@ public:
      */
     ~OGGFilePipeline();
 
-};
-
-//================================================================================
-
-/**
- * TrackInfo is a simple class for holding data of a track. It does not provide
- * pipeline capabilities like the TagReader. This class encapsulates a location
- * (file) and an std::map containing the information of a track. This data used
- * to be residing inside TagReader, but like this it's more lightweight and can
- * be used in user interfaces as well. For instance, when lots of files have to
- * be tag-parsed, and displayed. I will not 'risk' adding lots of GST elements 
- * to user interface widgets.
- */
-class TrackInfo : public wxClientData {
-private:
-    /// Map with tag and value mapping.
-    std::map<const char*, wxString> m_tags;
-
-    /// Location of the track on HD
-    wxString m_location;
-
-public:
-    /// Title of the stream (GST_TAG_TITLE)
-    static const char* TITLE;
-
-    /// Artist of the stream (GST_TAG_ARTIST)
-    static const char* ARTIST;
-
-    /// Album of the stream (GST_TAG_ALBUM)
-    static const char* ALBUM;
-    
-    /// Individual artist of the stream (GST_TAG_ALBUM_ARTIST)
-    //static const char* ALBUM_ARTIST;
-
-    /// Genre of the stream (GST_TAG_GENRE)
-    static const char* GENRE;
-    
-    /// Comment of the stream (GST_TAG_COMMENT)
-    static const char* COMMENT;
-
-    /// Composer of the stream (GST_TAG_COMPOSER)
-    static const char* COMPOSER;
-
-    /// Track number of the stream (GST_TRACK_TITLE)
-    static const char* TRACK_NUMBER;
-
-    /// Disc number of the stream (GST_TAG_VOLUME_NUMBER)
-    static const char* DISC_NUMBER;
-
-    /// Date (currently, only the year) of the stream (GST_TAG_DATE)
-    static const char* DATE;
-
-public:
-    /**
-     * Creates a TrackInfo object.
-     */
-    TrackInfo();
-
-    /**
-     * Allows us to get and set tags using tag[TAG_XYZ] and tag[TAG_XYZ] = "lol".
-     *
-     * @param key The key get or set.
-     */
-    wxString& operator[](const char* key);
-
-    /**
-     * Sets location of this track.
-     */
-    void setLocation(const wxString& location);
-
-    /**
-     * Gets the location of the track.
-     * 
-     * @return The track's location TODO: (URI only? File abs path only?)
-     */
-    const wxString& getLocation();
-
-    /**
-     * Returns true if the TrackInfo is `valid'. This means it can be played
-     * because the location actually has content. So this means this is just
-     * a simple proxy for TrackInfo.getLocation().IsEmpty(). It's actually 
-     * more clear to read that using `isValid()' than comparing the emptiness
-     * of the string.
-     *
-     * @return true when the location is filled, false if otherwise. If false
-     *  is returned, this is a signal to you to NOT attempt to play this, etc.
-     */
-    bool isValid() const;
 };
 
 //================================================================================

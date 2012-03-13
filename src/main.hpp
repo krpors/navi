@@ -216,16 +216,29 @@ private:
      */
     void onTrackActivated(wxListEvent& event);
 
+    /**
+     * Invoked when a stream is activated (from that stream table).
+     */
     void onStreamItemActivated(wxListEvent& event);
+
+    /**
+     * Invoked when a tag is read from a stream or just a plain local playable
+     * file.
+     */
+    void onTagRead(wxCommandEvent& event);
 ///@}
 
 
 /**
  * @name Pipeline callbacks
- * Pipeline object callbacks, which are the callbacks due to this 
- * TrackStatusHandlerbeing registered as a listener.
+ * Pipeline object callbacks, which are the callbacks due to this TrackStatusHandler
+ * being registered as a listener. All of these functions are called from a GST thread.
+ * So all updates to the UI of wx need to be done with an `AddPendingEvent' call!!
  */
 ///@{
+
+    void pipelineTagRead(Pipeline* const pipeline, const char* type, const wxString& value) throw();
+
     /**
      * Callback listener function from a Pipeline object. Invoked when the
      * pipeline has reached its end.

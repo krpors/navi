@@ -372,6 +372,23 @@ void TrackStatusHandler::onStreamItemActivated(wxListEvent& event) {
     delete info;
 }
 
+void TrackStatusHandler::onTagRead(wxCommandEvent& event) {
+    // for now, just dont do anything when we're not a stream.
+    if (m_pipelineType != PIPELINE_STREAM) {
+        return;
+    }
+
+    NavigationContainer* nav = m_mainFrame->getNavigationContainer();
+    StreamTagData* td = static_cast<StreamTagData*>(event.GetClientObject());
+    // dbl check if not null
+    if (td != NULL) {
+        if (td->m_type == TrackInfo::TITLE) {
+            nav->setInfo(td->m_value, wxT(""));
+        }
+        delete td;
+    }
+}
+
 void TrackStatusHandler::play() throw() {
     if (m_playedTrack.isValid()) {
         wxLogMessage(wxT("Houston, meet Problem."));
@@ -379,7 +396,6 @@ void TrackStatusHandler::play() throw() {
 
     NavigationContainer* nav = m_mainFrame->getNavigationContainer();
     
-    // m_playedTrack CAN BE NULL, not sure??
     const wxString& loc = m_playedTrack.getLocation();
     if (m_pipeline != NULL) {
         // if a pipeline already exists, stop it, delete it, nullify it, and
@@ -459,18 +475,30 @@ void TrackStatusHandler::stop() throw() {
     }    
 }
 
+void TrackStatusHandler::pipelineTagRead(Pipeline* const pipeline, const char* type, const wxString& value) throw() {
+    // NOTE: this function is called from a gst thread.
+    wxCommandEvent evt(NAVI_EVENT_TAG_READ);
+    std::cout << "pipelineTagRead: " << type << " -> " << value.mb_str() << std::endl;
+    StreamTagData* td = new StreamTagData(type, value);
+    evt.SetClientObject(td);
+    AddPendingEvent(evt);
+    // will call onTagRead() in turn.
+}
+
 void TrackStatusHandler::pipelineStreamEnd(Pipeline* const pipeline) throw() {
-    // XXX: this function is called from a gst thread.
+    // NOTE: this function is called from a gst thread.
     wxCommandEvent evt(NAVI_EVENT_TRACK_NEXT);
     AddPendingEvent(evt);
 }
 
 void TrackStatusHandler::pipelineError(Pipeline* const pipeline, const wxString& error) throw() {
+    // NOTE: this function is called from a gst thread.
     // never had a pipeline error before, need to test this though.
     std::cout << "Error: " << error.mb_str() << std::endl;
 }
 
 void TrackStatusHandler::pipelinePosChanged(Pipeline* const pipeline, unsigned int pos, unsigned int len) throw() {
+    // NOTE: this function is called from a gst thread.
     wxCommandEvent evt(NAVI_EVENT_POS_CHANGED);
     StreamPositionData* d = new StreamPositionData(pos, len);
     evt.SetClientObject(d);
@@ -507,6 +535,7 @@ BEGIN_EVENT_TABLE(TrackStatusHandler, wxEvtHandler)
     EVT_COMMAND(wxID_ANY, NAVI_EVENT_POS_CHANGED, TrackStatusHandler::doUpdateSlider)
     EVT_COMMAND(wxID_ANY, NAVI_EVENT_STREAM_STOP, TrackStatusHandler::onStop)
     EVT_COMMAND(wxID_ANY, NAVI_EVENT_TRACK_NEXT, TrackStatusHandler::onNext)
+    EVT_COMMAND(wxID_ANY, NAVI_EVENT_TAG_READ, TrackStatusHandler::onTagRead)
 END_EVENT_TABLE()
 
 } // namespace navi 

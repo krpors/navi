@@ -37,6 +37,17 @@ class NavigationContainer;
 const wxEventType NAVI_EVENT_TRACK_NEXT  = wxNewEventType();
 const wxEventType NAVI_EVENT_POS_CHANGED = wxNewEventType();
 const wxEventType NAVI_EVENT_STREAM_STOP = wxNewEventType();
+const wxEventType NAVI_EVENT_TAG_READ    = wxNewEventType();
+
+//================================================================================
+
+class StreamTagData : public wxClientData {
+public:
+    StreamTagData(const char* type, const wxString& value);
+
+    const char* m_type;
+    const wxString m_value;
+};
 
 //================================================================================
 
@@ -109,6 +120,10 @@ public:
      */
     void setTrack(TrackInfo& info);
 
+    /**
+     * Temp function. Set the topline and the bottomline information.
+     */
+    void setInfo(const wxString& topline, const wxString& bottomLine);
 
     /**
      * Sets whether the play/pause button is enabled.

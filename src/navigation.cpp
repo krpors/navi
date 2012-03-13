@@ -26,6 +26,13 @@ namespace navi {
 
 //================================================================================
 
+StreamTagData::StreamTagData(const char* type, const wxString& value) :
+        m_type(type),
+        m_value(value) {
+}
+
+//================================================================================
+
 StreamPositionData::StreamPositionData(unsigned int pos, unsigned int max) :
         m_pos(pos),
         m_max(max) {
@@ -129,6 +136,11 @@ void NavigationContainer::setTrack(TrackInfo& info) {
     m_txtArtistAlbum->SetLabel(alb);
 
 
+}
+
+void NavigationContainer::setInfo(const wxString& top, const wxString& bottom) {
+    m_txtTrackTitle->SetLabel(top);
+    m_txtArtistAlbum->SetLabel(bottom);
 }
 
 void NavigationContainer::setPlayPauseButtonEnabled(bool enabled) {

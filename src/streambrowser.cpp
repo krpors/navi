@@ -67,7 +67,7 @@ void StreamTable::onResize(wxSizeEvent& event) {
     SetColumnWidth(0, 0.5 * width);
     SetColumnWidth(1, 0.5 * width);
 
-    // re-layout the control, to the column sizes are actually being done.
+    // re-layout the control, to make sure the column sizes are actually being done.
     Layout();
 
     // propagate this event up the chain. If we don't do this, the control
@@ -85,13 +85,8 @@ void StreamTable::onActivate(wxListEvent& event) {
     }
 
     try {
-        TagReader tr(loc);
-        // make copy of this trackinfo on the heap, so we can pass it as a client
-        // object in the wxListEvent for later use. We must delete it though later.
-        TrackInfo& tinfo = tr.getTrackInfo();
-        tinfo[TrackInfo::TITLE] = getDescription(index);
-        tinfo[TrackInfo::ALBUM] = loc;
-        TrackInfo* onDaHeap = new TrackInfo(tinfo);
+        TrackInfo* onDaHeap = new TrackInfo();
+        onDaHeap->setLocation(loc);
         // We set a void* here. It's a pointer to the `onDaHeap' TrackInfo object.
         // Later on (see the `TrackStatusHandler::onStreamActivated' function), we
         // can cast it back to a TrackInfo* and work with it. That function must

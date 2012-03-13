@@ -104,6 +104,16 @@ void Pipeline::fireError(const wxString& error) throw() {
     }
 }
 
+void Pipeline::fireTagRead(const char* type, const wxString& value) throw() {
+     wxMutexLocker lock(s_pipelineListenerMutex);  
+
+    std::vector<PipelineListener*>::iterator it = m_listeners.begin();
+    while(it < m_listeners.end()) {
+        (*it)->pipelineTagRead(this, type, value);
+        it++;
+    }   
+}
+
 void Pipeline::firePositionChanged(gint64 pos, gint64 len) throw() {
     wxMutexLocker lock(s_pipelineListenerMutex);  
 
@@ -180,8 +190,6 @@ gboolean Pipeline::busWatcher(GstBus* bus, GstMessage* message, gpointer userdat
 
         g_error_free (error);
     } else if (type == GST_MESSAGE_TAG) {
-        // TODO: live stream publishes messages here:
-        std::cout << "Found a tag message." << std::endl;
         GstTagList* tags = NULL;
         gst_message_parse_tag (message, &tags);
         gst_tag_list_foreach(tags, handleTags, userdata);
@@ -196,11 +204,63 @@ gboolean Pipeline::busWatcher(GstBus* bus, GstMessage* message, gpointer userdat
 void Pipeline::handleTags(const GstTagList* list, const gchar* tag, gpointer userdata) {
     Pipeline* pipeline = static_cast<Pipeline*>(userdata);
 
-    std::cout << "Handling tag: " << tag << std::endl;
+    // These values will get filled by the gst_tag_list_get_xyz() functions
     gchar* title;
+    gchar* artist;
+    gchar* album;
+    gchar* genre;
+    gchar* comment;
+    gchar* composer;
+    guint trackNum;
+    guint discNum;
+    GDate* date;
+
+#ifdef DEBUG
+    gchar* misc;
+    if (gst_tag_list_get_string(list, tag, &misc)) {
+        std::cout << "Tag " << tag << " = " << misc << std::endl;
+    }
+#endif
+    // XXX: this can be done better. We actually just have to check whether
+    // the found tag is a string, then fire an event. If its an int, convert
+    // to string, then fire event. If it's a date, convert to string, then fire event...
+
     if (gst_tag_list_get_string(list, TrackInfo::TITLE, &title)) {
-        std::cout << "The actual title is " << title << std::endl;
-    } 
+        pipeline->fireTagRead(TrackInfo::TITLE, wxString(title, wxConvUTF8));
+        g_free(title);
+    }
+    if (gst_tag_list_get_string(list, TrackInfo::ARTIST, &artist)) {
+        pipeline->fireTagRead(TrackInfo::ARTIST, wxString(artist, wxConvUTF8));
+        g_free(artist);
+    }
+    if (gst_tag_list_get_string(list, TrackInfo::ALBUM, &album)) {
+        pipeline->fireTagRead(TrackInfo::ALBUM, wxString(album, wxConvUTF8));
+        g_free(album);
+    }
+    if (gst_tag_list_get_string(list, TrackInfo::GENRE, &genre)) {
+        pipeline->fireTagRead(TrackInfo::GENRE, wxString(genre, wxConvUTF8));
+        g_free(genre);
+    }
+    if (gst_tag_list_get_string(list, TrackInfo::COMMENT, &comment)) {
+        pipeline->fireTagRead(TrackInfo::COMMENT, wxString(comment, wxConvUTF8));
+        g_free(comment);
+    }
+    if (gst_tag_list_get_string(list, TrackInfo::COMPOSER, &composer)) {
+        pipeline->fireTagRead(TrackInfo::COMPOSER, wxString(composer, wxConvUTF8));
+        g_free(composer);
+    }
+    if (gst_tag_list_get_uint(list, TrackInfo::TRACK_NUMBER, &trackNum)) {
+        pipeline->fireTagRead(TrackInfo::TRACK_NUMBER, wxString::Format(wxT("%i"), trackNum));
+    }
+    if (gst_tag_list_get_uint(list, TrackInfo::DISC_NUMBER, &discNum)) {
+        pipeline->fireTagRead(TrackInfo::DISC_NUMBER, wxString::Format(wxT("%i"), discNum));
+    }
+    if (gst_tag_list_get_date(list, TrackInfo::DATE, &date)) {
+        // XXX: date also contains month and day.. Include  this, or just year?
+        unsigned int ddate = g_date_get_year(date);
+        pipeline->fireTagRead(TrackInfo::DISC_NUMBER, wxString::Format(wxT("%i"), ddate));
+        g_date_free(date);
+    }
 }
 
 void Pipeline::play() throw() {
@@ -606,21 +666,27 @@ void TagReader::onTagRead(const GstTagList* list, const gchar* tag, gpointer dat
     // or FALSE by the gst_tag_list_get_xyz() funcs.
     if (gst_tag_list_get_string(list, TrackInfo::TITLE, &title)) {
         trackInfo[TrackInfo::TITLE] = wxString(title, wxConvUTF8);
+        g_free(title);
     }
     if (gst_tag_list_get_string(list, TrackInfo::ARTIST, &artist)) {
         trackInfo[TrackInfo::ARTIST] = wxString(artist, wxConvUTF8);
+        g_free(artist);
     }
     if (gst_tag_list_get_string(list, TrackInfo::ALBUM, &album)) {
         trackInfo[TrackInfo::ALBUM] = wxString(album, wxConvUTF8);
+        g_free(album);
     }
     if (gst_tag_list_get_string(list, TrackInfo::GENRE, &genre)) {
         trackInfo[TrackInfo::GENRE] = wxString(genre, wxConvUTF8);
+        g_free(genre);
     }
     if (gst_tag_list_get_string(list, TrackInfo::COMMENT, &comment)) {
         trackInfo[TrackInfo::COMMENT] = wxString(comment, wxConvUTF8);
+        g_free(comment);
     }
     if (gst_tag_list_get_string(list, TrackInfo::COMPOSER, &composer)) {
         trackInfo[TrackInfo::COMPOSER] = wxString(composer, wxConvUTF8);
+        g_free(composer);
     }
     if (gst_tag_list_get_uint(list, TrackInfo::TRACK_NUMBER, &trackNum)) {
         trackInfo[TrackInfo::TRACK_NUMBER] = wxString::Format(wxT("%i"), trackNum);
@@ -632,8 +698,8 @@ void TagReader::onTagRead(const GstTagList* list, const gchar* tag, gpointer dat
         // XXX: date also contains month and day.. Include  this, or just year?
         unsigned int ddate = g_date_get_year(date);
         trackInfo[TrackInfo::DATE] = wxString::Format(wxT("%i"), ddate);
+        g_date_free(date);
     }
-
 
     reader->setTrackInfo(trackInfo);
 }
