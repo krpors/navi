@@ -117,10 +117,7 @@ void NavigationContainer::setTrack(TrackInfo& info) {
     }
 
     if (info[TrackInfo::TITLE].IsEmpty()) {
-        wxString s(wxT("(no tag) "));
-        s.Append(info.getLocation());
-
-        m_txtTrackTitle->SetLabel(s);
+        m_txtTrackTitle->SetLabel(info.getLocation());
     } else {
         m_txtTrackTitle->SetLabel(info[TrackInfo::TITLE]);
     }

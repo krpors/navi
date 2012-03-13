@@ -288,7 +288,6 @@ END_EVENT_TABLE()
 
 TrackStatusHandler::TrackStatusHandler(NaviMainFrame* frame) throw() :
         m_mainFrame(frame),
-        //m_playedTrack(NULL),
         m_pipeline(NULL) {
 }
 
@@ -326,7 +325,7 @@ void TrackStatusHandler::onPrev(wxCommandEvent& event) {
 void TrackStatusHandler::onNext(wxCommandEvent& event) {
     TrackTable* tt = m_mainFrame->getTrackTable();
     TrackInfo info = tt->getNext(true);
-    if (!info.isValid()) {
+    if (info.isValid()) {
         std::cout << "Invoked by wxThread." << std::endl;
         m_playedTrack = info;
         play();
@@ -383,8 +382,8 @@ void TrackStatusHandler::onTagRead(wxCommandEvent& event) {
     // dbl check if not null
     if (td != NULL) {
         if (td->m_type == TrackInfo::TITLE) {
-            nav->setInfo(td->m_value, wxT(""));
-        }
+            nav->setInfo(td->m_value, m_playedTrack.getLocation());
+       }
         delete td;
     }
 }
@@ -427,11 +426,12 @@ void TrackStatusHandler::play() throw() {
     m_pipeline->play();
     nav->setStopButtonEnabled(true);
     nav->setPauseVisible();
-    nav->setTrack(m_playedTrack);
     if (m_pipelineType == PIPELINE_STREAM) {
+        nav->setInfo(wxT("Reading stream..."), wxT(""));
         nav->setSeekerValues(0, 1, false);
         nav->setPlayPauseButtonEnabled(false);
     } else {
+        nav->setTrack(m_playedTrack);
         nav->setSeekerValues(0, m_pipeline->getDurationSeconds(), true);
         nav->setPlayPauseButtonEnabled(true);
     }
