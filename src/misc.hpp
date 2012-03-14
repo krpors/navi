@@ -86,6 +86,7 @@ public:
     static const wxString MINIMIZE_TO_TRAY;
     static const wxString ASK_ON_EXIT;
     static const wxString MEDIA_DIRECTORY;
+    static const wxString AUTO_SORT;
     
     static NaviPreferences* createInstance();
 

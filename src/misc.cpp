@@ -143,6 +143,7 @@ const wxString NaviPreferences::CONFIG_FILE      = wxT("preferences");
 const wxString NaviPreferences::MINIMIZE_TO_TRAY = wxT("/NaviPreferences/MinimizeToTray");
 const wxString NaviPreferences::ASK_ON_EXIT      = wxT("/NaviPreferences/AskOnExit");
 const wxString NaviPreferences::MEDIA_DIRECTORY  = wxT("/NaviPreferences/MediaDirectory");
+const wxString NaviPreferences::AUTO_SORT        = wxT("/NaviPreferences/AutoSortOnTrackNum");
 
 NaviPreferences::NaviPreferences(wxInputStream& is, const wxString& configFile) :
         wxFileConfig(is),
@@ -158,6 +159,7 @@ void NaviPreferences::setDefaults() {
     Write(MINIMIZE_TO_TRAY, true);
     Write(ASK_ON_EXIT,      false);
     Write(MEDIA_DIRECTORY,  wxT("/"));
+    Write(AUTO_SORT,        true);
 
     save();
 }
