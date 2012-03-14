@@ -86,7 +86,8 @@ END_EVENT_TABLE()
 
 NaviMainFrame::NaviMainFrame() :
         wxFrame((wxFrame*) NULL, wxID_ANY, wxT("Navi")),
-        m_noteBook(NULL) {
+        m_noteBook(NULL),
+        m_taskBarIcon(NULL) {
     // create our menu here 
     initMenu();
 
@@ -121,17 +122,22 @@ NaviMainFrame::NaviMainFrame() :
     PushEventHandler(m_trackStatusHandler);
 
     // create a systray icon.
-    m_taskBarIcon = new SystrayIcon(this);
-    wxBitmap bm(wxT("./data/icons/navi.png"), wxBITMAP_TYPE_PNG);
-    wxIcon icon;
-    icon.CopyFromBitmap(bm);
-    m_taskBarIcon->SetIcon(icon, wxT("Navi - Hey, listen!"));
-
+    bool trayEnabled;
+    wxConfigBase::Get()->Read(NaviPreferences::MINIMIZE_TO_TRAY, &trayEnabled, false);
+    if (false) {
+        m_taskBarIcon = new SystrayIcon(this);
+        wxBitmap bm(wxT("./data/icons/navi.png"), wxBITMAP_TYPE_PNG);
+        wxIcon icon;
+        icon.CopyFromBitmap(bm);
+        m_taskBarIcon->SetIcon(icon, wxT("Navi - Hey, listen!"));
+    }
 }
 
 NaviMainFrame::~NaviMainFrame() {
     // must delete this pointer, or else the program will not exit.
-    delete m_taskBarIcon;
+    if (m_taskBarIcon != NULL) {
+        delete m_taskBarIcon;
+    }
 }
 
 void NaviMainFrame::initMenu() {
@@ -154,8 +160,6 @@ void NaviMainFrame::initMenu() {
 }
 
 wxPanel* NaviMainFrame::createDirBrowserPanel(wxWindow* parent) {
-    NaviPreferences* prefs = static_cast<NaviPreferences*>(wxConfigBase::Get()); 
-
     wxPanel* p = new wxPanel(parent);
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
     p->SetSizer(sizer);
@@ -166,7 +170,7 @@ wxPanel* NaviMainFrame::createDirBrowserPanel(wxWindow* parent) {
     // directory browser (left side)
     wxString directory;
     wxStandardPathsBase& stdpath = wxStandardPaths::Get();
-    prefs->Read(NaviPreferences::MEDIA_DIRECTORY, &directory, stdpath.GetUserConfigDir());
+    wxConfigBase::Get()->Read(NaviPreferences::MEDIA_DIRECTORY, &directory, stdpath.GetUserConfigDir());
     m_dirBrowser = new DirBrowserContainer(split, this);
     m_dirBrowser->getDirBrowser()->setBase(directory);
     m_dirBrowser->getDirBrowser()->setFilesVisible(false);
@@ -245,9 +249,8 @@ void NaviMainFrame::onAbout(wxCommandEvent& event) {
 }
 
 void NaviMainFrame::onExit(wxCommandEvent& event) {
-    NaviPreferences* lol = static_cast<NaviPreferences*>(wxConfigBase::Get()); 
     bool ask;
-    lol->Read(NaviPreferences::ASK_ON_EXIT, &ask, false);
+    wxConfigBase::Get()->Read(NaviPreferences::ASK_ON_EXIT, &ask, false);
     if (ask) {
         wxMessageDialog dlg(this, wxT("Hey, listen! Do you really want to exit Navi?"), wxT("Exit Navi?"), wxYES_NO | wxNO_DEFAULT);
         if (dlg.ShowModal() == wxID_NO) {
@@ -259,7 +262,13 @@ void NaviMainFrame::onExit(wxCommandEvent& event) {
 }
 
 void NaviMainFrame::onIconize(wxIconizeEvent& event) {
-    Show(!event.Iconized());
+    bool trayEnabled;
+    wxConfigBase::Get()->Read(NaviPreferences::MINIMIZE_TO_TRAY, &trayEnabled, false);
+    if (trayEnabled) {
+        Show(!event.Iconized());
+    }
+
+    event.Skip();
 }
 
 void NaviMainFrame::onPreferences(wxCommandEvent& event) {

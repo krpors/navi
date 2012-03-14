@@ -140,9 +140,8 @@ void TrackTable::addTrackInfo(TrackInfo& info) {
 
     // after each track, re-sort the whole list, if that option is given in 
     // the preferences. XXX: check if this performs well on large directories.
-    NaviPreferences* prefs = static_cast<NaviPreferences*>(wxConfigBase::Get()); 
     bool autosort;
-    prefs->Read(NaviPreferences::AUTO_SORT, &autosort, true);
+    wxConfigBase::Get()->Read(NaviPreferences::AUTO_SORT, &autosort, true);
     if (autosort) {
         SortItems(TrackTable::compareTrackNumber, reinterpret_cast<long>(this));
     }
