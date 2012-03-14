@@ -21,6 +21,11 @@ TrackTable::TrackTable(wxWindow* parent) :
         m_currTrackItemIndex(0),
         m_currTrackItemIndexInListCtrl(0) {
 
+    m_sortDirection[0] = false;
+    m_sortDirection[1] = false;
+    m_sortDirection[2] = false;
+    m_sortDirection[3] = false;
+
     wxListItem item;
 
     item.SetText(wxT("Track"));
@@ -50,7 +55,11 @@ int wxCALLBACK TrackTable::compareTrackNumber(long item1, long item2, long sortD
         TrackInfo& one = roflol->getTrackInfo(item1);
         TrackInfo& two = roflol->getTrackInfo(item2);
 
-        return one[TrackInfo::TRACK_NUMBER] > two[TrackInfo::TRACK_NUMBER];
+        if (roflol->m_sortDirection[0]) {
+            return one[TrackInfo::TRACK_NUMBER].Cmp(two[TrackInfo::TRACK_NUMBER]);
+        } else {
+            return two[TrackInfo::TRACK_NUMBER].Cmp(one[TrackInfo::TRACK_NUMBER]);
+        }
     }
 
     return 0;
@@ -64,7 +73,11 @@ int wxCALLBACK TrackTable::compareArtistName(long item1, long item2, long sortDa
         TrackInfo& one = roflol->getTrackInfo(item1);
         TrackInfo& two = roflol->getTrackInfo(item2);
 
-        return one[TrackInfo::ARTIST] > two[TrackInfo::ARTIST];
+        if (roflol->m_sortDirection[1]) {
+            return one[TrackInfo::ARTIST].Cmp(two[TrackInfo::ARTIST]);
+        } else {
+            return two[TrackInfo::ARTIST].Cmp(one[TrackInfo::ARTIST]);
+        }
     }
 
     return 0;
@@ -78,7 +91,11 @@ int wxCALLBACK TrackTable::compareTitle(long item1, long item2, long sortData) {
         TrackInfo& one = roflol->getTrackInfo(item1);
         TrackInfo& two = roflol->getTrackInfo(item2);
 
-        return one[TrackInfo::TITLE] > two[TrackInfo::TITLE];
+        if (roflol->m_sortDirection[2]) {
+            return one[TrackInfo::TITLE].Cmp(two[TrackInfo::TITLE]);
+        } else {
+            return two[TrackInfo::TITLE].Cmp(one[TrackInfo::TITLE]);
+        }
     }
     
     return 0;
@@ -92,7 +109,11 @@ int wxCALLBACK TrackTable::compareAlbum(long item1, long item2, long sortData) {
         TrackInfo& one = roflol->getTrackInfo(item1);
         TrackInfo& two = roflol->getTrackInfo(item2);
 
-        return one[TrackInfo::ALBUM] > two[TrackInfo::ALBUM];
+        if (roflol->m_sortDirection[3]) {
+            return one[TrackInfo::ALBUM].Cmp(two[TrackInfo::ALBUM]);
+        } else {
+            return two[TrackInfo::ALBUM].Cmp(one[TrackInfo::ALBUM]);
+        }
     }
 
     return 0;
@@ -206,6 +227,8 @@ void TrackTable::onColumnClick(wxListEvent& event) {
     if (sizeof(long) != sizeof(this)) {
         std::cerr << "Major malfunction. sizeof(long) != sizeof(this)" << std::endl;
     } else {
+        // swap sorting direction first:
+        m_sortDirection[event.GetColumn()] = !m_sortDirection[event.GetColumn()]; 
         // commence sorting. We can somewhat 'guarantee' that casting a this 
         // to a long succeeds. Check which column has been clicked, then sort
         // appropriately.

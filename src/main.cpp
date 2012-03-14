@@ -325,7 +325,7 @@ void TrackStatusHandler::onPrev(wxCommandEvent& event) {
 void TrackStatusHandler::onNext(wxCommandEvent& event) {
     TrackTable* tt = m_mainFrame->getTrackTable();
     TrackInfo info = tt->getNext(true);
-    if (info.isValid()) {
+    if (!info.isValid()) {
         std::cout << "Invoked by wxThread." << std::endl;
         m_playedTrack = info;
         play();

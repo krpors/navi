@@ -78,6 +78,10 @@ private:
 
     /// The 
     long m_currTrackItemIndexInListCtrl;
+    
+    // array of bools for sort direction. 4 length, for each of the
+    // four columns. true = ascending, false = descending.
+    bool m_sortDirection[4];
 
 public:
     /// The window ID for this track table.
