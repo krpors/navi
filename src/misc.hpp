@@ -40,6 +40,16 @@ namespace navi {
  */
 const wxString formatSeconds(int seconds);
 
+/**
+ * Convert a wxString to an integer, or return the default when
+ * parsing the string fails (i.e. not parseable to an int).
+ *
+ * @param str The string
+ * @param def Default return value if parsing fails.
+ * @return The default integer if parsing fails, or the parsed int.
+ */
+long strToInt(const wxString& str, int def);
+
 //================================================================================
 
 class StreamConfiguration {

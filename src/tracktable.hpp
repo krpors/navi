@@ -21,6 +21,7 @@
 #define TRACKTABLE_HPP 
 
 #include "audio.hpp"
+#include "misc.hpp"
 
 #include <wx/listctrl.h>
 #include <wx/filename.h>

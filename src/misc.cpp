@@ -48,6 +48,15 @@ const wxString formatSeconds(int secs) {
     return s;
 }
 
+long strToInt(const wxString& str, int def) {
+    long val;
+    if(!str.ToLong(&val)) {
+        val = def;
+    }
+
+    return val;
+}
+
 //================================================================================
 
 const wxString StreamConfiguration::CONFIG_FILE = wxT("streams");

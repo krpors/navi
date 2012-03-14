@@ -55,10 +55,14 @@ int wxCALLBACK TrackTable::compareTrackNumber(long item1, long item2, long sortD
         TrackInfo& one = roflol->getTrackInfo(item1);
         TrackInfo& two = roflol->getTrackInfo(item2);
 
+        long tn1 = strToInt(one[TrackInfo::TRACK_NUMBER], 0);
+        long tn2 = strToInt(two[TrackInfo::TRACK_NUMBER], 0);
         if (roflol->m_sortDirection[0]) {
-            return one[TrackInfo::TRACK_NUMBER].Cmp(two[TrackInfo::TRACK_NUMBER]);
+            //return one[TrackInfo::TRACK_NUMBER].Cmp(two[TrackInfo::TRACK_NUMBER]);
+            return tn2 - tn1;
         } else {
-            return two[TrackInfo::TRACK_NUMBER].Cmp(one[TrackInfo::TRACK_NUMBER]);
+            //return two[TrackInfo::TRACK_NUMBER].Cmp(one[TrackInfo::TRACK_NUMBER]);
+            return tn1 - tn2;
         }
     }
 
@@ -227,8 +231,6 @@ void TrackTable::onColumnClick(wxListEvent& event) {
     if (sizeof(long) != sizeof(this)) {
         std::cerr << "Major malfunction. sizeof(long) != sizeof(this)" << std::endl;
     } else {
-        // swap sorting direction first:
-        m_sortDirection[event.GetColumn()] = !m_sortDirection[event.GetColumn()]; 
         // commence sorting. We can somewhat 'guarantee' that casting a this 
         // to a long succeeds. Check which column has been clicked, then sort
         // appropriately.
@@ -240,6 +242,8 @@ void TrackTable::onColumnClick(wxListEvent& event) {
             default: break;
         }
 
+        // swap sorting direction yay!:
+        m_sortDirection[event.GetColumn()] = !m_sortDirection[event.GetColumn()]; 
     }
 }
 
