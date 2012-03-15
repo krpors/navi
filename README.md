@@ -13,8 +13,8 @@ Linux, for instance:
 * [Exaile](http://exaile.org) - Python, influenced by Amarok, GStreamer
 
 These players all have lots of features and extensibility, but what I was 
-missing most in those players, was simple directory based music playing. You
-see, my music collection is mostly organized by the use of directories:
+missing most in those players, was simple directory based music playing. My 
+music collection is mostly organized by the use of directories:
 
     Albums
         Boemklatsch
@@ -36,40 +36,73 @@ see, my music collection is mostly organized by the use of directories:
         Dragon Age
 
 I usually just play everything which is in one directory only. There was no 
-real directory-based music player available for Linux, and therefore I 
-decided to just write my own. It also provided me a good reason to learn
+real directory-based music player available for Linux (AFAIK...), and therefore 
+I decided to just write my own. It also provided me a good reason to learn
 [GStreamer](http://gstreamer.net) and [wxWidgets](http://wxwidgets.org).
 
-(Planned) features
-------------------
+Current features
+----------------
 
-The following list describes the (non-exhaustive) functionalities I plan to 
-at least implement in Navi:
+This is a list with the current implemented features:
 
-* GTK User Interface, with 'system tray', and OSD notifications (not sure yet
-how I'm going to do that yet, but I like that);
-* Playlists;
-* Queueing of tracks;
-* Of course the obvious: play, pause, stop, seek, volume changing;
-* Album art;
-* Internet radio stations (streaming audio);
-* Audioscrobbler/Last.fm submitting;
-* Tag reading (and possibly writing);
+* The obvious: play, pause, stop, seek, next and previous track;
+* Directory based media browser;
+* Internet radio stations (streaming audio). Can be added and removed, and are
+persisted to disk;
+* Reading tags from streams and files;
 * 'System tray' icon, for less display hassle in the window list in your
-Desktop environment.
+Desktop environment (may have a buggy display);
+* OSD (On Screen Display) notification, to get notified which track is currently
+playing;
+
+Planned features
+----------------
+The following features are planned or work in progress:
+
+* Caching system. If you have a large directory, re-reading all tags can be VERY
+tedious and time consuming. A sort of proxy is needed here;
+* Preferences window (user preferences);
+* Randomize the current directory-playlist;
+* Favorites, play queue or the like is a must too;
+* I'm also thinking of a full recursive 'playlist', i.e. using the base directory,
+find all media files within all the subdirectories. This will REALLY need caching :)
 
 Technological information 
 -------------------------
 
 For those interested, I am building the software with the following tools and 
-libraries:
+libraries (aka dependencies)
 
 * C++ programming language;
 * [wxWidgets](http://wxwidgets.org) 2.8.10+ for UI elements and the like;
 * The excellent [GStreamer](http://gstreamer.net) 0.10.30+ as audio backend;
+* [libnotify](http://developer-next.gnome.org/libnotify/0.7/ch01.html) 0.7.4+ for 
+OSD notifications.
+
+Build instructions
+-------------------------
+Navi is still in an alpha stage, so no pre-packaged version is available. You can
+however build the sources yourself. To do this, either download the zip file of the
+master branch [here](https://github.com/krpors/navi/zipball/master), or clone the Git
+repository:
+
+    git clone git://github.com/krpors/navi.git
+
+Since it depends on wxWidgets, gstreamer and libnotify, you'll need to install those
+dependencies as well. For Debian based systems, you can invoke the following command:
+
+    sudo apt-get install build-essential libwxgtk2.8-dev libgstreamer0.10-dev libnotify-dev
+
+After installation of these packages, just run ``make`` on the ``Makefile``:
+
+    make
+
+And the binary will be built under the ``./bin/`` directory inside the Navi git repo.
 
 Feedback
 --------
 
-Feedback to this application is certainly welcome, like ideas, wishes, or just
-some plain old critique. Also, code inspection is good too.
+If you are a user of Navi, you like or dislike what it is or where it's going to, please
+let me know! I'm fond of knowing if my software is being used. 
+
+Code critique are certainly welcome too.
