@@ -602,7 +602,7 @@ const wxString& TrackInfo::getLocation() {
 }
 
 bool TrackInfo::isValid() const {
-    return m_location.IsEmpty();
+    return !m_location.IsEmpty();
 }
 
 

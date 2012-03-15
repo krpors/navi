@@ -43,6 +43,7 @@ DirBrowser::DirBrowser(wxWindow* parent, NaviMainFrame* frame) :
         wxTreeCtrl(parent, DirBrowser::ID_NAVI_DIR_BROWSER, wxDefaultPosition, 
             wxDefaultSize, wxTR_HAS_BUTTONS | wxTR_FULL_ROW_HIGHLIGHT),
         m_filesVisible(true),
+        m_currentActiveItem(NULL),
         m_dirTraversalThread(NULL),
         m_mainFrame(frame) {
 
@@ -98,8 +99,9 @@ void DirBrowser::setBase(const wxString& basePath) {
     // by default, expand the root.
     Expand(root);
 
-    NaviPreferences* prefs = static_cast<NaviPreferences*>(wxConfigBase::Get()); 
-    prefs->Write(NaviPreferences::MEDIA_DIRECTORY, basePath);
+    Preferences* prefs = static_cast<Preferences*>(wxConfigBase::Get()); 
+    assert(prefs != NULL);
+    prefs->Write(Preferences::MEDIA_DIRECTORY, basePath);
     prefs->save();
 }
 
@@ -147,17 +149,6 @@ void DirBrowser::onActivateItem(wxTreeEvent& event) {
 
     // Highlight the current item.
     if (m_currentActiveItem.IsOk()) {
-        // FIXME: this next call my result in a segfault?!
-        /* Backtrace is somewhat as follows:
-            #0  0x006c6a56 in wxGenericTreeItem::DoCalculateSize(wxGenericTreeCtrl*, wxDC&, bool) () from /usr/lib/libwx_gtk2u_core-2.8.so.0
-            #1  0x006c6c1e in wxGenericTreeItem::CalculateSize(wxGenericTreeCtrl*) ()
-               from /usr/lib/libwx_gtk2u_core-2.8.so.0
-            #2  0x006c6cd5 in wxGenericTreeCtrl::SetItemBold(wxTreeItemId const&, bool) ()
-               from /usr/lib/libwx_gtk2u_core-2.8.so.0
-            #3  0x08064d56 in navi::DirBrowser::onActivateItem (this=0x83ab830, event=...)
-                at ./src/dirbrowser.cpp:151
-            #4  0x0080e96f in wxAppConsole::HandleEvent(wxEvtHandler*, void (wxEvtHandler::*)(wxEvent&), wxEvent&) const () from /usr/lib/libwx_baseu-2.8.so.0
-        */
         SetItemBold(m_currentActiveItem, false);
     }
     m_currentActiveItem = item;

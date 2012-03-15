@@ -49,10 +49,11 @@ public:
 bool NaviApp::OnInit() {
     // initialize the gstreamer api here:
     gst_init(NULL, NULL);
+
     wxInitAllImageHandlers();
 
     // Initialize default preferences crap here
-    NaviPreferences* prefs = NaviPreferences::createInstance(); //should be done once
+    Preferences* prefs = Preferences::createInstance(); //should be done once
     wxConfigBase::Set(prefs);
 
     // construct the main frame.
@@ -123,8 +124,8 @@ NaviMainFrame::NaviMainFrame() :
 
     // create a systray icon.
     bool trayEnabled;
-    wxConfigBase::Get()->Read(NaviPreferences::MINIMIZE_TO_TRAY, &trayEnabled, false);
-    if (false) {
+    wxConfigBase::Get()->Read(Preferences::MINIMIZE_TO_TRAY, &trayEnabled, false);
+    if (trayEnabled) {
         m_taskBarIcon = new SystrayIcon(this);
         wxBitmap bm(wxT("./data/icons/navi.png"), wxBITMAP_TYPE_PNG);
         wxIcon icon;
@@ -170,7 +171,7 @@ wxPanel* NaviMainFrame::createDirBrowserPanel(wxWindow* parent) {
     // directory browser (left side)
     wxString directory;
     wxStandardPathsBase& stdpath = wxStandardPaths::Get();
-    wxConfigBase::Get()->Read(NaviPreferences::MEDIA_DIRECTORY, &directory, stdpath.GetUserConfigDir());
+    wxConfigBase::Get()->Read(Preferences::MEDIA_DIRECTORY, &directory, stdpath.GetUserConfigDir());
     m_dirBrowser = new DirBrowserContainer(split, this);
     m_dirBrowser->getDirBrowser()->setBase(directory);
     m_dirBrowser->getDirBrowser()->setFilesVisible(false);
@@ -250,7 +251,7 @@ void NaviMainFrame::onAbout(wxCommandEvent& event) {
 
 void NaviMainFrame::onExit(wxCommandEvent& event) {
     bool ask;
-    wxConfigBase::Get()->Read(NaviPreferences::ASK_ON_EXIT, &ask, false);
+    wxConfigBase::Get()->Read(Preferences::ASK_ON_EXIT, &ask, false);
     if (ask) {
         wxMessageDialog dlg(this, wxT("Hey, listen! Do you really want to exit Navi?"), wxT("Exit Navi?"), wxYES_NO | wxNO_DEFAULT);
         if (dlg.ShowModal() == wxID_NO) {
@@ -258,12 +259,17 @@ void NaviMainFrame::onExit(wxCommandEvent& event) {
         }
     }
 
+    // cleanup all stuff
+    gst_deinit(); // not really necessary, but lets do it anyway.
+    notify_uninit();
+    
+    // Close the UI:
     Close(true);
 }
 
 void NaviMainFrame::onIconize(wxIconizeEvent& event) {
     bool trayEnabled;
-    wxConfigBase::Get()->Read(NaviPreferences::MINIMIZE_TO_TRAY, &trayEnabled, false);
+    wxConfigBase::Get()->Read(Preferences::MINIMIZE_TO_TRAY, &trayEnabled, false);
     if (trayEnabled) {
         Show(!event.Iconized());
     }
@@ -325,7 +331,7 @@ void TrackStatusHandler::onStop(wxCommandEvent& event) {
 void TrackStatusHandler::onPrev(wxCommandEvent& event) {
     TrackTable* tt = m_mainFrame->getTrackTable();
     TrackInfo info = tt->getPrev(true);
-    if (!info.isValid()) {
+    if (info.isValid()) {
         m_playedTrack = info;
         play();
     }
@@ -334,7 +340,7 @@ void TrackStatusHandler::onPrev(wxCommandEvent& event) {
 void TrackStatusHandler::onNext(wxCommandEvent& event) {
     TrackTable* tt = m_mainFrame->getTrackTable();
     TrackInfo info = tt->getNext(true);
-    if (!info.isValid()) {
+    if (info.isValid()) {
         std::cout << "Invoked by wxThread." << std::endl;
         m_playedTrack = info;
         play();
@@ -398,7 +404,7 @@ void TrackStatusHandler::onTagRead(wxCommandEvent& event) {
 }
 
 void TrackStatusHandler::play() throw() {
-    if (m_playedTrack.isValid()) {
+    if (!m_playedTrack.isValid()) {
         wxLogMessage(wxT("Houston, meet Problem."));
     }
 
@@ -443,6 +449,9 @@ void TrackStatusHandler::play() throw() {
         nav->setTrack(m_playedTrack);
         nav->setSeekerValues(0, m_pipeline->getDurationSeconds(), true);
         nav->setPlayPauseButtonEnabled(true);
+
+        Notification n(m_playedTrack);
+        n.show(5);
     }
 }
 

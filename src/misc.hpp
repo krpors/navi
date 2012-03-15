@@ -23,12 +23,16 @@
 #include <vector>
 #include <utility> // for pair
 
+#include "audio.hpp"
+
 #include <wx/wx.h>
 #include <wx/xml/xml.h>
 #include <wx/fileconf.h>
 #include <wx/wfstream.h>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
+
+#include <libnotify/notify.h>
 
 namespace navi {
 
@@ -73,27 +77,106 @@ public:
 
 //================================================================================
 
-class NaviPreferences : public wxFileConfig {
+/**
+ * This class represents the global preferences of this application. It extends
+ * the functionality of wxFileConfig, and thus can be used as such. At start of
+ * Navi, the "global" wxConfigBase is set in the NaviApp constructor by using the
+ * wxConfigBase::Set() static method. The preferences can then be retrieved by
+ * invoking wxConfigBase::Get().
+ */
+class Preferences : public wxFileConfig {
 private:
+    /// The configuration file string.
     wxString m_configFile;
 
-    NaviPreferences(wxInputStream& is, const wxString& configFile);
+    /**
+     * Private constructor for use in createInstance().
+     *
+     * @param is The wxInputStream, will be passed to the superclass' constructor.
+     * @parma configFile the configuration filename, built using the standard paths.
+     */
+    Preferences(wxInputStream& is, const wxString& configFile);
 
 public:
-    ~NaviPreferences();
+    /**
+     * Destructor. Once it gets destroyed, the preferences will be saved.
+     */
+    ~Preferences();
 
+    /// The configuration file (preferences)
     static const wxString CONFIG_FILE;
-    static const wxString MINIMIZE_TO_TRAY;
-    static const wxString ASK_ON_EXIT;
-    static const wxString MEDIA_DIRECTORY;
-    static const wxString AUTO_SORT;
-    
-    static NaviPreferences* createInstance();
 
+/**
+ * @name Preference keys. 
+ * The keys of the preferences file.
+ */
+///@{
+
+    /// Whether to minimize to tray. Holds a boolean (0, 1).
+    static const wxString MINIMIZE_TO_TRAY;
+    /// Whether to ask the user to really exit. Holds a boolean (0, 1).
+    static const wxString ASK_ON_EXIT;
+    /// The chosen base media directory. 
+    static const wxString MEDIA_DIRECTORY;
+    /// Whether to automatically sort on track number when loading a new dir.
+    /// Holds a boolean (0, 1).
+    static const wxString AUTO_SORT;
+///@}    
+
+    /**
+     * Createa new instance of the Preferences. Usually, you only need
+     * to call this once, and use wxConfigBase::Set().
+     */
+    static Preferences* createInstance();
+
+    /**
+     * Set the default values.
+     */
     void setDefaults();
+
+    /**
+     * Convenience function to save the preferences using a wxInputStream.
+     */
     void save();
 };
 
+//================================================================================
+
+/**
+ * On-Screen-Display notifications, to display the current playing track.
+ */
+class Notification {
+private:
+    /// The actual body used in show().
+    wxString m_body;
+
+    /// Initializes libnotify when not yet inited.
+    void init();
+public:
+    /**
+     * Creates a new notification with a custom body
+     * @param body The body of the notification.
+     */
+    Notification(const wxString& body);
+
+    /**
+     * Creates a new notification based on a TrackInfo object.
+     * @param info The TrackInfo object.
+     */
+    Notification(TrackInfo& info);
+
+    /**
+     * Delet0r.
+     */
+    ~Notification();
+
+    /**
+     * Shows the notification with a timeout in seconds.
+     */
+    void show(unsigned int timeoutSeconds);
+};
+
 } // namespace navi
+
 
 #endif // MISC_HPP

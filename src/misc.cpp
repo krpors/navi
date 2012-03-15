@@ -139,23 +139,24 @@ std::vector<std::pair<wxString, wxString> >& StreamConfiguration::getStreams() {
 
 //================================================================================
 
-const wxString NaviPreferences::CONFIG_FILE      = wxT("preferences");
-const wxString NaviPreferences::MINIMIZE_TO_TRAY = wxT("/NaviPreferences/MinimizeToTray");
-const wxString NaviPreferences::ASK_ON_EXIT      = wxT("/NaviPreferences/AskOnExit");
-const wxString NaviPreferences::MEDIA_DIRECTORY  = wxT("/NaviPreferences/MediaDirectory");
-const wxString NaviPreferences::AUTO_SORT        = wxT("/NaviPreferences/AutoSortOnTrackNum");
+const wxString Preferences::CONFIG_FILE      = wxT("preferences");
+const wxString Preferences::MINIMIZE_TO_TRAY = wxT("/Preferences/MinimizeToTray");
+const wxString Preferences::ASK_ON_EXIT      = wxT("/Preferences/AskOnExit");
+const wxString Preferences::MEDIA_DIRECTORY  = wxT("/Preferences/MediaDirectory");
+const wxString Preferences::AUTO_SORT        = wxT("/Preferences/AutoSortOnTrackNum");
 
-NaviPreferences::NaviPreferences(wxInputStream& is, const wxString& configFile) :
+Preferences::Preferences(wxInputStream& is, const wxString& configFile) :
         wxFileConfig(is),
         m_configFile(configFile) {
 
     DontCreateOnDemand();
 }
 
-NaviPreferences::~NaviPreferences() {
+Preferences::~Preferences() {
+    save();
 }
 
-void NaviPreferences::setDefaults() {
+void Preferences::setDefaults() {
     Write(MINIMIZE_TO_TRAY, true);
     Write(ASK_ON_EXIT,      false);
     Write(MEDIA_DIRECTORY,  wxT("/"));
@@ -164,12 +165,12 @@ void NaviPreferences::setDefaults() {
     save();
 }
 
-void NaviPreferences::save() {
+void Preferences::save() {
     wxFileOutputStream fos(m_configFile);
     Save(fos);
 }
 
-NaviPreferences* NaviPreferences::createInstance() {
+Preferences* Preferences::createInstance() {
     // get the standard base path, and make a path with the configuration file.
     wxStandardPathsBase& wxsp = wxStandardPaths::Get();
 
@@ -182,7 +183,7 @@ NaviPreferences* NaviPreferences::createInstance() {
     wxFileName fn(naviDir.GetFullPath(), CONFIG_FILE);
     wxString configFile = fn.GetFullPath();
 
-    NaviPreferences* config;
+    Preferences* config;
     // create new file, if it doesn't exist yet.
     if (!wxFileExists(configFile)) {
         // will create it:
@@ -191,7 +192,7 @@ NaviPreferences* NaviPreferences::createInstance() {
         wxFileInputStream fis(configFile);
         // wxFileConfig has to be created after we know the file exists, or some
         // stupid dialog box pops up, saying the file cannot be found. How quaint.
-        config = new NaviPreferences(fis, configFile);
+        config = new Preferences(fis, configFile);
 
         // write some default values to the CONFIG_FILE.
         config->setDefaults();
@@ -199,10 +200,56 @@ NaviPreferences* NaviPreferences::createInstance() {
         // load from the file too.
         wxFileInputStream fis(configFile);
         // same story as above:
-        config = new NaviPreferences(fis, configFile);
+        config = new Preferences(fis, configFile);
     }
     
     return config;
+}
+
+//================================================================================
+
+Notification::Notification(const wxString& body) :
+        m_body(body) {
+    init();
+}
+
+Notification::Notification(TrackInfo& info) {
+    init();
+
+    m_body = info[TrackInfo::TITLE];
+    m_body += wxT("\n");
+    m_body += info[TrackInfo::ARTIST];
+}
+
+Notification::~Notification() {
+}
+
+void Notification::init() {
+    if (!notify_is_initted()) {
+        notify_init("Navi");
+    }
+}
+
+void Notification::show(unsigned int timeoutSeconds) {
+    NotifyNotification* nn = notify_notification_new("Now playing:", m_body.mb_str(), "gtk-yes"); 
+    // XXX: on my Linux Mint, the timeout does not have effect?
+    notify_notification_set_timeout(nn, timeoutSeconds * 1000);
+    notify_notification_set_urgency(nn, NOTIFY_URGENCY_LOW);
+    GError* error = NULL;
+    notify_notification_show(nn, &error);
+    if (error != NULL) {
+        g_error_free(error);
+    }
+
+    // by immediately closing it, we don't add it to the stack of notifications
+    // in GNOME 3 (I guess). If we don't do this, the user must manually close all
+    // the notifications... or else they won't disappear.
+    error = NULL;
+    notify_notification_close(nn, &error);
+    if (error != NULL) {
+        g_error_free(error);
+    }
+
 }
 
 } // namespace navi

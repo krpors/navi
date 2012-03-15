@@ -110,7 +110,7 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
 }
 
 void NavigationContainer::setTrack(TrackInfo& info) {
-    if (info.isValid()) {
+    if (!info.isValid()) {
         m_txtTrackTitle->SetLabel(wxT("Nothing played"));
         m_txtArtistAlbum->SetLabel(wxT("-"));
         return;

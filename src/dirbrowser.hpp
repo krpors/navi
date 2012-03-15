@@ -36,6 +36,8 @@
 #include <wx/artprov.h>
 #include <wx/dirdlg.h>
 
+#include <assert.h>
+
 namespace navi {
 
 class NaviMainFrame;

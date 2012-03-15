@@ -1,6 +1,6 @@
 CC=g++
-CFLAGS=-O0 -ggdb -Wall -c `wx-config --cppflags` `pkg-config --cflags gstreamer-0.10`
-LDFLAGS=`wx-config --libs` `pkg-config --libs gstreamer-0.10`
+CFLAGS=-O0 -ggdb -Wall -c `wx-config --cppflags` `pkg-config --cflags gstreamer-0.10 libnotify` 
+LDFLAGS=`wx-config --libs` `pkg-config --libs gstreamer-0.10 libnotify`
 
 SRC=./src
 BIN=./bin

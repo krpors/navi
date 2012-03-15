@@ -26,6 +26,7 @@
 #include "streambrowser.hpp"
 #include "tracktable.hpp"
 #include "navigation.hpp"
+#include "misc.hpp"
 
 #include <wx/wx.h>
 #include <wx/taskbar.h>
@@ -38,6 +39,7 @@
 #include <wx/bitmap.h>
 #include <wx/msgdlg.h>
 #include <wx/splitter.h>
+
 
 namespace navi {
 
