@@ -149,6 +149,19 @@ public:
 
 //================================================================================
 
+/**
+ * Preferences dialog, with user settable prefs. Shown as modal.
+ */
+class PreferencesDialog : public wxDialog {
+public:
+    /**
+     * Constructor for ths dialog.
+     */
+    PreferencesDialog(wxWindow* parent);
+};
+
+//================================================================================
+
 
 /**
  * This class can be seen as quite some meat of the playability of Navi. It makes

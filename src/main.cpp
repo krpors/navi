@@ -278,7 +278,8 @@ void NaviMainFrame::onIconize(wxIconizeEvent& event) {
 }
 
 void NaviMainFrame::onPreferences(wxCommandEvent& event) {
-
+    PreferencesDialog dlg(this);
+    dlg.ShowModal();
 }
 
 TrackTable* NaviMainFrame::getTrackTable() const {
@@ -298,6 +299,11 @@ BEGIN_EVENT_TABLE(NaviMainFrame, wxFrame)
     EVT_ICONIZE(NaviMainFrame::onIconize)
 END_EVENT_TABLE()
 
+//================================================================================
+
+PreferencesDialog::PreferencesDialog(wxWindow* parent) :
+        wxDialog(parent, wxID_ANY, wxT("Preferences")) {
+}
 
 //================================================================================
 
