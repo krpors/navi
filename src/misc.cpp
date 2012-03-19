@@ -210,28 +210,26 @@ Preferences* Preferences::createInstance() {
 
 Notification::Notification(const wxString& body) :
         m_body(body) {
-    init();
 }
 
 Notification::Notification(TrackInfo& info) {
-    init();
-
-    m_body = info[TrackInfo::TITLE];
-    m_body += wxT("\n");
+    m_body = wxT("<b>");
     m_body += info[TrackInfo::ARTIST];
+    m_body += wxT("</b>\n");
+    m_body += wxT("<u>");
+    m_body += info[TrackInfo::TITLE];
+    m_body += wxT("</u>");
 }
 
 Notification::~Notification() {
 }
 
-void Notification::init() {
-    if (!notify_is_initted()) {
-        notify_init("Navi");
-    }
-}
-
 void Notification::show(unsigned int timeoutSeconds) {
-    NotifyNotification* nn = notify_notification_new("Now playing:", m_body.mb_str(), "gtk-yes"); 
+    // libnotify 0.5.0 does not handle ampersands (&) correctly in the summary.
+    // Therefore, I'm replacing them temporarily with something else.
+    m_body.Replace(wxT("&"), wxT(" and "));
+
+    NotifyNotification* nn = notify_notification_new("Now playing:", m_body.mb_str(), "gtk-yes", NULL); 
     // XXX: on my Linux Mint, the timeout does not have effect?
     notify_notification_set_timeout(nn, timeoutSeconds * 1000);
     notify_notification_set_urgency(nn, NOTIFY_URGENCY_LOW);
@@ -244,11 +242,13 @@ void Notification::show(unsigned int timeoutSeconds) {
     // by immediately closing it, we don't add it to the stack of notifications
     // in GNOME 3 (I guess). If we don't do this, the user must manually close all
     // the notifications... or else they won't disappear.
+    #if 0
     error = NULL;
     notify_notification_close(nn, &error);
     if (error != NULL) {
         g_error_free(error);
     }
+    #endif
 
 }
 

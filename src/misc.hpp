@@ -152,6 +152,7 @@ private:
 
     /// Initializes libnotify when not yet inited.
     void init();
+
 public:
     /**
      * Creates a new notification with a custom body

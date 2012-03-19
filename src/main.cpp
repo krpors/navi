@@ -49,6 +49,7 @@ public:
 bool NaviApp::OnInit() {
     // initialize the gstreamer api here:
     gst_init(NULL, NULL);
+    notify_init("Navi");
 
     wxInitAllImageHandlers();
 
@@ -250,21 +251,7 @@ void NaviMainFrame::onAbout(wxCommandEvent& event) {
 }
 
 void NaviMainFrame::onExit(wxCommandEvent& event) {
-    bool ask;
-    wxConfigBase::Get()->Read(Preferences::ASK_ON_EXIT, &ask, false);
-    if (ask) {
-        wxMessageDialog dlg(this, wxT("Hey, listen! Do you really want to exit Navi?"), wxT("Exit Navi?"), wxYES_NO | wxNO_DEFAULT);
-        if (dlg.ShowModal() == wxID_NO) {
-            return;
-        }
-    }
-
-    // cleanup all stuff
-    gst_deinit(); // not really necessary, but lets do it anyway.
-    notify_uninit();
-    
-    // Close the UI:
-    Close(true);
+    Close(false); // let onClose() veto this event.
 }
 
 void NaviMainFrame::onIconize(wxIconizeEvent& event) {
@@ -290,6 +277,29 @@ NavigationContainer* NaviMainFrame::getNavigationContainer() const {
     return m_navigation;
 }
 
+void NaviMainFrame::onClose(wxCloseEvent& event) {
+    if (!event.CanVeto()) {
+        // must destroy window if CanVeto() returns false. See documentation of
+        // wxCloseEvent.
+        Destroy();
+    } else {
+        bool ask;
+        wxConfigBase::Get()->Read(Preferences::ASK_ON_EXIT, &ask, false);
+        if (ask) {
+            wxMessageDialog dlg(this, wxT("Hey, listen! Do you really want to exit Navi?"), wxT("Exit Navi?"), wxYES_NO | wxNO_DEFAULT);
+            if (dlg.ShowModal() == wxID_NO) {
+                return;
+            }
+        }
+
+        // cleanup all stuff
+        gst_deinit(); // not really necessary, but lets do it anyway.
+        notify_uninit(); // uninitialize libnotify.
+        
+        Destroy();
+    }
+}
+
 // Event table.
 BEGIN_EVENT_TABLE(NaviMainFrame, wxFrame)
     EVT_SIZE(NaviMainFrame::onResize)
@@ -297,6 +307,7 @@ BEGIN_EVENT_TABLE(NaviMainFrame, wxFrame)
     EVT_MENU(wxID_ABOUT, NaviMainFrame::onAbout)
     EVT_MENU(wxID_EXIT, NaviMainFrame::onExit)
     EVT_ICONIZE(NaviMainFrame::onIconize)
+    EVT_CLOSE(NaviMainFrame::onClose)
 END_EVENT_TABLE()
 
 //================================================================================
@@ -456,6 +467,7 @@ void TrackStatusHandler::play() throw() {
         nav->setSeekerValues(0, m_pipeline->getDurationSeconds(), true);
         nav->setPlayPauseButtonEnabled(true);
 
+        std::cout << "PLaying??? " << m_playedTrack[TrackInfo::TITLE].mb_str() << std::endl;
         Notification n(m_playedTrack);
         n.show(5);
     }
@@ -502,7 +514,7 @@ void TrackStatusHandler::stop() throw() {
 void TrackStatusHandler::pipelineTagRead(Pipeline* const pipeline, const char* type, const wxString& value) throw() {
     // NOTE: this function is called from a gst thread.
     wxCommandEvent evt(NAVI_EVENT_TAG_READ);
-    std::cout << "pipelineTagRead: " << type << " -> " << value.mb_str() << std::endl;
+    //std::cout << "pipelineTagRead: " << type << " -> " << value.mb_str() << std::endl;
     StreamTagData* td = new StreamTagData(type, value);
     evt.SetClientObject(td);
     AddPendingEvent(evt);
