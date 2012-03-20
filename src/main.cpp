@@ -314,6 +314,47 @@ END_EVENT_TABLE()
 
 PreferencesDialog::PreferencesDialog(wxWindow* parent) :
         wxDialog(parent, wxID_ANY, wxT("Preferences")) {
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+    SetSizer(sizer);
+
+    wxPanel* top = createTopPanel(this);
+    wxPanel* bottom = createButtonPanel(this);
+
+    sizer->Add(top);
+    sizer->Add(bottom, wxSizerFlags().Center());
+
+    Fit();
+}
+
+wxPanel* PreferencesDialog::createTopPanel(wxWindow* parent) {
+    wxPanel* panel = new wxPanel(parent);
+    wxStaticBox* box = new wxStaticBox(panel, wxID_ANY, wxT("Miscellaneous"));
+    wxStaticBoxSizer* sizer = new wxStaticBoxSizer(box, wxVERTICAL);
+    panel->SetSizer(sizer);
+
+    m_chkMinimizeToTray = new wxCheckBox(panel, wxID_ANY, wxT("Minimize to 'tray'"));
+    m_chkAskOnExit = new wxCheckBox(panel, wxID_ANY, wxT("Ask for confirmation on exit"));
+    m_chkSortOnTrackNum = new wxCheckBox(panel, wxID_ANY, wxT("Automatically sort on tracknumber"));
+
+    sizer->Add(m_chkMinimizeToTray);
+    sizer->Add(m_chkAskOnExit);
+    sizer->Add(m_chkSortOnTrackNum);
+
+    return panel;
+}
+
+wxPanel* PreferencesDialog::createButtonPanel(wxWindow* parent) {
+    wxPanel* p = new wxPanel(parent);
+    wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+    p->SetSizer(sizer);
+
+    wxButton* btnOK = new wxButton(p, wxID_OK, wxEmptyString);
+    wxButton* btnCancel = new wxButton(p, wxID_CANCEL, wxEmptyString);
+
+    sizer->Add(btnOK);
+    sizer->Add(btnCancel);
+
+    return p;
 }
 
 //================================================================================
@@ -467,7 +508,6 @@ void TrackStatusHandler::play() throw() {
         nav->setSeekerValues(0, m_pipeline->getDurationSeconds(), true);
         nav->setPlayPauseButtonEnabled(true);
 
-        std::cout << "PLaying??? " << m_playedTrack[TrackInfo::TITLE].mb_str() << std::endl;
         Notification n(m_playedTrack);
         n.show(5);
     }

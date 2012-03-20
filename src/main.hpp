@@ -155,6 +155,13 @@ public:
  * Preferences dialog, with user settable prefs. Shown as modal.
  */
 class PreferencesDialog : public wxDialog {
+private:
+    wxCheckBox* m_chkMinimizeToTray;
+    wxCheckBox* m_chkAskOnExit;
+    wxCheckBox* m_chkSortOnTrackNum;
+
+    wxPanel* createTopPanel(wxWindow* parent);
+    wxPanel* createButtonPanel(wxWindow* parent);
 public:
     /**
      * Constructor for ths dialog.
