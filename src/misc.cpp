@@ -57,6 +57,12 @@ long strToInt(const wxString& str, int def) {
     return val;
 }
 
+wxString escapeMnemonics(const wxString& str) {
+    wxString s(str);
+    s.Replace(wxT("&"), wxT("&&"));
+    return s;
+}
+
 //================================================================================
 
 const wxString StreamConfiguration::CONFIG_FILE = wxT("streams");

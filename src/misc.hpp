@@ -54,6 +54,13 @@ const wxString formatSeconds(int seconds);
  */
 long strToInt(const wxString& str, int def);
 
+/**
+ * Escapes any single ampersand with a double ampersand, to escape
+ * any possible menu mnemonics.
+ * @param str The string to convert. A copy of a new string will be returned.
+ */
+wxString escapeMnemonics(const wxString& str);
+
 //================================================================================
 
 class StreamConfiguration {

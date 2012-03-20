@@ -87,7 +87,7 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
     // bottom part (name of the song etc.)
     wxPanel* panelBottom = new wxPanel(this);
     wxBoxSizer* bottomSizer = new wxBoxSizer(wxVERTICAL);
-    m_txtTrackTitle = new wxStaticText(panelBottom, wxID_ANY, wxT("Nothing played"));
+    m_txtTrackTitle = new wxStaticText(panelBottom, wxID_ANY, wxT("-"));
     wxFont font;
     font.SetWeight(wxFONTWEIGHT_BOLD);
     font.SetPointSize(12);
@@ -111,7 +111,7 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
 
 void NavigationContainer::setTrack(TrackInfo& info) {
     if (!info.isValid()) {
-        m_txtTrackTitle->SetLabel(wxT("Nothing played"));
+        m_txtTrackTitle->SetLabel(wxT("-"));
         m_txtArtistAlbum->SetLabel(wxT("-"));
         return;
     }
@@ -119,7 +119,7 @@ void NavigationContainer::setTrack(TrackInfo& info) {
     if (info[TrackInfo::TITLE].IsEmpty()) {
         m_txtTrackTitle->SetLabel(info.getLocation());
     } else {
-        m_txtTrackTitle->SetLabel(info[TrackInfo::TITLE]);
+        m_txtTrackTitle->SetLabel(escapeMnemonics(info[TrackInfo::TITLE]));
     }
 
     wxString alb;
@@ -130,7 +130,7 @@ void NavigationContainer::setTrack(TrackInfo& info) {
     } else {
         alb.Append(info[TrackInfo::ALBUM]);
     }
-    m_txtArtistAlbum->SetLabel(alb);
+    m_txtArtistAlbum->SetLabel(escapeMnemonics(alb));
 
 
 }

@@ -529,7 +529,7 @@ void TrackStatusHandler::pipelineStreamEnd(Pipeline* const pipeline) throw() {
 
 void TrackStatusHandler::pipelineError(Pipeline* const pipeline, const wxString& error) throw() {
     // NOTE: this function is called from a gst thread.
-    // never had a pipeline error before, need to test this though.
+    // NOTE: i dont get many (2 in one year) errors, but this callback method IS called!
     std::cout << "Error: " << error.mb_str() << std::endl;
 }
 
