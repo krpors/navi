@@ -162,11 +162,15 @@ private:
 
     wxPanel* createTopPanel(wxWindow* parent);
     wxPanel* createButtonPanel(wxWindow* parent);
+
+    void onOK(wxCommandEvent& event);
 public:
     /**
      * Constructor for ths dialog.
      */
     PreferencesDialog(wxWindow* parent);
+
+    DECLARE_EVENT_TABLE()
 };
 
 //================================================================================

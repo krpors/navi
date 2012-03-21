@@ -332,13 +332,29 @@ wxPanel* PreferencesDialog::createTopPanel(wxWindow* parent) {
     wxStaticBoxSizer* sizer = new wxStaticBoxSizer(box, wxVERTICAL);
     panel->SetSizer(sizer);
 
-    m_chkMinimizeToTray = new wxCheckBox(panel, wxID_ANY, wxT("Minimize to 'tray'"));
+    m_chkMinimizeToTray = new wxCheckBox(panel, wxID_ANY, wxT("Minimize to 'tray' (requires restart)"));
+    m_chkMinimizeToTray->SetToolTip(wxT("Enable this to iconize Navi to the 'tray', or notification area when the minimize button is clicked."));
     m_chkAskOnExit = new wxCheckBox(panel, wxID_ANY, wxT("Ask for confirmation on exit"));
+    m_chkAskOnExit->SetToolTip(wxT("Enable this to be asked to really quit Navi."));
     m_chkSortOnTrackNum = new wxCheckBox(panel, wxID_ANY, wxT("Automatically sort on tracknumber"));
+    m_chkSortOnTrackNum->SetToolTip(wxT("When listing the files in a directory, attempt to automatically sort on track number (requires a valid track number tag)"));
 
     sizer->Add(m_chkMinimizeToTray);
     sizer->Add(m_chkAskOnExit);
     sizer->Add(m_chkSortOnTrackNum);
+
+    bool trayEnabled;
+    wxConfigBase::Get()->Read(Preferences::MINIMIZE_TO_TRAY, &trayEnabled, false);
+    m_chkMinimizeToTray->SetValue(trayEnabled);
+
+    bool askOnExit;
+    wxConfigBase::Get()->Read(Preferences::ASK_ON_EXIT, &askOnExit, true);
+    m_chkAskOnExit->SetValue(askOnExit);
+
+    bool sortTrackNum;
+    wxConfigBase::Get()->Read(Preferences::AUTO_SORT, &sortTrackNum, true);
+    m_chkSortOnTrackNum->SetValue(sortTrackNum);
+
 
     return panel;
 }
@@ -356,6 +372,24 @@ wxPanel* PreferencesDialog::createButtonPanel(wxWindow* parent) {
 
     return p;
 }
+
+void PreferencesDialog::onOK(wxCommandEvent& event) {
+    Preferences* prefs = static_cast<Preferences*>(wxConfigBase::Get());
+    prefs->Write(Preferences::MINIMIZE_TO_TRAY, m_chkMinimizeToTray->GetValue());
+    prefs->Write(Preferences::ASK_ON_EXIT,      m_chkAskOnExit->GetValue());
+    prefs->Write(Preferences::AUTO_SORT,        m_chkSortOnTrackNum->GetValue());
+
+    prefs->save();
+
+    Close(true);
+}
+
+// Event table.
+BEGIN_EVENT_TABLE(PreferencesDialog, wxDialog)
+    EVT_BUTTON(wxID_OK, PreferencesDialog::onOK)
+END_EVENT_TABLE()
+
+
 
 //================================================================================
 
@@ -382,9 +416,6 @@ void TrackStatusHandler::onStop(wxCommandEvent& event) {
     stop();
 }
 
-
-// XXX: I am not entirely sure if this pointer usage (tt->getPrev etc) is 
-// robust and whatnot. 
 
 void TrackStatusHandler::onPrev(wxCommandEvent& event) {
     TrackTable* tt = m_mainFrame->getTrackTable();
