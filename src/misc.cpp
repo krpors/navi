@@ -214,6 +214,8 @@ Preferences* Preferences::createInstance() {
 
 //================================================================================
 
+#if 0
+
 Notification::Notification(const wxString& body) :
         m_body(body) {
 }
@@ -257,5 +259,7 @@ void Notification::show(unsigned int timeoutSeconds) {
     #endif
 
 }
+
+#endif
 
 } // namespace navi

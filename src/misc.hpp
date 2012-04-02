@@ -32,7 +32,9 @@
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
 
+#if 0
 #include <libnotify/notify.h>
+#endif
 
 namespace navi {
 
@@ -149,6 +151,8 @@ public:
 
 //================================================================================
 
+#if 0
+
 /**
  * On-Screen-Display notifications, to display the current playing track.
  */
@@ -184,7 +188,8 @@ public:
     void show(unsigned int timeoutSeconds);
 };
 
-} // namespace navi
+#endif
 
+} // namespace navi
 
 #endif // MISC_HPP

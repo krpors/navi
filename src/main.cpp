@@ -49,7 +49,6 @@ public:
 bool NaviApp::OnInit() {
     // initialize the gstreamer api here:
     gst_init(NULL, NULL);
-    notify_init("Navi");
 
     wxInitAllImageHandlers();
 
@@ -294,7 +293,6 @@ void NaviMainFrame::onClose(wxCloseEvent& event) {
 
         // cleanup all stuff
         gst_deinit(); // not really necessary, but lets do it anyway.
-        notify_uninit(); // uninitialize libnotify.
         
         Destroy();
     }
@@ -538,9 +536,6 @@ void TrackStatusHandler::play() throw() {
         nav->setTrack(m_playedTrack);
         nav->setSeekerValues(0, m_pipeline->getDurationSeconds(), true);
         nav->setPlayPauseButtonEnabled(true);
-
-        Notification n(m_playedTrack);
-        n.show(5);
     }
 }
 
