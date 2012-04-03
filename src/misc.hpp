@@ -32,9 +32,6 @@
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
 
-#if 0
-#include <libnotify/notify.h>
-#endif
 
 namespace navi {
 
@@ -149,46 +146,6 @@ public:
     void save();
 };
 
-//================================================================================
-
-#if 0
-
-/**
- * On-Screen-Display notifications, to display the current playing track.
- */
-class Notification {
-private:
-    /// The actual body used in show().
-    wxString m_body;
-
-    /// Initializes libnotify when not yet inited.
-    void init();
-
-public:
-    /**
-     * Creates a new notification with a custom body
-     * @param body The body of the notification.
-     */
-    Notification(const wxString& body);
-
-    /**
-     * Creates a new notification based on a TrackInfo object.
-     * @param info The TrackInfo object.
-     */
-    Notification(TrackInfo& info);
-
-    /**
-     * Delet0r.
-     */
-    ~Notification();
-
-    /**
-     * Shows the notification with a timeout in seconds.
-     */
-    void show(unsigned int timeoutSeconds);
-};
-
-#endif
 
 } // namespace navi
 
