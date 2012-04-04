@@ -412,165 +412,6 @@ void GenericPipeline::init() throw (AudioException) {
 
 }
 
-//==============================================================================
-
-MP3FilePipeline::MP3FilePipeline(const wxString& location) throw (AudioException) {
-    // set the location in the parent class `Pipeline':
-    m_location = location;
-    // initialize the pipeline further
-    try {
-        init();
-    } catch (const AudioException& ex) {
-        // rethrow
-        throw;
-    }
-}
-
-MP3FilePipeline::~MP3FilePipeline() {
-}
-
-
-void MP3FilePipeline::init() throw (AudioException) {
-    // This init function uses element factories to make the gst elements. All
-    // the element names are given the value NULL to let gst decide what name
-    // the elements get. 
-
-    // Element filesrc (gst-inspect filesrc)
-    m_filesrc = gst_element_factory_make("filesrc", NULL);
-    if (!m_filesrc) {
-        throw AudioException(wxT("Failed to create `filesrc' GST element"));
-    }
-
-    // Element MP3 parser allows us to successfully seek into the stream. This 
-    // thanks to a hint provided by MikeS-tp from #gstreamer at Freenode.
-    m_mp3parser = gst_element_factory_make("mp3parse", NULL);
-    if (!m_mp3parser) {
-        throw AudioException(wxT("Failed to create `mp3parse' GST element"));
-    }
-
-    // Element filesrc (gst-inspect mad)
-    m_maddec = gst_element_factory_make("mad", NULL);
-    if (!m_maddec) {
-        throw AudioException(wxT("Failed to create `mad' GST element"));
-    }
-    
-    // Element audioconvert (gst-inspect audioconvert)
-    m_aconvert = gst_element_factory_make("audioconvert", NULL);
-    if (!m_aconvert) {
-        throw AudioException(wxT("Failed to create `audioconvert' GST element"));
-    }
-
-    // Element autoaudiosink (gst-inspect autoaudiosink)
-    m_sink = gst_element_factory_make("autoaudiosink", NULL);
-    if (!m_sink) {
-        throw AudioException(wxT("Failed to create `autoaudiosink' GST element"));
-    }
-
-    // m_pipeline and m_bus are protected in parent class Pipeline.
-    m_pipeline = gst_pipeline_new(NULL);
-
-    m_bus = gst_pipeline_get_bus(GST_PIPELINE(m_pipeline));
-    // Add a watch to this bus (get notified of events using callbacks).
-    // See http://www.parashift.com/c++-faq-lite/pointers-to-members.html, section
-    // 33.2 for more details why it's done like this.
-    gst_bus_add_watch (m_bus, Pipeline::busWatcher, this);
-
-    gst_bin_add_many(GST_BIN(m_pipeline), m_filesrc, m_mp3parser, m_maddec, m_aconvert, m_sink, NULL);
-    gst_element_link_many(m_filesrc, m_mp3parser, m_maddec, m_aconvert, m_sink, NULL);
-
-    // set the "location" property on the filesrc element.
-    std::string s = std::string(m_location.mb_str());
-    g_object_set(m_filesrc, "location", s.c_str(), NULL);
-
-    // We set the state of the element as paused, so we can succesfully query
-    // duration and other stuff. If the state is still not PAUSED or PLAYING, 
-    // fetching the duration has no (real and useful) effect. It may return random
-    // data.
-    pause(); 
-}
-
-//================================================================================
-
-OGGFilePipeline::OGGFilePipeline(const wxString& location) throw (AudioException) {
-    m_location = location;
-
-    try {
-        init();
-    } catch (const AudioException& ex) {
-        // rethrow
-        throw;
-    }
-}
-
-OGGFilePipeline::~OGGFilePipeline() {
-    stop();
-}
-
-void OGGFilePipeline::init() throw (AudioException) {
-    // This init function uses element factories to make the gst elements. All
-    // the element names are given the value NULL to let gst decide what name
-    // the elements get. 
-
-    // Element filesrc (gst-inspect filesrc)
-    m_filesrc = gst_element_factory_make("filesrc", NULL);
-    if (!m_filesrc) {
-        throw AudioException(wxT("Failed to create `filsrc' GST element"));
-    }
-
-    // Element filesrc (gst-inspect oggdemux)
-    m_demux = gst_element_factory_make("oggdemux", NULL);
-    if (!m_demux) {
-        throw AudioException(wxT("Failed to create `oggdemux' GST element"));
-    }
-    
-    // Element decoder (gst-inspect decoder)
-    m_decoder = gst_element_factory_make("vorbisdec", NULL);
-    if (!m_decoder) {
-        throw AudioException(wxT("Failed to create `vorbisdec' GST element"));
-    }
-
-    // Element audioconvert (gst-inspect audioconvert)
-    m_aconvert = gst_element_factory_make("audioconvert", NULL);
-    if (!m_aconvert) {
-        throw AudioException(wxT("Failed to create `audioconvert' GST element"));
-    }
-
-    // Element alsasink (gst-inspect alsasink)
-    m_sink = gst_element_factory_make("autoaudiosink", NULL);
-    if (!m_sink) {
-        throw AudioException(wxT("Failed to create `autoaudiosink' GST element"));
-    }
-
-    // m_pipeline and m_bus are protected in parent class Pipeline.
-    m_pipeline = gst_pipeline_new(NULL);
-
-    m_bus = gst_pipeline_get_bus(GST_PIPELINE(m_pipeline));
-    gst_bus_add_watch (m_bus, Pipeline::busWatcher, this);
-
-    gst_bin_add_many(GST_BIN(m_pipeline), m_filesrc, m_demux, m_decoder, m_aconvert, m_sink, NULL);
-
-    gst_element_link(m_filesrc, m_demux);
-    gst_element_link_many(m_decoder, m_aconvert, m_sink, NULL);
-    g_signal_connect (m_demux, "pad-added", G_CALLBACK (onPadAdded), m_decoder);
-
-    // set location
-    std::string s = std::string(m_location.mb_str());
-    g_object_set(m_filesrc, "location", s.c_str(), NULL);
-
-    pause();
-}
-
-void OGGFilePipeline::onPadAdded(GstElement* element, GstPad* pad, gpointer data) throw() {
-    GstPad* sinkpad;
-    GstElement* decoder = (GstElement*) data;
-
-    sinkpad = gst_element_get_static_pad (decoder, "sink");
-
-    gst_pad_link (pad, sinkpad);
-    gst_object_unref (sinkpad);
-}
-
-
 //================================================================================
 
 
@@ -585,7 +426,8 @@ const char* TrackInfo::TRACK_NUMBER = GST_TAG_TRACK_NUMBER;
 const char* TrackInfo::DISC_NUMBER = GST_TAG_ALBUM_VOLUME_NUMBER;
 const char* TrackInfo::DATE = GST_TAG_DATE;
 
-TrackInfo::TrackInfo() {
+TrackInfo::TrackInfo() :
+    m_durationSeconds(-1) {
 }
 
 wxString& TrackInfo::operator[](const char* key) {
@@ -599,6 +441,14 @@ void TrackInfo::setLocation(const wxString& location) {
 
 const wxString& TrackInfo::getLocation() {
     return m_location;
+}
+
+int TrackInfo::getDurationSeconds() const throw() {
+    return m_durationSeconds;
+}
+
+void TrackInfo::setDurationSeconds(int durrrr) throw() {
+    m_durationSeconds = durrrr;
 }
 
 bool TrackInfo::isValid() const {
@@ -717,6 +567,12 @@ void TagReader::initTags() throw(AudioException) {
     // called quite a lot of times. We need to only set the location once, and
     // not 18 times in a row. Saves a few nanoseconds :p
     m_trackInfo.setLocation(getLocation());
+    try {
+        // try to fetch the duration by querying the pipeline.
+        m_trackInfo.setDurationSeconds(getDurationSeconds());
+    } catch(const AudioException& ex) {
+        std::cerr << "Failed to get the track duration!" << std::endl;
+    }
 
     GstMessage* msg = NULL;
     // XXX: making using of while(true) sounds dangerous...?

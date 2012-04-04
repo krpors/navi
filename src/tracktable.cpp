@@ -25,6 +25,7 @@ TrackTable::TrackTable(wxWindow* parent) :
     m_sortDirection[1] = false;
     m_sortDirection[2] = false;
     m_sortDirection[3] = false;
+    m_sortDirection[4] = false;
 
     wxListItem item;
 
@@ -44,6 +45,10 @@ TrackTable::TrackTable(wxWindow* parent) :
     InsertColumn(3, item);
     SetColumnWidth(3, 150);
 
+    item.SetText(wxT("Duration"));
+    item.SetAlign(wxLIST_FORMAT_CENTRE);
+    InsertColumn(4, item);
+    SetColumnWidth(4, 150);
 }
 
 // compare functions:
@@ -123,6 +128,24 @@ int wxCALLBACK TrackTable::compareAlbum(long item1, long item2, long sortData) {
     return 0;
 }
 
+int wxCALLBACK TrackTable::compareDuration(long item1, long item2, long sortData) {
+    // reinterpret the sortData to a TrackTable pointar. Wtf.
+    TrackTable* roflol = reinterpret_cast<TrackTable*>(sortData);
+    // make sure we have a point0r.
+    if (roflol) {
+        TrackInfo& one = roflol->getTrackInfo(item1);
+        TrackInfo& two = roflol->getTrackInfo(item2);
+
+        if (roflol->m_sortDirection[4]) {
+            return one.getDurationSeconds() - two.getDurationSeconds();
+        } else {
+            return two.getDurationSeconds() - one.getDurationSeconds();
+        }
+    }
+
+    return 0;
+}
+
 void TrackTable::addTrackInfo(TrackInfo& info) {
     wxListItem item;
     item.SetId(GetItemCount());
@@ -131,6 +154,7 @@ void TrackTable::addTrackInfo(TrackInfo& info) {
     SetItem(index, 1, info[TrackInfo::ARTIST]); 
     SetItem(index, 2, info[TrackInfo::TITLE]); 
     SetItem(index, 3, info[TrackInfo::ALBUM]); 
+    SetItem(index, 4, formatSeconds(info.getDurationSeconds()));
     // SetItemData using the index variable is vital for getting the correct
     // selected item of this wxListCtrl (due to sorting and whatnot).
     SetItemData(index, index);
@@ -247,6 +271,7 @@ void TrackTable::onColumnClick(wxListEvent& event) {
             case 1: SortItems(TrackTable::compareArtistName, (long) this); break;
             case 2: SortItems(TrackTable::compareTitle, (long) this); break;
             case 3: SortItems(TrackTable::compareAlbum, (long) this); break;
+            case 4: SortItems(TrackTable::compareDuration, (long) this); break;
             default: break;
         }
 
@@ -288,10 +313,11 @@ void TrackTable::onResize(wxSizeEvent& event) {
     GetSize(&width, &height);
 
     // automatically set some widths here after resizing
-    SetColumnWidth(0, 40);
-    SetColumnWidth(1, 0.4 * width);
-    SetColumnWidth(2, 0.3 * width);
-    SetColumnWidth(3, 0.2 * width);
+    SetColumnWidth(0, 40); // track#
+    SetColumnWidth(1, 0.3 * width); // title
+    SetColumnWidth(2, 0.3 * width); // artist
+    SetColumnWidth(3, 0.2 * width); // album
+    SetColumnWidth(4, 0.1 * width); // duration
 
     // re-layout the control, to the column sizes are actually being done.
     Layout();

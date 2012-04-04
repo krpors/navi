@@ -106,6 +106,8 @@ private:
     /// Location of the track on HD
     wxString m_location;
 
+    int m_durationSeconds;
+
 public:
     /// Title of the stream (GST_TAG_TITLE)
     static const char* TITLE;
@@ -155,9 +157,21 @@ public:
     /**
      * Gets the location of the track.
      * 
-     * @return The track's location TODO: (URI only? File abs path only?)
+     * @return The track's location.
      */
     const wxString& getLocation();
+
+    /**
+     * Gets the duration of the track in seconds, if applicable.
+     */
+    int getDurationSeconds() const throw();
+
+    /**
+     * Sets the duration of the track in seconds.
+     *
+     * @param durationSeconds the num of seconds.
+     */
+    void setDurationSeconds(int durationSeconds) throw();
 
     /**
      * Returns true if the TrackInfo is `valid'. This means it can be played
@@ -422,116 +436,6 @@ public:
      * Constructs a new pipeline using a URI.
      */
     GenericPipeline(const wxString& location) throw (AudioException);
-};
-
-//================================================================================
-
-/**
- * MP3 file pipeline object. Creates a pipeline that can read an MPEG1 layer 3
- * audio file using the MAD decoder, audio converter and sink.
- */
-class MP3FilePipeline: public Pipeline {
-private:
-
-    /// The file source.
-    GstElement* m_filesrc;
-
-    /// MP3 parser (MikeS-tp@#gstreamer irc.freenode.org) 
-    GstElement* m_mp3parser;
-
-    /// The MAD decoder.
-    GstElement* m_maddec;
-
-    /// The audio converter.
-    GstElement* m_aconvert;
-
-    /// Sink.
-    GstElement* m_sink;
-
-protected:
-    /**
-     * Initializes the pipeline.
-     * 
-     * @throws AudioException when any of the GstElements can not be created.
-     */
-    void init() throw (AudioException);
-
-public:
-    /**
-     * Creates a new MP3 file pipeline, using location as file source.
-     *
-     * @param location The location on disk.
-     */
-    MP3FilePipeline(const wxString& location) throw (AudioException) ;
-
-    /**
-     * Destructor.
-     */
-    ~MP3FilePipeline(); 
-
-};
-
-//================================================================================
-
-/**
- * An OGG file pipeline object. This can create a pipeline using a (local) OGG
- * file as a source. Using a demuxer, decoder, audioconverter and a sink, it will
- * play the file.
- */
-class OGGFilePipeline : public Pipeline {
-private:
-
-    /// File source
-    GstElement* m_filesrc; 
-
-    /// OGG Demuxer
-    GstElement* m_demux;
-
-    /// Vorbis Decoder
-    GstElement* m_decoder;
-
-    /// Audio converter
-    GstElement* m_aconvert;
-
-    /// Audio sink.
-    GstElement* m_sink;
-    
-    /**
-     * Necessary to play OGG files. See Section 8.1.1 in the development manual and
-     * the `Hello World' example application of the gstreamer documentation on why 
-     * this is needed for Ogg Vorbis. Basically:
-     * 
-     * "Note that the demuxer will be linked to the decoder dynamically. The reason
-     * is that Ogg may contain various streams (for example audio and video). The 
-     * source pad(s) will be created at run time by the demuxer when it detects the
-     * mount and nature of streams. Therefore we connect a callback function which 
-     * will be executed when the "pad-added" is emitted."
-     *
-     * @param element the element (usually the demuxer)
-     * @param pad The sinkpad?
-     * @param data The decoder GstElement pointer.
-     */
-    static void onPadAdded(GstElement* element, GstPad* pad, gpointer data) throw();
-
-protected:
-    /**
-     * Override from class Pipeline.
-     */
-    void init() throw (AudioException);
-
-public:
-    /**
-     * Create a new OGG file pipeline, given a location on disk.
-     * 
-     * @param location The OGG file's location.
-     */
-    OGGFilePipeline(const wxString& location) throw (AudioException);
-
-    /**
-     * Destructor.
-     */
-    ~OGGFilePipeline();
-
 };
 
 //================================================================================

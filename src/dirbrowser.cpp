@@ -23,7 +23,7 @@
 
 namespace navi {
 
-// Declared in XXX.cpp
+// Declared in misc.cpp
 extern const wxEventType naviDirTraversedEvent;
 
 DirBrowserItemData::DirBrowserItemData(const wxFileName& fileName) :

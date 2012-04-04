@@ -70,6 +70,7 @@ private:
     static int wxCALLBACK compareArtistName(long item1, long item2, long sortData);
     static int wxCALLBACK compareTitle(long item1, long item2, long sortData);
     static int wxCALLBACK compareAlbum(long item1, long item2, long sortData);
+    static int wxCALLBACK compareDuration(long item1, long item2, long sortData);
 
     /// The current selected item. May be NULL. Don't destroy this thing.
     TrackInfo m_selectedItem;
@@ -82,7 +83,7 @@ private:
     
     // array of bools for sort direction. 4 length, for each of the
     // four columns. true = ascending, false = descending.
-    bool m_sortDirection[4];
+    bool m_sortDirection[5];
 
 public:
     /// The window ID for this track table.
