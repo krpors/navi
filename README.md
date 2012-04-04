@@ -52,8 +52,6 @@ persisted to disk;
 * Reading tags from streams and files;
 * 'System tray' icon, for less display hassle in the window list in your
 Desktop environment (may have a buggy display);
-* OSD (On Screen Display) notification, to get notified which track is currently
-playing;
 
 Planned features
 ----------------
@@ -66,6 +64,9 @@ tedious and time consuming. A sort of proxy is needed here;
 * Favorites, play queue or the like is a must too;
 * I'm also thinking of a full recursive 'playlist', i.e. using the base directory,
 find all media files within all the subdirectories. This will REALLY need caching :)
+* OSD (On Screen Display) notification, to get notified which track is currently
+playing. This used to be implemented, but the prototypes in ``libnotify`` are not
+compatible amongst different versions :(
 
 Technological information 
 -------------------------
@@ -76,8 +77,6 @@ libraries (aka dependencies)
 * C++ programming language;
 * [wxWidgets](http://wxwidgets.org) 2.8.10+ for UI elements and the like;
 * The excellent [GStreamer](http://gstreamer.net) 0.10.30+ as audio backend;
-* [libnotify](http://developer-next.gnome.org/libnotify/0.7/ch01.html) 0.7.4+ for 
-OSD notifications.
 
 Build instructions
 -------------------------
@@ -91,18 +90,19 @@ repository:
 Since it depends on wxWidgets, gstreamer and libnotify, you'll need to install those
 dependencies as well. For Debian based systems, you can invoke the following command:
 
-    sudo apt-get install build-essential libwxgtk2.8-dev libgstreamer0.10-dev libnotify-dev
+    sudo apt-get install build-essential libwxgtk2.8-dev libgstreamer0.10-dev
 
 After installation of these packages, just run ``make`` on the ``Makefile``:
 
     make
 
 And the binary will be built under the ``./bin/`` directory inside the Navi git repo.
+Run it with ``./bin/navi``, or else you'll get a warning about missing icons.
 
 Feedback
 --------
 
 If you are a user of Navi, you like or dislike what it is or where it's going to, please
-let me know! I'm fond of knowing if my software is being used. 
+let me know! I'm fond of knowing if my software is being used. Just drop a small line.
 
-Code critique are certainly welcome too.
+Code critique are certainly welcome too!
