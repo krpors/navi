@@ -7,6 +7,7 @@
 //      MA 02110-1301, USA.
 
 #include "tracktable.hpp"
+#include <sys/time.h>
 
 namespace navi {
 
@@ -18,8 +19,7 @@ extern const wxEventType naviDirTraversedEvent;
 TrackTable::TrackTable(wxWindow* parent) :
         wxListCtrl(parent, TrackTable::ID_TRACKTABLE, wxDefaultPosition, 
         wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL | wxLC_VRULES | wxVSCROLL),
-        m_currTrackItemIndex(0),
-        m_currTrackItemIndexInListCtrl(0) {
+        m_currTrackItemIndex(0) {
 
     m_sortDirection[0] = false;
     m_sortDirection[1] = false;
@@ -184,7 +184,6 @@ TrackInfo TrackTable::getTrackBeforeOrAfterCurrent(int pos, bool markAsPlaying) 
 
     for (int i = 0; i < GetItemCount(); i++) {
         wxColour colour = GetItemBackgroundColour(i);
-        std::cout << colour.Red() << std::endl;
         long d = GetItemData(i);
         if (d == m_currTrackItemIndex) {
             TrackInfo currentlyPlaying = m_trackInfos[d];
@@ -201,7 +200,7 @@ TrackInfo TrackTable::getTrackBeforeOrAfterCurrent(int pos, bool markAsPlaying) 
             if (markAsPlaying) {
                 // this marks the current playing track, based on the
                 // zero index, sorted rows..
-                markPlayedTrack(i, next);
+                markPlayedTrack(next);
                 // and this sets the track item index based on the 
                 // *item data* (GetItemData()).
                 m_currTrackItemIndex = nextData;
@@ -224,11 +223,25 @@ TrackInfo TrackTable::getNext(bool markAsPlaying) throw() {
     return getTrackBeforeOrAfterCurrent(1, markAsPlaying);
 }
 
-void TrackTable::markPlayedTrack(long oldItemId, long newItemId) throw() {
-    wxFont fontDef  =  wxSystemSettings::GetFont(wxSYS_SYSTEM_FONT);
-    wxFont fontMark =  wxSystemSettings::GetFont(wxSYS_SYSTEM_FONT);
+void TrackTable::markPlayedTrack(long newItemId) throw() {
+    wxFont fontDef  = wxSystemSettings::GetFont(wxSYS_SYSTEM_FONT);
+    wxFont fontMark = wxSystemSettings::GetFont(wxSYS_SYSTEM_FONT);
     fontMark.SetWeight(wxFONTWEIGHT_BOLD);
-    SetItemFont(oldItemId, fontDef);
+
+    // XXX: unmark all items... Looks like a bit of a brute force, so
+    // test this thorougly with LOTS of items in the list to check if
+    // this performs well enough.
+    long item = -1;
+    while(true) {
+        item = GetNextItem(item);
+        if (item == -1) {
+            break;
+        }
+
+        SetItemFont(item, fontDef);
+    }
+
+    // last but not least, mark the selected item as playing.
     SetItemFont(newItemId, fontMark);
 }
 
@@ -243,9 +256,8 @@ void TrackTable::DeleteAllItems() {
 
 void TrackTable::onActivate(wxListEvent& event) {
     // when an item is activated by double clicking, mark it as currently playing.
-    markPlayedTrack(m_currTrackItemIndexInListCtrl, event.GetIndex());
+    markPlayedTrack(event.GetIndex());
     m_currTrackItemIndex = event.GetData();
-    m_currTrackItemIndexInListCtrl = event.GetIndex(); 
     // skip this when a listitem is activated (propagate it up the chain!)
     // In this case, main.cpp (NaviMainFrame) handles this event.
     event.Skip();

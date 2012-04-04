@@ -62,7 +62,7 @@ private:
 
     TrackInfo getTrackBeforeOrAfterCurrent(int pos, bool markAsPlaying) throw();
 
-    void markPlayedTrack(long oldItemId, long newItemId) throw();
+    void markPlayedTrack(long newItemId) throw();
 
     // static callback methods, for sorting. sortData is always the `this' instance
     // of TrackTable.
@@ -78,9 +78,6 @@ private:
     /// The current track item index (in the vector)
     long m_currTrackItemIndex;
 
-    /// The 
-    long m_currTrackItemIndexInListCtrl;
-    
     // array of bools for sort direction. 4 length, for each of the
     // four columns. true = ascending, false = descending.
     bool m_sortDirection[5];
