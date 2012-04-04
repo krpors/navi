@@ -239,6 +239,11 @@ private:
     void onPosChange(wxScrollEvent& event);
 
     /**
+     * Invoked when the volume is about to be changed.
+     */
+    void onVolChange(wxScrollEvent& event);
+
+    /**
      * Invoked when a track is actived (i.e. double clicked, enter-ed) from the
      * track table widget.
      */

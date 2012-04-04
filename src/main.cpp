@@ -450,6 +450,14 @@ void TrackStatusHandler::onPosChange(wxScrollEvent& event) {
     }
 }
 
+void TrackStatusHandler::onVolChange(wxScrollEvent& event) {
+    if (event.GetEventType() == wxEVT_SCROLL_CHANGED) {
+        if (m_pipeline != NULL) {
+            m_pipeline->setVolume(event.GetPosition());
+        }
+    }
+}
+
 void TrackStatusHandler::onTrackActivated(wxListEvent& event) {
     m_pipelineType = PIPELINE_TRACK;
 
@@ -525,7 +533,10 @@ void TrackStatusHandler::play() throw() {
         dlg.ShowModal();
     }
 
+    // set the initial volume of the pipeline
+    m_pipeline->setVolume(nav->getVolume());
     m_pipeline->play();
+
     nav->setStopButtonEnabled(true);
     nav->setPauseVisible();
     if (m_pipelineType == PIPELINE_STREAM) {
@@ -630,6 +641,7 @@ BEGIN_EVENT_TABLE(TrackStatusHandler, wxEvtHandler)
     EVT_BUTTON(NavigationContainer::ID_MEDIA_NEXT, TrackStatusHandler::onNext)
 
     EVT_COMMAND_SCROLL(NavigationContainer::ID_MEDIA_SEEKER, TrackStatusHandler::onPosChange)
+    EVT_COMMAND_SCROLL(NavigationContainer::ID_MEDIA_VOLUME, TrackStatusHandler::onVolChange)
 
     EVT_LIST_ITEM_ACTIVATED(TrackTable::ID_TRACKTABLE, TrackStatusHandler::onTrackActivated)
     EVT_LIST_ITEM_ACTIVATED(StreamTable::ID_STREAMTABLE, TrackStatusHandler::onStreamItemActivated)

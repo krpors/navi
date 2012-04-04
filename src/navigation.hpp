@@ -95,7 +95,10 @@ private:
     wxStaticText* m_txtArtistAlbum;
 
     /// Slider, to control the position of the stream.
-    wxSlider* m_slider;
+    wxSlider* m_positionSlider;
+
+    /// Volume slider.
+    wxSlider* m_volumeSlider;
 
 public:
     static const short ID_MEDIA_PREV = 4000; 
@@ -104,6 +107,7 @@ public:
     static const short ID_MEDIA_PLAY = 4003; 
     static const short ID_MEDIA_RANDOM = 4004; 
     static const short ID_MEDIA_SEEKER = 4005; 
+    static const short ID_MEDIA_VOLUME = 4006;
 
     /**
      * Ctor. Creates the panel widget with child widgets.
@@ -147,6 +151,12 @@ public:
      */
     void setSeekerValues(unsigned int pos, unsigned int max, bool enabled = true);
 
+    /**
+     * Gets the selected volume in percentage (from the slider).
+     *
+     * @return The volume, indicated as a percentage from [0-100].
+     */
+    unsigned short getVolume() throw();
 
     DECLARE_EVENT_TABLE()
 };

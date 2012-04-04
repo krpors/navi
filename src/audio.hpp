@@ -406,6 +406,13 @@ public:
     virtual int getDurationSeconds() throw(AudioException);
 
     /**
+     * Sets the volume of this pipeline 
+     *
+     * @param percentge the percentage, ranging from [0, x).
+     */
+    virtual void setVolume(unsigned short percentage) throw();
+
+    /**
      * Returns the location, whether it be a URL or file location.
      */
     const wxString& getLocation() const throw();
@@ -436,6 +443,11 @@ public:
      * Constructs a new pipeline using a URI.
      */
     GenericPipeline(const wxString& location) throw (AudioException);
+    
+    /**
+     * Sets pipeline volume. Override from Pipeline.
+     */
+    void setVolume(unsigned short percentage) throw();
 };
 
 //================================================================================

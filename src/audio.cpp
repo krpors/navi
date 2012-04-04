@@ -347,6 +347,9 @@ int Pipeline::getDurationSeconds() throw(AudioException) {
     return len / GST_SECOND;
 }
 
+void Pipeline::setVolume(unsigned short percentage) throw() {
+}
+
 //==============================================================================
 
 GenericPipeline::GenericPipeline(const wxString& location) throw (AudioException) {
@@ -380,7 +383,7 @@ void GenericPipeline::init() throw (AudioException) {
 
     // set the "location" property on the filesrc element.
     std::string s = std::string(m_location.mb_str());
-    g_object_set(m_playbin, "uri", s.c_str(), NULL);
+    g_object_set(G_OBJECT(m_playbin), "uri", s.c_str(), NULL);
     
     /*
     We're gonna set some flags here. I don't need Navi to play video files as 
@@ -402,7 +405,7 @@ void GenericPipeline::init() throw (AudioException) {
     unsigned short audio   = 0x00000002;
     unsigned short softvol = 0x00000010;
     unsigned short render = audio | softvol;
-    g_object_set(m_playbin, "flags", render, NULL);
+    g_object_set(G_OBJECT(m_playbin), "flags", render, NULL);
 
     // We set the state of the element as paused, so we can succesfully query
     // duration and other stuff. If the state is still not PAUSED or PLAYING, 
@@ -410,6 +413,10 @@ void GenericPipeline::init() throw (AudioException) {
     // data.
     pause(); 
 
+}
+
+void GenericPipeline::setVolume(unsigned short percentage) throw() {
+    g_object_set(G_OBJECT(m_playbin), "volume", (percentage / 100.0), NULL);
 }
 
 //================================================================================

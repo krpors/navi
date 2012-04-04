@@ -80,8 +80,10 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
     // middle part:
     wxPanel* panelMiddle = new wxPanel(this);
     wxBoxSizer* middleSizer = new wxBoxSizer(wxHORIZONTAL);
-    m_slider = new wxSlider(panelMiddle, ID_MEDIA_SEEKER, 0, 0, 100);
-    middleSizer->Add(m_slider, wxSizerFlags(1).Expand());
+    m_positionSlider = new wxSlider(panelMiddle, ID_MEDIA_SEEKER, 0, 0, 100);
+    m_volumeSlider = new wxSlider(panelMiddle, ID_MEDIA_VOLUME, 100, 0, 100);
+    middleSizer->Add(m_positionSlider, wxSizerFlags(1).Expand());
+    middleSizer->Add(m_volumeSlider, wxSizerFlags(1).Expand());
     panelMiddle->SetSizer(middleSizer);
 
     // bottom part (name of the song etc.)
@@ -161,9 +163,9 @@ void NavigationContainer::setStopButtonEnabled(bool enabled) {
 }
 
 void NavigationContainer::setSeekerValues(unsigned int pos, unsigned int max, bool enabled) {
-    m_slider->SetRange(0, max);
-    m_slider->SetValue(pos);
-    m_slider->Enable(enabled);
+    m_positionSlider->SetRange(0, max);
+    m_positionSlider->SetValue(pos);
+    m_positionSlider->Enable(enabled);
     
     if (enabled) {
         wxString lol;
@@ -176,6 +178,10 @@ void NavigationContainer::setSeekerValues(unsigned int pos, unsigned int max, bo
     } else {
         m_txtTimeIndicator->SetLabel(wxT("-:- of -:-"));
     }
+}
+
+unsigned short NavigationContainer::getVolume() throw() {
+    return m_volumeSlider->GetValue();
 }
 
 BEGIN_EVENT_TABLE(NavigationContainer, wxPanel)
