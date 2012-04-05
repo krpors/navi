@@ -446,7 +446,7 @@ void TrackInfo::setLocation(const wxString& location) {
     m_location = location;
 }
 
-const wxString& TrackInfo::getLocation() {
+const wxString& TrackInfo::getLocation() const {
     return m_location;
 }
 
@@ -460,6 +460,19 @@ void TrackInfo::setDurationSeconds(int durrrr) throw() {
 
 bool TrackInfo::isValid() const {
     return !m_location.IsEmpty();
+}
+
+const wxString TrackInfo::getSimpleName() throw() {
+    wxURI theuri(m_location);
+    const wxString path = theuri.Unescape(theuri.GetPath());
+    int lastindexofslash = path.Find('/', true);
+    if (lastindexofslash != wxNOT_FOUND) {
+        // remove the front part, up until the filename itself.
+        wxString meh = path.Mid(lastindexofslash + 1);
+        return meh;
+    } 
+    // if not found, return the original path eh.
+    return path;
 }
 
 
@@ -669,6 +682,5 @@ void TagReader::setTrackInfo(const TrackInfo& trackinfo) {
 TrackInfo& TagReader::getTrackInfo() {
     return m_trackInfo;
 }
-
 
 } // namespace pl

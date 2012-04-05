@@ -54,7 +54,7 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
     wxBitmap pause = wxArtProvider::GetBitmap(wxT("gtk-media-pause"));
     wxBitmap stop = wxArtProvider::GetBitmap(wxT("gtk-media-stop"));
     wxBitmap next = wxArtProvider::GetBitmap(wxT("gtk-media-next"));
-    wxBitmap random = wxArtProvider::GetBitmap(wxT("gtk-refresh"));
+    wxBitmap random = wxArtProvider::GetBitmap(wxT("stock_volume"));
    
     m_btnPrev = new wxBitmapButton(panelTop, ID_MEDIA_PREV, prev, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_btnPlay = new wxBitmapButton(panelTop, ID_MEDIA_PLAY, play, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
@@ -119,7 +119,7 @@ void NavigationContainer::setTrack(TrackInfo& info) {
     }
 
     if (info[TrackInfo::TITLE].IsEmpty()) {
-        m_txtTrackTitle->SetLabel(info.getLocation());
+        m_txtTrackTitle->SetLabel(info.getSimpleName());
     } else {
         m_txtTrackTitle->SetLabel(escapeMnemonics(info[TrackInfo::TITLE]));
     }
@@ -177,6 +177,7 @@ void NavigationContainer::setSeekerValues(unsigned int pos, unsigned int max, bo
         m_txtTimeIndicator->GetParent()->Layout(); 
     } else {
         m_txtTimeIndicator->SetLabel(wxT("-:- of -:-"));
+        m_txtTimeIndicator->GetParent()->Layout(); 
     }
 }
 

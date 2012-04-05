@@ -32,6 +32,7 @@
 #include <wx/settings.h>
 
 #include <vector>
+#include <algorithm> // for random_shuffle
 #include <iostream>
 
 namespace navi {

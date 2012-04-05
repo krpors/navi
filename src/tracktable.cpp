@@ -151,7 +151,11 @@ void TrackTable::addTrackInfo(TrackInfo& info) {
     item.SetId(GetItemCount());
     long index = InsertItem(item);
     SetItem(index, 0, info[TrackInfo::TRACK_NUMBER]); 
-    SetItem(index, 1, info[TrackInfo::ARTIST]); 
+    if (info[TrackInfo::ARTIST].IsEmpty()) {
+        SetItem(index, 1, info.getSimpleName());
+    } else {
+        SetItem(index, 1, info[TrackInfo::ARTIST]); 
+    }
     SetItem(index, 2, info[TrackInfo::TITLE]); 
     SetItem(index, 3, info[TrackInfo::ALBUM]); 
     SetItem(index, 4, formatSeconds(info.getDurationSeconds()));

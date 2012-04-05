@@ -31,6 +31,7 @@
 #include <wx/wfstream.h>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
+#include <wx/uri.h>
 
 
 namespace navi {

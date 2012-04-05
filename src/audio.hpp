@@ -26,6 +26,8 @@
 
 #include <wx/wx.h>
 #include <wx/thread.h>
+#include <wx/uri.h>
+
 #include <gst/gst.h>
 
 namespace navi {
@@ -159,7 +161,7 @@ public:
      * 
      * @return The track's location.
      */
-    const wxString& getLocation();
+    const wxString& getLocation() const;
 
     /**
      * Gets the duration of the track in seconds, if applicable.
@@ -184,6 +186,20 @@ public:
      *  is returned, this is a signal to you to NOT attempt to play this, etc.
      */
     bool isValid() const;
+
+    /**
+     * Returns a simple name, for instance when a title/artist/album tag
+     * is not given in the file. For instance, when the following URI is used:
+     *
+     * file:///home/user/audio/album/01 - Artist - Song.mp3
+     *
+     * This function will return `01 - Artist - Song.mp3'.
+     *
+     * @return The 'simple' filename of the URI.
+     */
+    const wxString getSimpleName() throw();
+
+
 };
 
 
@@ -544,7 +560,6 @@ public:
      * TagReader should be discarded (deleted) after parsing is finished.
      */
     TrackInfo& getTrackInfo();
-
 };
 
 
