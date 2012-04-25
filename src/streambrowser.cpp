@@ -176,19 +176,9 @@ AddStreamDialog::AddStreamDialog(wxWindow* parent) :
     sizer->Add(lblLoc, wxSizerFlags().Align(wxALIGN_CENTER_VERTICAL));
     sizer->Add(m_txtLoc, wxSizerFlags().Expand().Bottom());
 
-    // buttons:
-    wxPanel* panelButtons = new wxPanel(this);
-    wxBoxSizer* sizerButtons = new wxBoxSizer(wxHORIZONTAL);
-    panelButtons->SetSizer(sizerButtons);
-    wxButton* btnOK = new wxButton(panelButtons, wxID_OK, wxT("Add"));
-    wxButton* btnCancel = new wxButton(panelButtons, wxID_CANCEL, wxT("Cancel"));
-
-    sizerButtons->Add(btnOK);
-    sizerButtons->Add(btnCancel);
-
     // add all the components to the main panel sizer.
     sizerDialog->Add(panelTextFields, wxSizerFlags().Expand().Border(wxALL, 5));
-    sizerDialog->Add(panelButtons, wxSizerFlags().Center());
+    sizerDialog->Add(CreateButtonSizer(wxOK | wxCANCEL), wxSizerFlags().Center());
     
     wxSize s = GetSize();
     SetSize(s.GetWidth(), 100);
@@ -248,12 +238,15 @@ wxPanel* StreamBrowserContainer::createStreamPanel(wxWindow* parent) {
 void StreamBrowserContainer::onAdd(wxCommandEvent& event) {
     AddStreamDialog d(this);
     if (d.ShowModal() == wxID_OK) {
-        std::cout << d.getDescription().mb_str() << std::endl;
-        std::cout << d.getLocation().mb_str() << std::endl;
-        m_streamTable->addStream(d.getDescription(), d.getLocation());
-        m_streamTable->saveToFile();
-    } else {
-        std::cout << "Cancel" << std::endl;
+        if (d.getLocation().IsEmpty()) {
+            wxMessageDialog dlg(
+                this, wxT("Stream location is empty."),
+                wxT("Welp!"), wxOK | wxICON_EXCLAMATION);
+            dlg.ShowModal();
+        } else {
+            m_streamTable->addStream(d.getDescription(), d.getLocation());
+            m_streamTable->saveToFile();
+        }
     }
 }
 void StreamBrowserContainer::onRemove(wxCommandEvent& event) {

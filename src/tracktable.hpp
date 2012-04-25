@@ -101,7 +101,7 @@ public:
      *
      * @param info The trackinfo to add.
      */
-    void addTrackInfo(TrackInfo& info);
+    void addTrackInfo(TrackInfo& info, bool updateInternally);
 
     /**
      * Gets the current (possibly) selected track. It may return a null
@@ -141,6 +141,11 @@ public:
      * @param event The wxSizeEvent.
      */
     void onResize(wxSizeEvent& event);
+
+    /**
+     * Shuffle up the tracklist.
+     */
+    void shuffle();
 
     // Plx respond to events.
     DECLARE_EVENT_TABLE()

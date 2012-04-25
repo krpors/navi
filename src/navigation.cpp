@@ -54,13 +54,13 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
     wxBitmap pause = wxArtProvider::GetBitmap(wxT("gtk-media-pause"));
     wxBitmap stop = wxArtProvider::GetBitmap(wxT("gtk-media-stop"));
     wxBitmap next = wxArtProvider::GetBitmap(wxT("gtk-media-next"));
-    wxBitmap random = wxArtProvider::GetBitmap(wxT("stock_volume"));
+    wxBitmap shuffle = wxArtProvider::GetBitmap(wxT("stock_volume"));
    
     m_btnPrev = new wxBitmapButton(panelTop, ID_MEDIA_PREV, prev, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_btnPlay = new wxBitmapButton(panelTop, ID_MEDIA_PLAY, play, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_btnStop = new wxBitmapButton(panelTop, ID_MEDIA_STOP, stop, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_btnNext = new wxBitmapButton(panelTop, ID_MEDIA_NEXT, next, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    wxBitmapButton* btn5 = new wxBitmapButton(panelTop, wxID_ANY, random, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    m_btnVolume = new wxBitmapButton(panelTop, ID_MEDIA_SHUFFLE, shuffle, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_txtTimeIndicator = new wxStaticText(panelTop, wxID_ANY, wxT("-:- of -:-"));
 
     // the play button is initially disabled, because there's nothing to play
@@ -72,7 +72,7 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
     topSizer->Add(m_btnPlay);
     topSizer->Add(m_btnStop);
     topSizer->Add(m_btnNext);
-    topSizer->Add(btn5);
+    topSizer->Add(m_btnVolume);
     topSizer->AddStretchSpacer(1);
     topSizer->Add(m_txtTimeIndicator, wxSizerFlags(0).Center().Border(wxALL, 5));
     panelTop->SetSizer(topSizer);
@@ -82,7 +82,8 @@ NavigationContainer::NavigationContainer(wxWindow* parent, NaviMainFrame* naviFr
     wxBoxSizer* middleSizer = new wxBoxSizer(wxHORIZONTAL);
     m_positionSlider = new wxSlider(panelMiddle, ID_MEDIA_SEEKER, 0, 0, 100);
     m_volumeSlider = new wxSlider(panelMiddle, ID_MEDIA_VOLUME, 100, 0, 100);
-    middleSizer->Add(m_positionSlider, wxSizerFlags(1).Expand());
+    m_volumeSlider->SetToolTip(wxT("Yes, this is the volume slider o_O"));
+    middleSizer->Add(m_positionSlider, wxSizerFlags(3).Expand());
     middleSizer->Add(m_volumeSlider, wxSizerFlags(1).Expand());
     panelMiddle->SetSizer(middleSizer);
 
@@ -185,7 +186,12 @@ unsigned short NavigationContainer::getVolume() throw() {
     return m_volumeSlider->GetValue();
 }
 
+void NavigationContainer::onShuffle(wxCommandEvent& event) {
+    m_naviFrame->getTrackTable()->shuffle();
+}
+
 BEGIN_EVENT_TABLE(NavigationContainer, wxPanel)
+    EVT_BUTTON(NavigationContainer::ID_MEDIA_SHUFFLE, NavigationContainer::onShuffle)
 END_EVENT_TABLE()
 
 } //namespace navi 

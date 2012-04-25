@@ -146,7 +146,7 @@ int wxCALLBACK TrackTable::compareDuration(long item1, long item2, long sortData
     return 0;
 }
 
-void TrackTable::addTrackInfo(TrackInfo& info) {
+void TrackTable::addTrackInfo(TrackInfo& info, bool updateInternally = true) {
     wxListItem item;
     item.SetId(GetItemCount());
     long index = InsertItem(item);
@@ -163,15 +163,17 @@ void TrackTable::addTrackInfo(TrackInfo& info) {
     // selected item of this wxListCtrl (due to sorting and whatnot).
     SetItemData(index, index);
 
-    // add the info to our backing vector.
-    m_trackInfos.push_back(info);
+    if (updateInternally) {
+        // add the info to our backing vector.
+        m_trackInfos.push_back(info);
 
-    // after each track, re-sort the whole list, if that option is given in 
-    // the preferences. XXX: check if this performs well on large directories.
-    bool autosort;
-    wxConfigBase::Get()->Read(Preferences::AUTO_SORT, &autosort, true);
-    if (autosort) {
-        SortItems(TrackTable::compareTrackNumber, reinterpret_cast<long>(this));
+        // after each track, re-sort the whole list, if that option is given in 
+        // the preferences. XXX: check if this performs well on large directories.
+        bool autosort;
+        wxConfigBase::Get()->Read(Preferences::AUTO_SORT, &autosort, true);
+        if (autosort) {
+            SortItems(TrackTable::compareTrackNumber, reinterpret_cast<long>(this));
+        }
     }
 }
 
@@ -341,6 +343,21 @@ void TrackTable::onResize(wxSizeEvent& event) {
     // propagate this event up the chain. If we don't do this, the control
     // will not be automatically resized.
     event.Skip();
+}
+
+void TrackTable::shuffle() {
+    // don't call our DeleteAllItems(), since it also clears the vector.
+    wxListCtrl::DeleteAllItems();
+    // randomize vector
+    std::random_shuffle(m_trackInfos.begin(), m_trackInfos.end());
+    // re-add them all.
+    std::vector<TrackInfo>::iterator it = m_trackInfos.begin();
+    while (it < m_trackInfos.end()) {
+        TrackInfo info = *it;
+        addTrackInfo(info, false);
+        it++;
+    }
+
 }
 
 BEGIN_EVENT_TABLE(TrackTable, wxListCtrl)

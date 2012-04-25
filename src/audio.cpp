@@ -98,7 +98,6 @@ void Pipeline::fireError(const wxString& error) throw() {
 
     std::vector<PipelineListener*>::iterator it = m_listeners.begin();
     while(it < m_listeners.end()) {
-        // convert nanoseconds to seconds here plx.
         (*it)->pipelineError(this, error);
         it++;
     }

@@ -85,6 +85,9 @@ private:
     // Next track.
     wxBitmapButton* m_btnNext;
 
+    // Button volume.
+    wxBitmapButton* m_btnVolume;
+
     /// Time indicator
     wxStaticText* m_txtTimeIndicator;
 
@@ -100,6 +103,8 @@ private:
     /// Volume slider.
     wxSlider* m_volumeSlider;
 
+    void onShuffle(wxCommandEvent& event);
+
 public:
     static const short ID_MEDIA_PREV = 4000; 
     static const short ID_MEDIA_NEXT = 4001; 
@@ -107,6 +112,7 @@ public:
     static const short ID_MEDIA_PLAY = 4003; 
     static const short ID_MEDIA_RANDOM = 4004; 
     static const short ID_MEDIA_SEEKER = 4005; 
+    static const short ID_MEDIA_SHUFFLE = 4005; 
     static const short ID_MEDIA_VOLUME = 4006;
 
     /**

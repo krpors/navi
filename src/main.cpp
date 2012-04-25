@@ -527,9 +527,7 @@ void TrackStatusHandler::play() throw() {
         // subscribe to pipeline events here:
         m_pipeline->addListener(this);
     } catch (const AudioException& ex) {
-        // TODO: test if this exception thing works. Oh, and
-        // prettify it with a better icon and such.
-        wxMessageDialog dlg(m_mainFrame, ex.getAsWxString(), wxT("Error"), wxOK);
+        wxMessageDialog dlg(m_mainFrame, ex.getAsWxString(), wxT("Error"), wxOK | wxICON_ERROR);
         dlg.ShowModal();
     }
 
@@ -606,8 +604,9 @@ void TrackStatusHandler::pipelineStreamEnd(Pipeline* const pipeline) throw() {
 
 void TrackStatusHandler::pipelineError(Pipeline* const pipeline, const wxString& error) throw() {
     // NOTE: this function is called from a gst thread.
-    // NOTE: i dont get many (2 in one year) errors, but this callback method IS called!
-    std::cout << "Error: " << error.mb_str() << std::endl;
+    // Shouldn't this be called using AddPendingEvent()?
+    wxMessageDialog dlg(m_mainFrame, error, wxT("Error"), wxOK | wxICON_ERROR);
+    dlg.ShowModal();
 }
 
 void TrackStatusHandler::pipelinePosChanged(Pipeline* const pipeline, unsigned int pos, unsigned int len) throw() {
